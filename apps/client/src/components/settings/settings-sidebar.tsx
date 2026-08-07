@@ -15,6 +15,7 @@ import {
   IconSparkles,
   IconHistory,
   IconShieldCheck,
+  IconShieldLock,
 } from "@tabler/icons-react";
 import { Link, useLocation } from "react-router-dom";
 import classes from "./settings.module.css";
@@ -24,6 +25,7 @@ import useUserRole from "@/hooks/use-user-role.tsx";
 import { useAtom } from "jotai";
 import { entitlementAtom } from "@/ee/entitlement/entitlement-atom";
 import { Feature } from "@/ee/features";
+import { HIDE_LOCKED_EE_ITEMS } from "@/custom-sso/ui-flags";
 import { useUpgradeLabel } from "@/ee/hooks/use-upgrade-label";
 import {
   prefetchApiKeyManagement,
@@ -95,6 +97,13 @@ const groupedData: DataGroup[] = [
         feature: Feature.SECURITY_SETTINGS,
         role: "admin",
       },
+      // Наш собственный SSO — не за лицензией, поэтому без feature-гейта.
+      {
+        label: "Keycloak SSO",
+        icon: IconShieldLock,
+        path: "/settings/keycloak",
+        role: "admin",
+      },
       { label: "Groups", icon: IconUsersGroup, path: "/settings/groups" },
       { label: "Spaces", icon: IconSpaces, path: "/settings/spaces" },
       { label: "Public sharing", icon: IconWorld, path: "/settings/sharing" },
@@ -115,6 +124,7 @@ const groupedData: DataGroup[] = [
         label: "AI settings",
         icon: IconSparkles,
         path: "/settings/ai",
+        feature: Feature.AI,
         role: "admin",
       },
       {
@@ -171,7 +181,12 @@ export default function SettingsSidebar() {
   };
 
   const menuItems = groupedData.map((group) => {
-    if (group.heading === "System" && (!isAdmin || isCloud())) {
+    // Раздел System — это только "License & Edition" (активация платной
+    // лицензии). Прячем вместе с остальным ee, если включён флаг.
+    if (
+      group.heading === "System" &&
+      (!isAdmin || isCloud() || HIDE_LOCKED_EE_ITEMS)
+    ) {
       return null;
     }
 
@@ -232,6 +247,11 @@ export default function SettingsSidebar() {
           const isDisabled = isItemDisabled(item);
 
           if (isDisabled) {
+            // Штатно Docmost рисует серый пункт с тултипом про лицензию.
+            // Нам такие пункты не нужны — убираем совсем.
+            if (HIDE_LOCKED_EE_ITEMS) {
+              return null;
+            }
             return (
               <Tooltip
                 key={item.label}

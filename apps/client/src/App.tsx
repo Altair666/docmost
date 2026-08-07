@@ -28,6 +28,7 @@ import { useRedirectToCloudSelect } from "@/ee/hooks/use-redirect-to-cloud-selec
 import SharedPage from "@/pages/share/shared-page.tsx";
 import PdfRenderPage from "@/ee/pdf-export/pdf-render-page.tsx";
 import Shares from "@/pages/settings/shares/shares.tsx";
+import KeycloakSettingsPage from "@/custom-sso/KeycloakSettingsPage";
 import ShareLayout from "@/features/share/components/share-layout.tsx";
 import ShareRedirect from "@/pages/share/share-redirect.tsx";
 import { useTrackOrigin } from "@/hooks/use-track-origin";
@@ -124,6 +125,7 @@ export default function App() {
             <Route path={"spaces"} element={<Spaces />} />
             <Route path={"sharing"} element={<Shares />} />
             <Route path={"security"} element={<Security />} />
+            <Route path={"keycloak"} element={<KeycloakSettingsPage />} />
             <Route path={"ai"} element={<AiSettings />} />
             <Route path={"ai/mcp"} element={<AiSettings />} />
             <Route path={"audit"} element={<AuditLogs />} />
