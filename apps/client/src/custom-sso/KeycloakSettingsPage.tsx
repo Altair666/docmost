@@ -5,17 +5,20 @@ import {
   Button,
   Code,
   CopyButton,
-  Divider,
   Group,
   Loader,
   Paper,
+  PasswordInput,
   Stack,
   Text,
+  TextInput,
 } from "@mantine/core";
+import { useForm } from "@mantine/form";
 import {
   IconAlertTriangle,
   IconCheck,
   IconCopy,
+  IconDeviceFloppy,
   IconRefresh,
   IconShieldLock,
 } from "@tabler/icons-react";
@@ -26,13 +29,14 @@ import { getAppName } from "@/lib/config";
 import api from "@/lib/api-client";
 import useUserRole from "@/hooks/use-user-role";
 
-// Страница нашего самописного Keycloak SSO. Намеренно живёт вне /ee и не
-// зависит от лицензии — в отличие от штатной "Security & SSO", которая
-// платная и потому недоступна.
+// Страница нашего самописного Keycloak SSO. Живёт вне /ee и не зависит от
+// лицензии — в отличие от штатной "Security & SSO", которая платная.
 //
-// Настройка модуля целиком через переменные окружения контейнера
-// (CUSTOM_OIDC_*), поэтому страница read-only: она показывает, что сервер
-// реально видит, и проверяет, отвечает ли Keycloak.
+// Значения сохраняются в workspaces.settings->'customSso' и перекрывают
+// переменные окружения CUSTOM_OIDC_*. Env остаётся способом задать конфиг
+// до первого захода сюда.
+
+type ConfigSource = "db" | "env" | null;
 
 type OidcStatus = {
   configured: boolean;
@@ -40,63 +44,87 @@ type OidcStatus = {
   clientId: string | null;
   redirectUri: string | null;
   clientSecretSet: boolean;
+  sources: Record<string, ConfigSource>;
   discovery: { ok: boolean; error?: string };
 };
 
-async function fetchOidcStatus(): Promise<OidcStatus> {
-  const res: any = await api.get("/auth/oidc/status");
-  // глобальный transform-интерцептор заворачивает ответ в { data: ... },
-  // но подстрахуемся на случай, если для этого роута он отключён
-  return (res?.data ?? res) as OidcStatus;
+function unwrap<T>(res: any): T {
+  // глобальный transform-интерцептор заворачивает ответ в { data: ... }
+  return (res?.data ?? res) as T;
 }
 
-function ConfigRow({ label, value }: { label: string; value: string | null }) {
-  return (
-    <Group justify="space-between" wrap="nowrap" align="flex-start">
-      <Text size="sm" c="dimmed" style={{ whiteSpace: "nowrap" }}>
-        {label}
-      </Text>
-      <Group gap="xs" wrap="nowrap" style={{ minWidth: 0 }}>
-        {value ? (
-          <>
-            <Code style={{ wordBreak: "break-all" }}>{value}</Code>
-            <CopyButton value={value}>
-              {({ copied, copy }) => (
-                <Button
-                  size="compact-xs"
-                  variant="subtle"
-                  onClick={copy}
-                  leftSection={
-                    copied ? <IconCheck size={14} /> : <IconCopy size={14} />
-                  }
-                >
-                  {copied ? "copied" : "copy"}
-                </Button>
-              )}
-            </CopyButton>
-          </>
-        ) : (
-          <Badge color="gray" variant="light">
-            not set
-          </Badge>
-        )}
-      </Group>
-    </Group>
-  );
+async function fetchOidcStatus(): Promise<OidcStatus> {
+  return unwrap<OidcStatus>(await api.get("/auth/oidc/status"));
+}
+
+async function saveOidcConfig(values: {
+  issuer: string;
+  clientId: string;
+  clientSecret: string;
+  redirectUri: string;
+}): Promise<OidcStatus> {
+  return unwrap<OidcStatus>(await api.post("/auth/oidc/config", values));
+}
+
+function SourceBadge({ source }: { source: ConfigSource }) {
+  if (source === "db") {
+    return (
+      <Badge size="xs" variant="light" color="blue">
+        saved here
+      </Badge>
+    );
+  }
+  if (source === "env") {
+    return (
+      <Badge size="xs" variant="light" color="gray">
+        from env
+      </Badge>
+    );
+  }
+  return null;
 }
 
 export default function KeycloakSettingsPage() {
   const { t } = useTranslation();
   const { isAdmin } = useUserRole();
+
   const [status, setStatus] = useState<OidcStatus | null>(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
+
+  const form = useForm({
+    initialValues: {
+      issuer: "",
+      clientId: "docmost",
+      clientSecret: "",
+      redirectUri: "",
+    },
+    validate: {
+      issuer: (v) => (v.trim().length === 0 ? t("Required") : null),
+      clientId: (v) => (v.trim().length === 0 ? t("Required") : null),
+      redirectUri: (v) => (v.trim().length === 0 ? t("Required") : null),
+    },
+  });
+
+  const applyStatus = (s: OidcStatus) => {
+    setStatus(s);
+    form.setValues({
+      issuer: s.issuer ?? "",
+      clientId: s.clientId ?? "docmost",
+      clientSecret: "",
+      redirectUri:
+        s.redirectUri ?? `${window.location.origin}/api/auth/oidc/callback`,
+    });
+    form.resetDirty();
+  };
 
   const load = () => {
     setLoading(true);
     setError(null);
     fetchOidcStatus()
-      .then(setStatus)
+      .then(applyStatus)
       .catch((e) =>
         setError(e?.response?.data?.message ?? e?.message ?? "request failed"),
       )
@@ -105,9 +133,26 @@ export default function KeycloakSettingsPage() {
 
   useEffect(load, []);
 
+  const onSubmit = form.onSubmit((values) => {
+    setSaving(true);
+    setError(null);
+    setSaved(false);
+    saveOidcConfig(values)
+      .then((s) => {
+        applyStatus(s);
+        setSaved(true);
+      })
+      .catch((e) =>
+        setError(e?.response?.data?.message ?? e?.message ?? "save failed"),
+      )
+      .finally(() => setSaving(false));
+  });
+
   if (!isAdmin) {
     return null;
   }
+
+  const redirectUri = status?.redirectUri ?? form.values.redirectUri;
 
   return (
     <>
@@ -121,7 +166,7 @@ export default function KeycloakSettingsPage() {
 
       <Text size="sm" c="dimmed" mb="md">
         {t(
-          "Self-hosted OIDC login through your own Keycloak. Configured with CUSTOM_OIDC_* environment variables on the server, so this page is read-only.",
+          "Self-hosted OIDC login through your own Keycloak. Values saved here are stored in the workspace settings and take precedence over the CUSTOM_OIDC_* environment variables.",
         )}
       </Text>
 
@@ -131,7 +176,8 @@ export default function KeycloakSettingsPage() {
         <Alert
           color="red"
           icon={<IconAlertTriangle size={18} />}
-          title={t("Could not read status")}
+          title={t("Something went wrong")}
+          mb="md"
         >
           {error}
         </Alert>
@@ -145,7 +191,10 @@ export default function KeycloakSettingsPage() {
                 {t("Configured")}
               </Badge>
             ) : (
-              <Badge color="orange" leftSection={<IconAlertTriangle size={14} />}>
+              <Badge
+                color="orange"
+                leftSection={<IconAlertTriangle size={14} />}
+              >
                 {t("Not configured")}
               </Badge>
             )}
@@ -171,6 +220,12 @@ export default function KeycloakSettingsPage() {
             </Button>
           </Group>
 
+          {saved && (
+            <Alert color="green" icon={<IconCheck size={18} />}>
+              {t("Saved")}
+            </Alert>
+          )}
+
           {status.configured && !status.discovery.ok && (
             <Alert
               color="red"
@@ -182,33 +237,116 @@ export default function KeycloakSettingsPage() {
           )}
 
           <Paper withBorder p="md" radius="md">
-            <Stack gap="sm">
-              <ConfigRow label="Issuer" value={status.issuer} />
-              <Divider />
-              <ConfigRow label="Client ID" value={status.clientId} />
-              <Divider />
-              <Group justify="space-between">
-                <Text size="sm" c="dimmed">
-                  Client secret
-                </Text>
-                <Badge
-                  color={status.clientSecretSet ? "green" : "gray"}
-                  variant="light"
-                >
-                  {status.clientSecretSet ? t("set") : t("not set")}
-                </Badge>
-              </Group>
-              <Divider />
-              <ConfigRow label="Redirect URI" value={status.redirectUri} />
-            </Stack>
+            <form onSubmit={onSubmit}>
+              <Stack gap="md">
+                <TextInput
+                  label={
+                    <Group gap="xs">
+                      <span>Issuer</span>
+                      <SourceBadge source={status.sources?.issuer ?? null} />
+                    </Group>
+                  }
+                  description={t(
+                    "Realm URL, for example https://keycloak.example.com/realms/master",
+                  )}
+                  placeholder="https://keycloak.example.com/realms/master"
+                  {...form.getInputProps("issuer")}
+                />
+
+                <TextInput
+                  label={
+                    <Group gap="xs">
+                      <span>Client ID</span>
+                      <SourceBadge source={status.sources?.clientId ?? null} />
+                    </Group>
+                  }
+                  placeholder="docmost"
+                  {...form.getInputProps("clientId")}
+                />
+
+                <PasswordInput
+                  label={
+                    <Group gap="xs">
+                      <span>Client secret</span>
+                      <SourceBadge
+                        source={status.sources?.clientSecret ?? null}
+                      />
+                    </Group>
+                  }
+                  description={
+                    status.clientSecretSet
+                      ? t("A secret is already stored. Leave empty to keep it.")
+                      : t("Copy it from the Credentials tab of the Keycloak client.")
+                  }
+                  placeholder={
+                    status.clientSecretSet ? "••••••••••••" : "client secret"
+                  }
+                  {...form.getInputProps("clientSecret")}
+                />
+
+                <TextInput
+                  label={
+                    <Group gap="xs">
+                      <span>Redirect URI</span>
+                      <SourceBadge
+                        source={status.sources?.redirectUri ?? null}
+                      />
+                    </Group>
+                  }
+                  description={t(
+                    "Must match Valid redirect URIs in Keycloak exactly, including the /api/ prefix.",
+                  )}
+                  {...form.getInputProps("redirectUri")}
+                />
+
+                <Group justify="space-between">
+                  <CopyButton value={redirectUri || ""}>
+                    {({ copied, copy }) => (
+                      <Button
+                        variant="subtle"
+                        size="compact-sm"
+                        onClick={copy}
+                        leftSection={
+                          copied ? (
+                            <IconCheck size={14} />
+                          ) : (
+                            <IconCopy size={14} />
+                          )
+                        }
+                      >
+                        {copied
+                          ? t("Redirect URI copied")
+                          : t("Copy redirect URI")}
+                      </Button>
+                    )}
+                  </CopyButton>
+
+                  <Button
+                    type="submit"
+                    loading={saving}
+                    leftSection={<IconDeviceFloppy size={18} />}
+                  >
+                    {t("Save")}
+                  </Button>
+                </Group>
+              </Stack>
+            </form>
           </Paper>
 
           <Alert color="blue" title={t("Keycloak client checklist")}>
-            <Text size="sm">
-              {t(
-                "Client authentication: On. Valid redirect URIs must match the Redirect URI above exactly, including the /api/ prefix — a missing /api/ is the most common mistake and Keycloak answers with 'Invalid parameter: redirect_uri'.",
-              )}
-            </Text>
+            <Stack gap={4}>
+              <Text size="sm">
+                {t("Client authentication: On (confidential client).")}
+              </Text>
+              <Text size="sm">
+                {t("Valid redirect URIs:")} <Code>{redirectUri}</Code>
+              </Text>
+              <Text size="sm">
+                {t(
+                  "A missing /api/ prefix is the most common mistake — Keycloak then answers 'Invalid parameter: redirect_uri'.",
+                )}
+              </Text>
+            </Stack>
           </Alert>
 
           <Group>
@@ -216,7 +354,7 @@ export default function KeycloakSettingsPage() {
               component="a"
               href="/api/auth/oidc/login"
               leftSection={<IconShieldLock size={18} />}
-              disabled={!status.configured}
+              disabled={!status.configured || !status.discovery.ok}
             >
               {t("Test login")}
             </Button>
