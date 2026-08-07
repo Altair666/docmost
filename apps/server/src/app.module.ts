@@ -54,7 +54,7 @@ try {
     );
   }
 } catch (err) {
-  console.warn('Custom SSO module not bundled, skipping.', err.message);
+  console.warn('Custom SSO module not bundled, skipping.', (err as Error).message);
 }
 
 @Module({
