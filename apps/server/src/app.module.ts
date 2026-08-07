@@ -47,10 +47,10 @@ try {
 const customModules = [];
 try {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  if (require('./custom-sso/custom-sso.module')?.CustomSsoModule) {
+  if (require('./custom-sso/src/custom-sso.module')?.CustomSsoModule) {
     customModules.push(
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      require('./custom-sso/custom-sso.module')?.CustomSsoModule,
+      require('./custom-sso/src/custom-sso.module')?.CustomSsoModule,
     );
   }
 } catch (err) {
