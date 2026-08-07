@@ -42,6 +42,21 @@ try {
   }
 }
 
+// Самописный OIDC/Keycloak SSO-модуль — не часть ee, живёт в отдельном
+// submodule apps/server/src/custom-sso. См. docmost-custom-sso/README.md.
+const customModules = [];
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  if (require('./custom-sso/custom-sso.module')?.CustomSsoModule) {
+    customModules.push(
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      require('./custom-sso/custom-sso.module')?.CustomSsoModule,
+    );
+  }
+} catch (err) {
+  console.warn('Custom SSO module not bundled, skipping.', err.message);
+}
+
 @Module({
   imports: [
     ClsModule.forRoot({
@@ -51,6 +66,7 @@ try {
     LoggerModule,
     NoopAuditModule,
     CoreModule,
+    ...customModules,
     DatabaseModule,
     EnvironmentModule,
     RedisModule.forRootAsync({
