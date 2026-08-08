@@ -40,6 +40,12 @@ html {
   --grist-hover: #ebebeb;
   --grist-radius: 4px;
 
+  /* Кегль текста внутри страниц. Интерфейс у Grist 13px, но там это таблицы,
+     а у нас проза — читать 13px длинными абзацами тяжело. 14px компромисс.
+     Хотите строгого единообразия — поставьте 13px, заголовки подстроятся
+     сами, они считаются от этой величины. */
+  --grist-content-size: 14px;
+
   --grist-font: -apple-system, BlinkMacSystemFont, "Segoe UI", "Liberation Sans",
     Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 }
@@ -195,6 +201,116 @@ html[data-mantine-color-scheme="light"] .mantine-Input-input {
 html[data-mantine-color-scheme="light"] .mantine-Input-input:focus,
 html[data-mantine-color-scheme="light"] .mantine-Input-input:focus-within {
   border-color: var(--grist-primary);
+}
+
+/* ============================================================
+   3b. Заплатка на опечатку в стилях Docmost
+   ============================================================ */
+
+/* В settings.module.css и global-sidebar.module.css активный пункт описан так:
+       &[data-active] { &, & :hover { background-color: ... } }
+   `& :hover` с пробелом — это «любой ПОТОМОК под курсором», а не сам пункт.
+   Поэтому при наведении светлый фон получал вложенный span, и поверх нашей
+   тёмной плашки появлялся белый прямоугольник по ширине текста. В стоковом
+   Docmost этого не видно: цвет совпадал с фоном активного пункта.
+
+   В исходниках опечатка исправлена, но правило оставлено — тема должна
+   выглядеть правильно и на сборке без этой правки. */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar a[data-active] :hover,
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar a[aria-current="page"] :hover {
+  background-color: transparent;
+  color: inherit;
+}
+
+/* ============================================================
+   4b. Подсказки при наведении
+   ============================================================ */
+
+/* Mantine красит тултип так:
+     background-color: var(--tooltip-bg, var(--mantine-color-gray-9));
+     color:            var(--tooltip-color, var(--mantine-color-white));
+   Текст всегда белый, а фон берётся из переменной. Стоит фону где-то
+   оказаться светлым — и подсказка превращается в пустой белый
+   прямоугольник. Задаём оба цвета явно, чтобы это не зависело от того,
+   что творится с палитрой. Селектор Mantine написан через :where(),
+   у него нулевой вес, так что наше правило перебивает его без !important.
+
+   Заодно Popover: если его фон окажется не задан, получится такой же
+   белый блок. */
+html[data-mantine-color-scheme="light"] .mantine-Tooltip-tooltip {
+  background-color: var(--grist-bg-emphasis);
+  color: #ffffff;
+  font-size: 12px;
+  box-shadow: none;
+}
+
+html[data-mantine-color-scheme="light"] .mantine-Popover-dropdown,
+html[data-mantine-color-scheme="light"] .mantine-Menu-dropdown {
+  background-color: var(--grist-bg);
+  color: var(--grist-body);
+}
+
+/* ============================================================
+   4c. Страницы: /s/<пространство>/p/<страница>
+   ============================================================ */
+
+/* Содержимое страниц рисует ProseMirror, у него свои стили и своя
+   типографика. Шрифт он наследует, но размер берёт из --mantine-font-size-md,
+   который мы уменьшили до 13px, — а заголовки заданы в rem и остались
+   прежними (30/24/20px). Получался мелкий текст под крупными заголовками.
+   Поэтому задаём и то и другое явно, считая заголовки от размера текста. */
+html[data-mantine-color-scheme="light"] .ProseMirror {
+  font-family: var(--grist-font);
+  font-size: var(--grist-content-size);
+}
+
+html[data-mantine-color-scheme="light"] .ProseMirror h1 {
+  font-size: calc(var(--grist-content-size) * 1.9);
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+
+html[data-mantine-color-scheme="light"] .ProseMirror h2 {
+  font-size: calc(var(--grist-content-size) * 1.5);
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+html[data-mantine-color-scheme="light"] .ProseMirror h3 {
+  font-size: calc(var(--grist-content-size) * 1.22);
+  font-weight: 600;
+}
+
+/* Заголовок самой страницы — крупнее прочего, но в той же пропорции */
+html[data-mantine-color-scheme="light"] .page-title .ProseMirror h1 {
+  font-size: calc(var(--grist-content-size) * 2.35);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* Таблицы внутри страниц — тонкие линии, как у остального интерфейса */
+html[data-mantine-color-scheme="light"] .ProseMirror table td,
+html[data-mantine-color-scheme="light"] .ProseMirror table th {
+  border-color: var(--grist-decoration-secondary);
+}
+
+html[data-mantine-color-scheme="light"] .ProseMirror table th {
+  background-color: var(--grist-bg-secondary);
+  font-weight: 600;
+}
+
+/* Цитата и разделитель */
+html[data-mantine-color-scheme="light"] .ProseMirror blockquote {
+  border-left-color: var(--grist-primary);
+}
+
+html[data-mantine-color-scheme="light"] .ProseMirror hr {
+  border-color: var(--grist-decoration-secondary);
+}
+
+/* Ссылки — зелёные, как акцент Grist */
+html[data-mantine-color-scheme="light"] .ProseMirror a {
+  color: var(--grist-primary-dim);
 }
 
 /* ============================================================

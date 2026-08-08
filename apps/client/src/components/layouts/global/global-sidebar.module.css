@@ -38,7 +38,10 @@
 
     &[data-active] {
         &,
-        & :hover {
+        /* Было `& :hover` — с пробелом это «любой потомок под курсором»,
+           поэтому подсветку получал вложенный span, а не сам пункт.
+           В стоке незаметно: цвет совпадал с фоном активного пункта. */
+        &:hover {
             background-color: light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-6));
             color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
         }
