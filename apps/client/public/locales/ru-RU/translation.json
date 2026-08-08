@@ -98,7 +98,7 @@
   "Failed to export CSV": "Не удалось экспортировать CSV",
   "Favorite spaces": "Избранные пространства",
   "Favorite spaces appear here": "Здесь отображаются избранные пространства",
-  "Favorites": "Избранное",
+  "Favorites": "Закреплён",
   "Full access": "Полный доступ",
   "Full page width": "Ширина на всю страницу",
   "Full width": "Во всю ширину",
@@ -163,7 +163,7 @@
   "Preferences": "Настройки",
   "Print PDF": "Печать PDF",
   "Profile": "Профиль",
-  "Recently updated": "Обновлено недавно",
+  "Recently updated": "Недавний",
   "Remove": "Удалить",
   "Remove from favorites": "Удалить из избранного",
   "Remove group member": "Удалить участника группы",
@@ -193,7 +193,7 @@
   "Space name": "Название пространства",
   "Space settings": "Настройки пространства",
   "Space slug": "Слаг пространства",
-  "Spaces": "Пространства",
+  "Spaces": "Все документы",
   "Spaces you belong to": "Пространства, в которых вы состоите",
   "No space found": "Пространство не найдено",
   "Search for spaces": "Поиск пространств",
@@ -1289,5 +1289,6 @@
   "{{count}} rows deleted_one": "1 row deleted",
   "{{count}} rows deleted_other": "{{count}} rows deleted",
   "{{count}} selected_one": "1 selected",
-  "{{count}} selected_other": "{{count}} selected"
+  "{{count}} selected_other": "{{count}} selected",
+  "Created by me": "Кем создано"
 }

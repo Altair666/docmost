@@ -88,7 +88,9 @@ export default function GlobalAppShell({
       <AppShell
       header={{ height: 45 }}
       navbar={{
-        width: isSpaceRoute ? sidebarWidth : 300,
+        // Ширина тянется мышью везде, а не только в пространствах:
+        // раньше на главной и в настройках она была жёстко 300px.
+        width: sidebarWidth,
         breakpoint: "sm",
         collapsed: {
           mobile: !mobileOpened,

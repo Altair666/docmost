@@ -25,6 +25,10 @@ import { useHasFeature } from "@/ee/hooks/use-feature";
 import { Feature } from "@/ee/features";
 import { useUpgradeLabel } from "@/ee/hooks/use-upgrade-label";
 import { HIDE_LOCKED_EE_ITEMS } from "@/custom-sso/ui-flags";
+import {
+  IconGristPin,
+  IconGristStack,
+} from "@/custom-sso/GristIcons";
 
 export default function GlobalSidebar() {
   const { t } = useTranslation();
@@ -36,8 +40,10 @@ export default function GlobalSidebar() {
   const upgradeLabel = useUpgradeLabel();
   const mainNavItems = [
     { label: "Home", icon: IconHome, path: "/home" },
-    { label: "Favorites", icon: IconStar, path: "/favorites" },
-    { label: "Spaces", icon: IconLayoutGrid, path: "/spaces" },
+    // Значки из Grist: закреп — канцелярская кнопка, «все документы» —
+    // стопка слоёв. Подписи меняются в файле переводов.
+    { label: "Favorites", icon: IconGristPin, path: "/favorites" },
+    { label: "Spaces", icon: IconGristStack, path: "/spaces" },
     {
       label: "Templates",
       icon: IconTemplate,
@@ -107,6 +113,10 @@ export default function GlobalSidebar() {
           )}
         </div>
 
+        {/* Секция избранных пространств: по требованию скрыта.
+            Флаг тот же, что и у платных пунктов, — вернуть можно одной строкой. */}
+        {!HIDE_LOCKED_EE_ITEMS && (
+          <>
         <Divider my="xs" />
         <div className={classes.section}>
           <Text component="h2" className={classes.sectionHeader}>{t("Favorite spaces")}</Text>
@@ -150,6 +160,8 @@ export default function GlobalSidebar() {
             </>
           )}
         </div>
+          </>
+        )}
 
       </ScrollArea>
 

@@ -1,19 +1,27 @@
 /*
  * Оформление Docmost в визуальном языке Grist.
  *
- * Вставьте содержимое этого файла в Настройки → Appearance → «Свой CSS»
- * (или загрузите файл там же) и сохраните.
+ * Вставляется в Настройки → Appearance → «Свой CSS» (или файлом там же).
  *
  * Значения не подобраны на глаз — вытащены из исходников grist-core:
  *   app/common/themes/GristLight.ts  — цвета
  *   app/common/themes/Base.ts        — шрифт и размеры (базовый кегль 13px)
  *
- * Правила действуют только в светлой схеме: у Grist своя тёмная,
- * это отдельная работа. В тёмной Docmost остаётся собой.
+ * Работает только в светлой схеме: у Grist своя тёмная, это отдельная работа.
  *
- * Если оформление что-то сломало и до настроек не добраться — откройте
- * любой адрес с ?nocustomcss=1, тогда этот файл не применится.
+ * Если что-то сломалось и до настроек не добраться — откройте любой адрес
+ * с ?nocustomcss=1, тогда этот файл не применится.
+ *
+ * ВАЖНО про селекторы. Docmost собирает свои классы через CSS-модули, имена
+ * получаются с хэшем и меняются от сборки к сборке. Поэтому здесь всё висит
+ * на устойчивых зацепках: классах компонентов Mantine (.mantine-*),
+ * атрибутах data-active / aria-current и структуре разметки. Хрупкие места
+ * помечены отдельно.
  */
+
+/* ============================================================
+   1. Основа: цвета, шрифт, скругления
+   ============================================================ */
 
 html {
   --grist-body: #262633;
@@ -22,11 +30,12 @@ html {
   --grist-bg-emphasis: #262633;
   --grist-decoration: #d9d9d9;
   --grist-decoration-secondary: #e8e8e8;
+  --grist-line-soft: #f0f0f0;
   --grist-primary: #16b378;
   --grist-primary-muted: #009058;
   --grist-primary-dim: #007548;
   --grist-secondary: #929299;
-  --grist-selection-opaque: #dcf4eb;
+  --grist-selection: #dcf4eb;
   --grist-medium-text: #494949;
   --grist-hover: #ebebeb;
   --grist-radius: 4px;
@@ -60,7 +69,7 @@ html[data-mantine-color-scheme="light"] {
 
   --mantine-primary-color-filled: var(--grist-primary);
   --mantine-primary-color-filled-hover: var(--grist-primary-muted);
-  --mantine-primary-color-light: var(--grist-selection-opaque);
+  --mantine-primary-color-light: var(--grist-selection);
   --mantine-primary-color-light-hover: #d6eee5;
   --mantine-primary-color-light-color: var(--grist-primary-dim);
   --mantine-primary-color-contrast: #ffffff;
@@ -71,17 +80,69 @@ html[data-mantine-color-scheme="light"] {
   --mantine-color-blue-8: var(--grist-primary-dim);
 }
 
-/* --------- плотность и линии: у Grist почти нет теней --------- */
-html[data-mantine-color-scheme="light"] .mantine-Paper-root,
-html[data-mantine-color-scheme="light"] .mantine-Card-root {
-  border-color: var(--grist-decoration-secondary);
+/* ============================================================
+   2. Шапка и сайдбар
+   ============================================================ */
+
+html[data-mantine-color-scheme="light"] .mantine-AppShell-header {
+  border-bottom: 1px solid var(--grist-decoration-secondary);
+  box-shadow: none;
 }
 
-html[data-mantine-color-scheme="light"] .mantine-Button-root {
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar {
+  background: var(--grist-bg-secondary);
+  border-right: 1px solid var(--grist-decoration-secondary);
+}
+
+/* Пункты навигации: плотнее, квадратнее */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar a,
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar button {
+  border-radius: var(--grist-radius);
+}
+
+/* Выбранный пункт — тёмная плашка с белым текстом.
+   Это самое заметное отличие от стокового Docmost, где подсветка мягкая. */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar a[data-active],
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar a[aria-current="page"] {
+  background: var(--grist-bg-emphasis);
+  color: #ffffff;
+}
+
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar a[data-active] svg,
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar a[aria-current="page"] svg,
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar a[data-active] span,
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar a[aria-current="page"] span {
+  color: #ffffff;
+}
+
+/* Заголовки групп — прописные с разрядкой, как в Grist */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar h2 {
+  font-size: 11px;
   font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--grist-secondary);
 }
 
-/* --------- вкладки: зелёное подчёркивание --------- */
+/* Секция «Избранные пространства» теперь скрывается в коде
+   (global-sidebar.tsx, флаг HIDE_LOCKED_EE_ITEMS), а не подбором селектора:
+   прежнее правило опознавало её по единственному h2 и сломалось бы,
+   появись в сайдбаре ещё один заголовок. */
+
+/* ============================================================
+   3. Бабл рабочего пространства
+   ============================================================ */
+
+/* ХРУПКОЕ: стрелку у бабла опознаём как последний svg в шапке.
+   Разметки без хэшированных классов там нет, поэтому зацепка структурная. */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-header > div > div:last-child button svg:last-of-type {
+  display: none;
+}
+
+/* ============================================================
+   4. Вкладки, таблицы, меню, поля
+   ============================================================ */
+
 html[data-mantine-color-scheme="light"] .mantine-Tabs-tab {
   color: var(--grist-secondary);
   font-weight: 500;
@@ -100,19 +161,17 @@ html[data-mantine-color-scheme="light"] .mantine-Tabs-tab:hover {
   color: var(--grist-body);
 }
 
-/* --------- таблицы: тонкие разделители --------- */
 html[data-mantine-color-scheme="light"] .mantine-Table-thead th {
   color: var(--grist-secondary);
   font-weight: 450;
   font-size: 13px;
-  border-bottom-color: #f0f0f0;
+  border-bottom-color: var(--grist-line-soft);
 }
 
 html[data-mantine-color-scheme="light"] .mantine-Table-tbody td {
-  border-bottom-color: #f0f0f0;
+  border-bottom-color: var(--grist-line-soft);
 }
 
-/* --------- меню --------- */
 html[data-mantine-color-scheme="light"] .mantine-Menu-dropdown,
 html[data-mantine-color-scheme="light"] .mantine-Popover-dropdown {
   border-color: var(--grist-decoration-secondary);
@@ -128,7 +187,6 @@ html[data-mantine-color-scheme="light"] .mantine-Menu-label {
   color: var(--grist-secondary);
 }
 
-/* --------- поля ввода --------- */
 html[data-mantine-color-scheme="light"] .mantine-Input-input {
   border-color: var(--grist-decoration-secondary);
   border-radius: var(--grist-radius);
@@ -139,15 +197,20 @@ html[data-mantine-color-scheme="light"] .mantine-Input-input:focus-within {
   border-color: var(--grist-primary);
 }
 
-/* --------- навигация: выбранный пункт тёмной плашкой --------- */
-html[data-mantine-color-scheme="light"] a[data-active],
-html[data-mantine-color-scheme="light"] [aria-current="page"] {
-  background: var(--grist-bg-emphasis);
-  color: #ffffff;
-  border-radius: var(--grist-radius);
+/* ============================================================
+   5. Карточки и кнопки: меньше теней, плотнее
+   ============================================================ */
+
+html[data-mantine-color-scheme="light"] .mantine-Paper-root,
+html[data-mantine-color-scheme="light"] .mantine-Card-root {
+  border-color: var(--grist-decoration-secondary);
+  box-shadow: none;
 }
 
-html[data-mantine-color-scheme="light"] a[data-active] svg,
-html[data-mantine-color-scheme="light"] [aria-current="page"] svg {
-  color: #ffffff;
+html[data-mantine-color-scheme="light"] .mantine-Button-root {
+  font-weight: 600;
+}
+
+html[data-mantine-color-scheme="light"] .mantine-Title-root {
+  letter-spacing: -0.01em;
 }
