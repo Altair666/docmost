@@ -24,6 +24,7 @@ import { AvatarIconType } from "@/features/attachments/types/attachment.types";
 import { useHasFeature } from "@/ee/hooks/use-feature";
 import { Feature } from "@/ee/features";
 import { useUpgradeLabel } from "@/ee/hooks/use-upgrade-label";
+import { HIDE_LOCKED_EE_ITEMS } from "@/custom-sso/ui-flags";
 
 export default function GlobalSidebar() {
   const { t } = useTranslation();
@@ -43,7 +44,10 @@ export default function GlobalSidebar() {
       path: "/templates",
       disabled: !hasTemplates,
     },
-  ];
+    // недоступные по лицензии пункты не показываем вовсе
+  ].filter(
+    (item) => !(HIDE_LOCKED_EE_ITEMS && "disabled" in item && item.disabled),
+  );
   const { data: favoriteSpacesData, isPending: isFavoritesPending } = useFavoritesQuery("space");
   const favoriteSpaces = favoriteSpacesData?.pages.flatMap((p) => p.items) ?? [];
   const sortedFavoriteSpaces = [...favoriteSpaces]

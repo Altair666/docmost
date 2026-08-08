@@ -20,6 +20,7 @@ import { useTranslation } from "react-i18next";
 import { useHasFeature } from "@/ee/hooks/use-feature";
 import { Feature } from "@/ee/features";
 import { useUpgradeLabel } from "@/ee/hooks/use-upgrade-label";
+import { HIDE_LOCKED_EE_ITEMS } from "@/custom-sso/ui-flags";
 
 const CommandList = ({
   items,
@@ -46,9 +47,25 @@ const CommandList = ({
   const isItemDisabled = (item: SlashMenuItemType) =>
     !hasBases && item.requiresBases === true;
 
+  // Штатно заблокированный пункт остаётся в списке неактивным. Нам это ни к
+  // чему: без лицензии base и kanban не работают вообще, а мёртвый пункт
+  // только сбивает с толку. Фильтруем и список, и раскладку по категориям,
+  // иначе разъедется нумерация для клавиатурной навигации.
+  const visibleItems = useMemo(() => {
+    if (!HIDE_LOCKED_EE_ITEMS) return items;
+    const filtered: Record<string, SlashMenuItemType[]> = {};
+    for (const [category, list] of Object.entries(items)) {
+      const kept = (list as SlashMenuItemType[]).filter(
+        (item) => !(!hasBases && item.requiresBases === true),
+      );
+      if (kept.length > 0) filtered[category] = kept;
+    }
+    return filtered;
+  }, [items, hasBases]);
+
   const flatItems = useMemo(() => {
-    return Object.values(items).flat();
-  }, [items]);
+    return Object.values(visibleItems).flat();
+  }, [visibleItems]);
 
   const selectItem = useCallback(
     (index: number) => {
@@ -145,7 +162,7 @@ const CommandList = ({
       >
         {(() => {
           let flatIndex = -1;
-          return Object.entries(items).map(([category, categoryItems]) => (
+          return Object.entries(visibleItems).map(([category, categoryItems]) => (
           <div key={category} role="group" aria-label={category}>
             <Text c="dimmed" mb={4} fw={500} tt="capitalize">
               {category}

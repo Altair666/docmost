@@ -76,6 +76,12 @@ const groupedData: DataGroup[] = [
         path: "/settings/account/api-keys",
         feature: Feature.API_KEYS,
       },
+      // Наши персональные токены — без feature-гейта, доступны всем.
+      {
+        label: "API tokens",
+        icon: IconKey,
+        path: "/settings/account/api-tokens",
+      },
     ],
   },
   {
