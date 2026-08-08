@@ -3,6 +3,8 @@ import "@mantine/spotlight/styles.css";
 import "@mantine/notifications/styles.css";
 import '@mantine/dates/styles.css';
 import "@/styles/a11y-overrides.css";
+import "@/custom-sso/grist-theme.css";
+import { applyUiTheme, loadUiTheme } from "@/custom-sso/ui-theme";
 
 import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
@@ -42,6 +44,10 @@ if (isCloud() && isPostHogEnabled) {
     capture_pageleave: false,
   });
 }
+
+// Оформление общее для всех участников, поэтому спрашиваем сервер
+// до отрисовки. Не смогли — остаётся стоковый вид.
+void loadUiTheme().then(applyUiTheme);
 
 const container = document.getElementById("root") as HTMLElement;
 const root = (container as any).__reactRoot ??= ReactDOM.createRoot(container);

@@ -110,6 +110,13 @@ const groupedData: DataGroup[] = [
         path: "/settings/keycloak",
         role: "admin",
       },
+      // Оформление интерфейса: общее для всех, меняет администратор.
+      {
+        label: "Appearance",
+        icon: IconBrush,
+        path: "/settings/appearance",
+        role: "admin",
+      },
       { label: "Groups", icon: IconUsersGroup, path: "/settings/groups" },
       { label: "Spaces", icon: IconSpaces, path: "/settings/spaces" },
       { label: "Public sharing", icon: IconWorld, path: "/settings/sharing" },

@@ -30,6 +30,7 @@ import PdfRenderPage from "@/ee/pdf-export/pdf-render-page.tsx";
 import Shares from "@/pages/settings/shares/shares.tsx";
 import KeycloakSettingsPage from "@/custom-sso/KeycloakSettingsPage";
 import ApiTokensPage from "@/custom-sso/ApiTokensPage";
+import UiThemePage from "@/custom-sso/UiThemePage";
 import ShareLayout from "@/features/share/components/share-layout.tsx";
 import ShareRedirect from "@/pages/share/share-redirect.tsx";
 import { useTrackOrigin } from "@/hooks/use-track-origin";
@@ -127,6 +128,7 @@ export default function App() {
             <Route path={"sharing"} element={<Shares />} />
             <Route path={"security"} element={<Security />} />
             <Route path={"keycloak"} element={<KeycloakSettingsPage />} />
+            <Route path={"appearance"} element={<UiThemePage />} />
             <Route
               path={"account/api-tokens"}
               element={<ApiTokensPage />}
