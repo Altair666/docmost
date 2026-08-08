@@ -59,20 +59,18 @@ export default function TopMenu() {
     <>
     <Menu width={250} position="bottom-end" withArrow shadow={"lg"}>
       <Menu.Target>
-        <UnstyledButton>
-          <Group gap={7} wrap={"nowrap"}>
-            <CustomAvatar
-              avatarUrl={workspace?.logo}
-              name={workspace?.name}
-              variant="filled"
-              size="sm"
-              type={AvatarIconType.WORKSPACE_ICON}
-            />
-            <Text fw={500} size="sm" lh={1} mr={3} lineClamp={1}>
-              {workspace?.name}
-            </Text>
-            <IconChevronDown size={16} />
-          </Group>
+        {/* Раньше это была плашка воркспейса с названием и стрелкой. Название
+            переехало в левый верхний угол (WorkspaceBadge), а меню осталось
+            здесь и открывается по кружку с аватаром пользователя — без
+            подписи и без стрелки. Содержимое меню не тронуто: настройки
+            воркспейса, участники, профиль, мои настройки, тема, выход. */}
+        <UnstyledButton aria-label={t("Account and settings")}>
+          <CustomAvatar
+            avatarUrl={user.avatarUrl}
+            name={user.name}
+            variant="filled"
+            size="sm"
+          />
         </UnstyledButton>
       </Menu.Target>
       <Menu.Dropdown>

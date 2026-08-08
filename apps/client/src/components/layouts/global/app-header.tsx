@@ -34,6 +34,8 @@ import {
 } from "@/features/search/constants.ts";
 import { NotificationPopover } from "@/features/notification/components/notification-popover.tsx";
 import { workspaceAtom } from "@/features/user/atoms/current-user-atom.ts";
+import { sidebarWidthAtom } from "@/components/layouts/global/hooks/atoms/sidebar-atom.ts";
+import WorkspaceBadge from "@/custom-sso/WorkspaceBadge";
 
 const links = [
   { link: APP_ROUTE.HOME, label: "Home" },
@@ -42,6 +44,7 @@ const links = [
 export function AppHeader() {
   const { t } = useTranslation();
   const [mobileOpened] = useAtom(mobileSidebarAtom);
+  const [sidebarWidth] = useAtom(sidebarWidthAtom);
   const toggleMobile = useToggleSidebar(mobileSidebarAtom);
 
   const [desktopOpened] = useAtom(desktopSidebarAtom);
@@ -62,8 +65,24 @@ export function AppHeader() {
 
   return (
     <>
-      <Group h="100%" px="md" justify="space-between" wrap={"nowrap"}>
-        <Group wrap="nowrap">
+      {/* Перекрестье: левая ячейка шапки шириной ровно с сайдбар и с правой
+          границей — так вертикальная линия идёт от самого верха, а не от
+          нижнего края шапки. Ширина берётся из того же атома, что и у
+          сайдбара, поэтому при перетаскивании граница едет вместе с ним.
+          Когда сайдбар свёрнут, ячейка схлопывается. */}
+      <Group h="100%" gap={0} wrap={"nowrap"} align="stretch">
+        <Group
+          gap="xs"
+          px="sm"
+          wrap="nowrap"
+          w={desktopOpened ? sidebarWidth : undefined}
+          style={{
+            flex: "none",
+            borderRight: desktopOpened
+              ? "1px solid var(--app-shell-border-color)"
+              : undefined,
+          }}
+        >
           <Tooltip label={t("Sidebar toggle")}>
             <SidebarToggle
               aria-label={t("Sidebar toggle")}
@@ -84,40 +103,48 @@ export function AppHeader() {
             />
           </Tooltip>
 
-          <Link to="/home" className={classes.brand} aria-label="Docmost">
-            <Box hiddenFrom="sm" className={classes.brandIcon}>
-              <img
-                src="/icons/favicon-32x32.png"
-                alt="Docmost"
-                width={22}
-                height={22}
-              />
-            </Box>
-            <Text
-              size="lg"
-              fw={600}
-              style={{ userSelect: "none" }}
-              visibleFrom="sm"
-            >
-              Docmost
-            </Text>
-          </Link>
+          {/* Название фирмы из настроек рабочего пространства.
+              Заменило надпись «Docmost», которая тут была раньше. */}
+          <Box visibleFrom="sm" style={{ minWidth: 0 }}>
+            <WorkspaceBadge />
+          </Box>
 
-          <Group ml={50} gap={5} className={classes.links} visibleFrom="sm">
-            {items}
-          </Group>
+          {/* На узких экранах вместо плашки — иконка, ведущая на главную.
+              hiddenFrom понимает Box, а не Link из react-router. */}
+          <Box hiddenFrom="sm">
+            <Link to="/home" className={classes.brand} aria-label="Docmost">
+              <Box className={classes.brandIcon}>
+                <img
+                  src="/icons/favicon-32x32.png"
+                  alt="Docmost"
+                  width={22}
+                  height={22}
+                />
+              </Box>
+            </Link>
+          </Box>
         </Group>
 
-        <div>
+        <Group
+          flex={1}
+          px="md"
+          justify="space-between"
+          wrap={"nowrap"}
+          style={{ minWidth: 0 }}
+        >
+          <Group gap={5} className={classes.links} visibleFrom="sm" wrap="nowrap">
+            {items}
+          </Group>
+
+          <Group gap="xs" wrap="nowrap">
           <Group visibleFrom="sm">
             <SearchControl onClick={searchSpotlight.open} />
           </Group>
           <Group hiddenFrom="sm">
             <SearchMobileControl onSearch={searchSpotlight.open} />
           </Group>
-        </div>
 
-        <Group px={"xl"} wrap="nowrap">
+        <Group wrap="nowrap">
           {aiChatEnabled && (
             <>
               <UnstyledButton
@@ -176,6 +203,8 @@ export function AppHeader() {
             </Badge>
           )}
           <TopMenu />
+          </Group>
+          </Group>
         </Group>
       </Group>
     </>
