@@ -5,6 +5,7 @@ import { Indicator, Text, Tooltip } from "@mantine/core";
 import React from "react";
 import semverGt from "semver/functions/gt";
 import { useTranslation } from "react-i18next";
+import { formatCustomVersion } from "@/custom-sso/build-version";
 
 export default function AppVersion() {
   const { t } = useTranslation();
@@ -50,7 +51,12 @@ export default function AppVersion() {
             href="https://github.com/docmost/docmost/releases"
             target="_blank"
           >
-            {appVersion?.currentVersion && <>v{appVersion?.currentVersion}</>}
+            {/* Показываем 0.95.<наша сборка>: major.minor берём от
+                апстрима, патч-версию подставляем свою.
+                См. custom-sso/build-version.ts */}
+            {appVersion?.currentVersion && (
+              <>v{formatCustomVersion(appVersion.currentVersion)}</>
+            )}
           </Text>
         </Indicator>
       </Tooltip>

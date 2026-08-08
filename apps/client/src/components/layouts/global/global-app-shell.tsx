@@ -106,7 +106,10 @@ export default function GlobalAppShell({
       }
       padding="md"
     >
-      <AppShell.Header px="md" className={classes.header}>
+      {/* Без горизонтального отступа: иначе левая ячейка шапки съезжает
+          на 16px и вертикаль перекрестья не совпадает с краем сайдбара.
+          Отступы теперь задают сами группы внутри AppHeader. */}
+      <AppShell.Header px={0} className={classes.header}>
         <AppHeader />
       </AppShell.Header>
       <AppShell.Navbar

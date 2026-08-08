@@ -132,9 +132,10 @@ export function AppHeader() {
           wrap={"nowrap"}
           style={{ minWidth: 0 }}
         >
-          <Group gap={5} className={classes.links} visibleFrom="sm" wrap="nowrap">
-            {items}
-          </Group>
+          {/* Ссылка «Главная» убрана: на главную ведёт сама плашка с
+              названием фирмы слева, как в Grist. Массив links оставлен —
+              если понадобится вернуть пункты, менять только его. */}
+          <Group gap={5} className={classes.links} visibleFrom="sm" wrap="nowrap" />
 
           <Group gap="xs" wrap="nowrap">
           <Group visibleFrom="sm">
