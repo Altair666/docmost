@@ -69,6 +69,10 @@ function buildWorkspaceMemberAbility() {
   can(WorkspaceCaslAction.Read, WorkspaceCaslSubject.Settings);
   can(WorkspaceCaslAction.Read, WorkspaceCaslSubject.Member);
   can(WorkspaceCaslAction.Read, WorkspaceCaslSubject.Space);
+  // Участник может завести своё пространство. Внутри созданного он
+  // становится админом (createSpace зовёт addUserToSpace с SpaceRole.ADMIN),
+  // на чужие пространства это никак не влияет.
+  can(WorkspaceCaslAction.Create, WorkspaceCaslSubject.Space);
   can(WorkspaceCaslAction.Read, WorkspaceCaslSubject.Group);
   can(WorkspaceCaslAction.Manage, WorkspaceCaslSubject.Attachment);
   can(WorkspaceCaslAction.Create, WorkspaceCaslSubject.API);

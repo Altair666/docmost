@@ -135,8 +135,11 @@ export class SpaceController {
     @AuthWorkspace() workspace: Workspace,
   ) {
     const ability = this.workspaceAbility.createForUser(user, workspace);
+    // Create, а не Manage: у owner/admin стоит Manage — джокер, который
+    // покрывает и Create, поэтому им ничего не ломается, а участник
+    // получает право завести собственное пространство.
     if (
-      ability.cannot(WorkspaceCaslAction.Manage, WorkspaceCaslSubject.Space)
+      ability.cannot(WorkspaceCaslAction.Create, WorkspaceCaslSubject.Space)
     ) {
       throw new ForbiddenException();
     }
