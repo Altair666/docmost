@@ -1,18 +1,17 @@
 import api from "@/lib/api-client";
 
-export type UiTheme = "stock" | "grist" | "custom";
+export type UiTheme = "stock" | "custom";
 
 export interface UiThemeState {
   theme: UiTheme;
   customCss: string;
 }
 
-const ATTR = "data-ui-theme";
 const STYLE_ID = "custom-ui-theme";
 
-// Аварийный выход. Если вставить CSS, который прячет интерфейс, можно
-// остаться без доступа к самой странице настроек. Открыв любой адрес с
-// ?nocustomcss=1, оформление не применится и всё можно будет починить.
+// Аварийный выход. Свой CSS может спрятать что угодно, включая саму
+// страницу настроек. Открыв любой адрес с ?nocustomcss=1, оформление
+// не применится и всё можно будет починить.
 export function customCssDisabled(): boolean {
   try {
     return new URLSearchParams(window.location.search).has("nocustomcss");
@@ -21,41 +20,34 @@ export function customCssDisabled(): boolean {
   }
 }
 
-// Встроенная тема живёт в grist-theme.css и висит на атрибуте.
-// Свой CSS вставляется отдельным тегом <style>.
+// Оформление — это ровно один тег <style> с текстом из настроек.
+// Никаких вшитых тем: файл со стилем даётся отдельно и загружается
+// администратором, поэтому новая тема не требует пересборки.
 export function applyUiTheme(state: UiThemeState): void {
-  const root = document.documentElement;
   const existing = document.getElementById(STYLE_ID);
 
-  if (customCssDisabled()) {
-    root.removeAttribute(ATTR);
+  const shouldApply =
+    !customCssDisabled() &&
+    state.theme === "custom" &&
+    state.customCss.trim().length > 0;
+
+  if (!shouldApply) {
     existing?.remove();
     return;
   }
 
-  if (state.theme === "grist") {
-    root.setAttribute(ATTR, "grist");
-  } else {
-    root.removeAttribute(ATTR);
-  }
-
-  if (state.theme === "custom" && state.customCss.trim().length > 0) {
-    const style = existing ?? document.createElement("style");
-    style.id = STYLE_ID;
-    style.textContent = state.customCss;
-    if (!existing) document.head.appendChild(style);
-  } else {
-    existing?.remove();
-  }
+  const style = existing ?? document.createElement("style");
+  style.id = STYLE_ID;
+  style.textContent = state.customCss;
+  if (!existing) document.head.appendChild(style);
 }
 
 export async function loadUiTheme(): Promise<UiThemeState> {
   try {
     const res: any = await api.get("/ui-theme");
     const data = res?.data ?? res;
-    const theme = data?.theme;
     return {
-      theme: theme === "grist" || theme === "custom" ? theme : "stock",
+      theme: data?.theme === "custom" ? "custom" : "stock",
       customCss: typeof data?.customCss === "string" ? data.customCss : "",
     };
   } catch {

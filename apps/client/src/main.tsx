@@ -3,7 +3,6 @@ import "@mantine/spotlight/styles.css";
 import "@mantine/notifications/styles.css";
 import '@mantine/dates/styles.css';
 import "@/styles/a11y-overrides.css";
-import "@/custom-sso/grist-theme.css";
 import { applyUiTheme, loadUiTheme } from "@/custom-sso/ui-theme";
 
 import ReactDOM from "react-dom/client";

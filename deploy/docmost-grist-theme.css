@@ -1,20 +1,21 @@
 /*
  * Оформление Docmost в визуальном языке Grist.
  *
+ * Вставьте содержимое этого файла в Настройки → Appearance → «Свой CSS»
+ * (или загрузите файл там же) и сохраните.
+ *
  * Значения не подобраны на глаз — вытащены из исходников grist-core:
  *   app/common/themes/GristLight.ts  — цвета
- *   app/common/themes/Base.ts        — шрифт и размеры
- *   static/icons/icons.css           — иконки
+ *   app/common/themes/Base.ts        — шрифт и размеры (базовый кегль 13px)
  *
- * ВСЁ здесь висит на html[data-ui-theme="grist"]. Атрибут ставит
- * custom-sso/ui-theme.ts по настройке, которую задаёт администратор.
- * Пока выбран стоковый вариант, ни одно правило не срабатывает —
- * штатный вид Docmost остаётся нетронутым.
+ * Правила действуют только в светлой схеме: у Grist своя тёмная,
+ * это отдельная работа. В тёмной Docmost остаётся собой.
  *
- * Тёмная схема намеренно не трогается: у Grist она своя, это отдельный заход.
+ * Если оформление что-то сломало и до настроек не добраться — откройте
+ * любой адрес с ?nocustomcss=1, тогда этот файл не применится.
  */
 
-html[data-ui-theme="grist"] {
+html {
   --grist-body: #262633;
   --grist-bg: #ffffff;
   --grist-bg-secondary: #f7f7f7;
@@ -34,7 +35,7 @@ html[data-ui-theme="grist"] {
     Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 }
 
-html[data-ui-theme="grist"][data-mantine-color-scheme="light"] {
+html[data-mantine-color-scheme="light"] {
   --mantine-font-family: var(--grist-font);
   --mantine-font-family-headings: var(--grist-font);
 
@@ -71,55 +72,55 @@ html[data-ui-theme="grist"][data-mantine-color-scheme="light"] {
 }
 
 /* --------- плотность и линии: у Grist почти нет теней --------- */
-html[data-ui-theme="grist"][data-mantine-color-scheme="light"] .mantine-Paper-root,
-html[data-ui-theme="grist"][data-mantine-color-scheme="light"] .mantine-Card-root {
+html[data-mantine-color-scheme="light"] .mantine-Paper-root,
+html[data-mantine-color-scheme="light"] .mantine-Card-root {
   border-color: var(--grist-decoration-secondary);
 }
 
-html[data-ui-theme="grist"][data-mantine-color-scheme="light"] .mantine-Button-root {
+html[data-mantine-color-scheme="light"] .mantine-Button-root {
   font-weight: 600;
 }
 
 /* --------- вкладки: зелёное подчёркивание --------- */
-html[data-ui-theme="grist"][data-mantine-color-scheme="light"] .mantine-Tabs-tab {
+html[data-mantine-color-scheme="light"] .mantine-Tabs-tab {
   color: var(--grist-secondary);
   font-weight: 500;
   border-bottom-width: 2px;
 }
 
-html[data-ui-theme="grist"][data-mantine-color-scheme="light"] .mantine-Tabs-tab[data-active] {
+html[data-mantine-color-scheme="light"] .mantine-Tabs-tab[data-active] {
   color: var(--grist-body);
   font-weight: 600;
   border-bottom-color: var(--grist-primary);
   background: transparent;
 }
 
-html[data-ui-theme="grist"][data-mantine-color-scheme="light"] .mantine-Tabs-tab:hover {
+html[data-mantine-color-scheme="light"] .mantine-Tabs-tab:hover {
   background: transparent;
   color: var(--grist-body);
 }
 
 /* --------- таблицы: тонкие разделители --------- */
-html[data-ui-theme="grist"][data-mantine-color-scheme="light"] .mantine-Table-thead th {
+html[data-mantine-color-scheme="light"] .mantine-Table-thead th {
   color: var(--grist-secondary);
   font-weight: 450;
   font-size: 13px;
   border-bottom-color: #f0f0f0;
 }
 
-html[data-ui-theme="grist"][data-mantine-color-scheme="light"] .mantine-Table-tbody td {
+html[data-mantine-color-scheme="light"] .mantine-Table-tbody td {
   border-bottom-color: #f0f0f0;
 }
 
 /* --------- меню --------- */
-html[data-ui-theme="grist"][data-mantine-color-scheme="light"] .mantine-Menu-dropdown,
-html[data-ui-theme="grist"][data-mantine-color-scheme="light"] .mantine-Popover-dropdown {
+html[data-mantine-color-scheme="light"] .mantine-Menu-dropdown,
+html[data-mantine-color-scheme="light"] .mantine-Popover-dropdown {
   border-color: var(--grist-decoration-secondary);
   border-radius: var(--grist-radius);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
 }
 
-html[data-ui-theme="grist"][data-mantine-color-scheme="light"] .mantine-Menu-label {
+html[data-mantine-color-scheme="light"] .mantine-Menu-label {
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.07em;
@@ -128,25 +129,25 @@ html[data-ui-theme="grist"][data-mantine-color-scheme="light"] .mantine-Menu-lab
 }
 
 /* --------- поля ввода --------- */
-html[data-ui-theme="grist"][data-mantine-color-scheme="light"] .mantine-Input-input {
+html[data-mantine-color-scheme="light"] .mantine-Input-input {
   border-color: var(--grist-decoration-secondary);
   border-radius: var(--grist-radius);
 }
 
-html[data-ui-theme="grist"][data-mantine-color-scheme="light"] .mantine-Input-input:focus,
-html[data-ui-theme="grist"][data-mantine-color-scheme="light"] .mantine-Input-input:focus-within {
+html[data-mantine-color-scheme="light"] .mantine-Input-input:focus,
+html[data-mantine-color-scheme="light"] .mantine-Input-input:focus-within {
   border-color: var(--grist-primary);
 }
 
 /* --------- навигация: выбранный пункт тёмной плашкой --------- */
-html[data-ui-theme="grist"][data-mantine-color-scheme="light"] a[data-active],
-html[data-ui-theme="grist"][data-mantine-color-scheme="light"] [aria-current="page"] {
+html[data-mantine-color-scheme="light"] a[data-active],
+html[data-mantine-color-scheme="light"] [aria-current="page"] {
   background: var(--grist-bg-emphasis);
   color: #ffffff;
   border-radius: var(--grist-radius);
 }
 
-html[data-ui-theme="grist"][data-mantine-color-scheme="light"] a[data-active] svg,
-html[data-ui-theme="grist"][data-mantine-color-scheme="light"] [aria-current="page"] svg {
+html[data-mantine-color-scheme="light"] a[data-active] svg,
+html[data-mantine-color-scheme="light"] [aria-current="page"] svg {
   color: #ffffff;
 }

@@ -18,7 +18,6 @@ import {
   IconCheck,
   IconDeviceFloppy,
   IconFileUpload,
-  IconWand,
 } from "@tabler/icons-react";
 import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
@@ -27,9 +26,6 @@ import { getAppName } from "@/lib/config";
 import api from "@/lib/api-client";
 import useUserRole from "@/hooks/use-user-role";
 import { applyUiTheme, UiTheme, UiThemeState } from "@/custom-sso/ui-theme";
-// исходник встроенной темы — чтобы её можно было загрузить в поле
-// и править дальше, а не считать чёрным ящиком
-import gristPreset from "@/custom-sso/grist-theme.css?raw";
 
 function unwrap<T>(res: any): T {
   return (res?.data ?? res) as T;
@@ -149,37 +145,21 @@ export default function UiThemePage() {
 
               <Paper withBorder p="md" radius="md">
                 <Radio
-                  value="grist"
-                  disabled={saving}
-                  label={
-                    <Group gap="xs">
-                      <Text fw={600} size="sm">{t("Grist style")}</Text>
-                      {theme === "grist" && (
-                        <Badge size="xs" variant="light" color="green">{t("current")}</Badge>
-                      )}
-                    </Group>
-                  }
-                  description={t(
-                    "Built in. Colours and sizes taken from the Grist sources.",
-                  )}
-                />
-              </Paper>
-
-              <Paper withBorder p="md" radius="md">
-                <Radio
                   value="custom"
-                  disabled={saving}
+                  disabled={saving || css.trim().length === 0}
                   label={
                     <Group gap="xs">
-                      <Text fw={600} size="sm">{t("Your own CSS")}</Text>
+                      <Text fw={600} size="sm">{t("Your own stylesheet")}</Text>
                       {theme === "custom" && (
                         <Badge size="xs" variant="light" color="green">{t("current")}</Badge>
                       )}
                     </Group>
                   }
-                  description={t(
-                    "Paste or upload a stylesheet. Stored in the database, so a new look needs no rebuild.",
-                  )}
+                  description={
+                    css.trim().length === 0
+                      ? t("Add a stylesheet below first.")
+                      : t("The stylesheet below, applied to everyone.")
+                  }
                 />
               </Paper>
             </Stack>
@@ -196,8 +176,8 @@ export default function UiThemePage() {
 
               <Textarea
                 autosize
-                minRows={10}
-                maxRows={24}
+                minRows={12}
+                maxRows={26}
                 placeholder={"html { /* ... */ }"}
                 value={css}
                 onChange={(e) => setCss(e.currentTarget.value)}
@@ -217,21 +197,15 @@ export default function UiThemePage() {
                   onChange={onFile}
                   leftSection={<IconFileUpload size={16} />}
                   clearable
-                  style={{ flex: 1, minWidth: 220 }}
+                  style={{ flex: 1, minWidth: 240 }}
                 />
                 <Button
-                  variant="default"
-                  leftSection={<IconWand size={16} />}
-                  onClick={() => setCss(gristPreset)}
-                >
-                  {t("Load the Grist theme as a starting point")}
-                </Button>
-                <Button
                   loading={saving}
+                  disabled={css.trim().length === 0}
                   leftSection={<IconDeviceFloppy size={16} />}
                   onClick={() => save("custom", css)}
                 >
-                  {t("Save and switch to it")}
+                  {t("Save and apply")}
                 </Button>
               </Group>
             </Stack>
