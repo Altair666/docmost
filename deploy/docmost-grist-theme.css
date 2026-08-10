@@ -220,8 +220,9 @@ html[data-mantine-color-scheme="light"] [data-rail-overlay] {
   background: var(--grist-bg-secondary);
   border-right: 1px solid var(--grist-decoration-secondary);
   z-index: 200;
-  /* Тем же временем, что и сворачивание, — движение читается как одно */
-  transition: transform 0.4s ease, box-shadow 0.4s ease;
+  /* То же свойство и то же время, что у ячейки шапки: обе части колонки
+     обязаны ехать как одно целое. */
+  transition: width 0.4s ease, box-shadow 0.4s ease;
   box-shadow: none;
 }
 
@@ -287,10 +288,11 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-header svg {
   height: 16px;
 }
 
-/* Кнопки в шапке — с прямыми углами: у Grist подсветка при наведении
-   квадратная и упирается в края, скруглений там нет. */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-ActionIcon-root {
-  border-radius: 0;
+/* Подсветка под значками шапки круглая. Прямые углы были моей ошибкой:
+   я вывел их из числа изменившихся точек, а надо было смотреть на форму. */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-ActionIcon-root,
+html[data-mantine-color-scheme="light"] [data-grist-search] button {
+  border-radius: 50%;
 }
 
 /* Значки в шапке зелёные — как в Grist. Снято по пикселям его лупы:

@@ -301,7 +301,6 @@ function CustomHeader() {
               // пикселям значка: 22,179,120. Само значение живёт в теме.
               c="var(--grist-primary, #16b378)"
               size={32}
-              radius={0}
             >
               <IconGristPanel size={16} mirrored={!desktopOpened} />
             </ActionIcon>

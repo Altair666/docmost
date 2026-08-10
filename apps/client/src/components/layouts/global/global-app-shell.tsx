@@ -164,8 +164,9 @@ export default function GlobalAppShell({
           >
             <CompactRail />
 
-            {/* Наложение висит всегда и отведено за левый край: выезд
-                сдвигом можно анимировать, появление элемента — нет. */}
+            {/* Наложение висит всегда и раскрывается по ширине — тем же
+                свойством и временем, что ячейка шапки с плашкой. Иначе
+                колонка выезжает двумя кусками вразнобой. */}
             <div
               data-rail-overlay=""
               data-open={railHovered || undefined}
@@ -173,18 +174,25 @@ export default function GlobalAppShell({
                 position: "absolute",
                 top: 0,
                 left: 0,
-                width: sidebarWidth,
+                width: railHovered ? sidebarWidth : 0,
                 height: "100%",
-                overflowY: "auto",
-                transform: railHovered
-                  ? "translateX(0)"
-                  : "translateX(-100%)",
+                overflow: "hidden",
               }}
             >
-              {isSpaceRoute && <SpaceSidebar />}
-              {isSettingsRoute && <SettingsSidebar />}
-              {isAiRoute && <AiChatSidebar />}
-              {showGlobalSidebar && <GlobalSidebar />}
+              {/* Постоянная ширина: без неё содержимое сплющивалось бы
+                  по дороге вместо того, чтобы выезжать целиком. */}
+              <div
+                style={{
+                  width: sidebarWidth,
+                  height: "100%",
+                  overflowY: "auto",
+                }}
+              >
+                {isSpaceRoute && <SpaceSidebar />}
+                {isSettingsRoute && <SettingsSidebar />}
+                {isAiRoute && <AiChatSidebar />}
+                {showGlobalSidebar && <GlobalSidebar />}
+              </div>
             </div>
           </div>
         ) : (
