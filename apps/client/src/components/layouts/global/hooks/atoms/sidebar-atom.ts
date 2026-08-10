@@ -21,4 +21,5 @@ export const asideStateAtom = atom<AsideStateType>({
   isAsideOpen: false,
 });
 
-export const sidebarWidthAtom = atomWithWebStorage<number>('sidebarWidth', 300);
+// 240px — ширина сайдбара в Grist, снята с пикселей. У Docmost было 300.
+export const sidebarWidthAtom = atomWithWebStorage<number>('sidebarWidth', 240);

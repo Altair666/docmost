@@ -1,6 +1,9 @@
 import { AppShell, Container } from "@mantine/core";
 import React, { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
+import CompactRail, {
+  COMPACT_RAIL_WIDTH,
+} from "@/custom-sso/CompactRail";
 import { useTranslation } from "react-i18next";
 import SettingsSidebar from "@/components/settings/settings-sidebar.tsx";
 import { useAtom } from "jotai";
@@ -86,15 +89,22 @@ export default function GlobalAppShell({
     <>
       <SkipToMain />
       <AppShell
-      header={{ height: 45 }}
+      // 49px — высота шапки Grist на странице документа, снята с пикселей.
+      // На его главной 45, но сравниваем по рабочему экрану.
+      header={{ height: 49 }}
       navbar={{
         // Ширина тянется мышью везде, а не только в пространствах:
         // раньше на главной и в настройках она была жёстко 300px.
-        width: sidebarWidth,
+        //
+        // Свёрнутая панель не исчезает, а сжимается до узкой полосы со
+        // значками — как в Grist. Поэтому desktop: false: пусть Mantine
+        // не прячет панель, шириной управляем сами. На мобильных всё
+        // по-прежнему скрывается полностью, полоса там только мешала бы.
+        width: desktopOpened ? sidebarWidth : COMPACT_RAIL_WIDTH,
         breakpoint: "sm",
         collapsed: {
           mobile: !mobileOpened,
-          desktop: !desktopOpened,
+          desktop: false,
         },
       }}
       aside={
@@ -126,13 +136,22 @@ export default function GlobalAppShell({
                 : t("Main navigation")
         }
       >
-        {isSpaceRoute && (
-          <div className={classes.resizeHandle} onMouseDown={startResizing} />
+        {!desktopOpened ? (
+          <CompactRail />
+        ) : (
+          <>
+            {isSpaceRoute && (
+              <div
+                className={classes.resizeHandle}
+                onMouseDown={startResizing}
+              />
+            )}
+            {isSpaceRoute && <SpaceSidebar />}
+            {isSettingsRoute && <SettingsSidebar />}
+            {isAiRoute && <AiChatSidebar />}
+            {showGlobalSidebar && <GlobalSidebar />}
+          </>
         )}
-        {isSpaceRoute && <SpaceSidebar />}
-        {isSettingsRoute && <SettingsSidebar />}
-        {isAiRoute && <AiChatSidebar />}
-        {showGlobalSidebar && <GlobalSidebar />}
       </AppShell.Navbar>
       <AppShell.Main id={MAIN_CONTENT_ID} tabIndex={-1}>
         {isSettingsRoute ? (

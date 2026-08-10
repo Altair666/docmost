@@ -162,6 +162,39 @@ const groupedData: DataGroup[] = [
   },
 ];
 
+// Видно ли раздел этому пользователю. Вынесено из компонента, чтобы тем
+// же правилом пользовалась свёрнутая полоса.
+function canShowSettingsItem(
+  item: DataItem,
+  perm: { isAdmin: boolean; isOwner: boolean },
+) {
+  if (item.env === "cloud" && !isCloud()) return false;
+  if (item.env === "selfhosted" && isCloud()) return false;
+  if (item.role === "admin" && !perm.isAdmin) return false;
+  if (item.role === "owner" && !perm.isOwner) return false;
+  return true;
+}
+
+// Плоский список разделов для свёрнутой полосы — без заголовков групп,
+// в том же порядке и с теми же правилами видимости.
+export function useSettingsRailItems(): DataItem[] {
+  const { isAdmin, isOwner } = useUserRole();
+
+  return groupedData.flatMap((group) => {
+    // Раздел System — это только «License & Edition»; прячем его там же,
+    // где и в развёрнутом виде.
+    if (
+      group.heading === "System" &&
+      (!isAdmin || isCloud() || HIDE_LOCKED_EE_ITEMS)
+    ) {
+      return [];
+    }
+    return group.items.filter((item) =>
+      canShowSettingsItem(item, { isAdmin, isOwner }),
+    );
+  });
+}
+
 export default function SettingsSidebar() {
   const { t } = useTranslation();
   const location = useLocation();
@@ -180,13 +213,8 @@ export default function SettingsSidebar() {
   const hasFeature = (f: string) =>
     entitlements?.features?.includes(f) ?? false;
 
-  const canShowItem = (item: DataItem) => {
-    if (item.env === "cloud" && !isCloud()) return false;
-    if (item.env === "selfhosted" && isCloud()) return false;
-    if (item.role === "admin" && !isAdmin) return false;
-    if (item.role === "owner" && !isOwner) return false;
-    return true;
-  };
+  const canShowItem = (item: DataItem) =>
+    canShowSettingsItem(item, { isAdmin, isOwner });
 
   const isItemDisabled = (item: DataItem) => {
     if (!item.feature) return false;

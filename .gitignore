@@ -41,3 +41,6 @@ lerna-debug.log*
 .nx
 .nx/installation
 .nx/cache
+
+# кеш pnpm от dev-сервера в контейнере
+.pnpm-store/

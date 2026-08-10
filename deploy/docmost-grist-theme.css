@@ -91,8 +91,19 @@ html[data-mantine-color-scheme="light"] {
    ============================================================ */
 
 html[data-mantine-color-scheme="light"] .mantine-AppShell-header {
-  border-bottom: 1px solid var(--grist-decoration-secondary);
+  /* rgba(217,217,217,.6) — ровно та граница, что у Grist под шапкой. */
+  border-bottom: 1px solid rgba(217, 217, 217, 0.6);
   box-shadow: none;
+  background: var(--grist-bg);
+}
+
+/* У Grist левая панель идёт от самого верха и целиком серая, а белая
+   шапка начинается только справа от вертикальной линии. Раньше мы красили
+   шапку в один тон на всю ширину — из-за этого угол читался иначе, чем в
+   оригинале. Ячейка с плашкой берёт цвет сайдбара и перекрывает нижнюю
+   границу шапки (сдвиг на 1px задан в app-header.tsx). */
+html[data-mantine-color-scheme="light"] [data-brand-cell] {
+  background: var(--grist-bg-secondary);
 }
 
 html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar {
@@ -121,6 +132,57 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar a[aria-current=
   color: #ffffff;
 }
 
+/* Пункты меню. Снято из DOM Grist: пункт 224x32 при панели 240 —
+   упирается в левую границу и не доходит 16px до правой; текст 13px с
+   межстрочным 32px, начертание обычное, отступ слева 24px. У Docmost
+   пункты были выше, жирнее и с отступом слева. */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar a:not([data-rail]),
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar > div > button:not([data-rail]) {
+  min-height: 32px;
+  margin-left: 0;
+  margin-right: 16px;
+  padding-left: 24px;
+  border-radius: 0 4px 4px 0;
+  font-size: 13px;
+  line-height: 32px;
+  font-weight: 400;
+}
+
+/* Контейнер сайдбара держит по 16px с боков — из-за них плашка пункта
+   не доезжала до левой границы и была уже оригинала (191 против 224).
+   Гасим только горизонтальные отступы: вертикальные задают верхний и
+   нижний воздух панели. */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar > div {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* Цвет текста пунктов — основной #262633, как в Grist. Docmost брал
+   приглушённый серый Mantine (#495057), отчего меню читалось бледнее. */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar a:not([data-rail]):not([data-active]):not([aria-current="page"]) {
+  color: var(--grist-body);
+}
+
+/* Пункт свёрнутой полосы: 48x32, значок по центру. Отступ слева 16px
+   у Grist ровно центрирует значок 16px в полосе 48px. */
+html[data-mantine-color-scheme="light"] [data-rail] {
+  height: 32px;
+  font-size: 13px;
+  font-weight: 400;
+}
+
+/* Свёрнутая полоса живёт по своим правилам: 48px без внутренних отступов,
+   плашка во всю ширину. Правило выше её не касается — иначе значки
+   съезжали, а выделение обрезалось. */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar:has([data-rail]) {
+  padding: 0;
+}
+
+html[data-mantine-color-scheme="light"] [data-rail] {
+  margin: 0;
+  border-radius: 0;
+}
+
 /* Заголовки групп — прописные с разрядкой, как в Grist */
 html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar h2 {
   font-size: 11px;
@@ -143,6 +205,36 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar h2 {
    список, а меню переехало на кружок пользователя. Прежнее правило искало
    «последний svg в правой части шапки» и сломалось бы от любой перестановки
    элементов — теперь оно не нужно. */
+
+/* ============================================================
+   3c. Значки и линии в шапке
+   ============================================================ */
+
+/* Размеры сняты с настоящего Grist по пикселям:
+     вертикальная линия  — x=48, толщина 1px, цвет #e8e8e8
+     значки в шапке      — глиф 16x16
+     значки в полосе     — глиф 16x16 при отступе 16px с каждой стороны
+   Docmost рисует значки крупнее (18–20px), отчего шапка выглядит
+   тяжелее оригинала. Задаём размер стилями, чтобы не править каждый
+   вызов компонента в коде. */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-header svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Кружок пользователя — исключение: это аватар, а не значок,
+   ему размер задаёт сам компонент. */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-Avatar-root svg {
+  width: auto;
+  height: auto;
+}
+
+/* Линии перекрестья ровно того же цвета и толщины, что у Grist */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-header,
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar {
+  border-color: var(--grist-decoration-secondary);
+  border-width: 1px;
+}
 
 /* ============================================================
    4. Вкладки, таблицы, меню, поля

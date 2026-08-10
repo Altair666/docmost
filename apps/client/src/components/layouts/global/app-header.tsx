@@ -36,6 +36,7 @@ import { NotificationPopover } from "@/features/notification/components/notifica
 import { workspaceAtom } from "@/features/user/atoms/current-user-atom.ts";
 import { sidebarWidthAtom } from "@/components/layouts/global/hooks/atoms/sidebar-atom.ts";
 import WorkspaceBadge from "@/custom-sso/WorkspaceBadge";
+import { COMPACT_RAIL_WIDTH } from "@/custom-sso/CompactRail";
 
 const links = [
   { link: APP_ROUTE.HOME, label: "Home" },
@@ -73,14 +74,24 @@ export function AppHeader() {
       <Group h="100%" gap={0} wrap={"nowrap"} align="stretch">
         <Group
           gap="xs"
-          px="sm"
+          // 16px по краям развёрнутой ячейки и 8px свёрнутой — так плашка
+          // встаёт в те же координаты, что у Grist (x=16..224 и x=8..40).
+          px={desktopOpened ? 16 : 8}
+          justify={desktopOpened ? undefined : "center"}
           wrap="nowrap"
-          w={desktopOpened ? sidebarWidth : undefined}
+          w={desktopOpened ? sidebarWidth : COMPACT_RAIL_WIDTH}
+          // Метка для темы: цвет этой ячейки задаётся в CSS вместе с
+          // цветом сайдбара, чтобы серая колонка читалась сплошной.
+          data-brand-cell="true"
           style={{
             flex: "none",
-            borderRight: desktopOpened
-              ? "1px solid var(--app-shell-border-color)"
-              : undefined,
+            borderRight: "1px solid var(--app-shell-border-color)",
+            overflow: "hidden",
+            // Съезжаем на 1px вниз и добираем отступом: так ячейка
+            // закрывает нижнюю границу шапки. У Grist эта граница идёт
+            // только справа от вертикали, а слева колонка сплошная.
+            marginBottom: -1,
+            paddingBottom: 1,
           }}
         >
           <Tooltip label={t("Sidebar toggle")}>
@@ -93,21 +104,18 @@ export function AppHeader() {
             />
           </Tooltip>
 
-          <Tooltip label={t("Sidebar toggle")}>
-            <SidebarToggle
-              aria-label={t("Sidebar toggle")}
-              opened={desktopOpened}
-              onClick={toggleDesktop}
-              visibleFrom="sm"
-              size="sm"
-            />
-          </Tooltip>
+          {/* Название фирмы из настроек рабочего пространства. Заменило
+              надпись «Docmost». В свёрнутом виде остаётся только иконка —
+              она так же кликабельна и ведёт на главную.
 
-          {/* Название фирмы из настроек рабочего пространства.
-              Заменило надпись «Docmost», которая тут была раньше. */}
-          <Box visibleFrom="sm" style={{ minWidth: 0 }}>
-            <WorkspaceBadge />
+              Кнопки сворачивания здесь нет: в развёрнутом виде она стоит
+              у правого края этой же ячейки, в свёрнутом — внутри полосы
+              (CompactRail). Держать её снаружи сворачиваемой области было
+              неудобно. */}
+          <Box visibleFrom="sm" style={{ minWidth: 0, flex: desktopOpened ? 1 : "none" }}>
+            <WorkspaceBadge compact={!desktopOpened} />
           </Box>
+
 
           {/* На узких экранах вместо плашки — иконка, ведущая на главную.
               hiddenFrom понимает Box, а не Link из react-router. */}
@@ -127,7 +135,8 @@ export function AppHeader() {
 
         <Group
           flex={1}
-          px="md"
+          pl={0}
+          pr="md"
           justify="space-between"
           wrap={"nowrap"}
           style={{ minWidth: 0 }}
@@ -135,7 +144,24 @@ export function AppHeader() {
           {/* Ссылка «Главная» убрана: на главную ведёт сама плашка с
               названием фирмы слева, как в Grist. Массив links оставлен —
               если понадобится вернуть пункты, менять только его. */}
-          <Group gap={5} className={classes.links} visibleFrom="sm" wrap="nowrap" />
+          {/* Кнопка сворачивания стоит здесь — сразу за вертикальной
+              линией, в начале правой части. Так же она расположена в Grist:
+              не внутри сворачиваемой панели и не в левой ячейке, где в
+              свёрнутом виде остаётся только квадрат с иконкой. */}
+          <Group gap="xs" wrap="nowrap">
+            <Tooltip label={t("Sidebar toggle")}>
+              {/* 32x32 вплотную к линии — размер и место кнопки в Grist. */}
+              <SidebarToggle
+                aria-label={t("Sidebar toggle")}
+                opened={desktopOpened}
+                onClick={toggleDesktop}
+                visibleFrom="sm"
+                size={32}
+                radius={0}
+              />
+            </Tooltip>
+            <Group gap={5} className={classes.links} visibleFrom="sm" wrap="nowrap" />
+          </Group>
 
           <Group gap="xs" wrap="nowrap">
           <Group visibleFrom="sm">
