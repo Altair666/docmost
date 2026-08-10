@@ -29,6 +29,8 @@ export default function WorkspaceBadge({ compact = false }: { compact?: boolean 
     <Box
       component={Link}
       to="/home"
+      // Метка для темы: цвет плашки задаётся в CSS, а не здесь.
+      data-workspace-badge="true"
       title={workspace.name}
       aria-label={workspace.name}
       style={{
@@ -51,9 +53,8 @@ export default function WorkspaceBadge({ compact = false }: { compact?: boolean 
         border: "1px solid var(--app-shell-border-color)",
         borderRadius: 4,
         overflow: "hidden",
-        // Своего фона нет: он делал левую ячейку светлее правой части
-        // шапки. Цвет задаёт сама шапка.
-        background: "transparent",
+        // Фон задаёт тема: в развёрнутом виде поле с именем у Grist белое
+        // на сером фоне панели, в свёрнутом остаётся только тёмная плитка.
       }}
     >
       <CustomAvatar

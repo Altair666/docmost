@@ -87,11 +87,6 @@ export function AppHeader() {
             flex: "none",
             borderRight: "1px solid var(--app-shell-border-color)",
             overflow: "hidden",
-            // Съезжаем на 1px вниз и добираем отступом: так ячейка
-            // закрывает нижнюю границу шапки. У Grist эта граница идёт
-            // только справа от вертикали, а слева колонка сплошная.
-            marginBottom: -1,
-            paddingBottom: 1,
           }}
         >
           <Tooltip label={t("Sidebar toggle")}>
