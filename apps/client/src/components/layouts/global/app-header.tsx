@@ -38,6 +38,8 @@ import { useSidebarWidth } from "@/components/layouts/global/hooks/atoms/sidebar
 import WorkspaceBadge from "@/custom-sso/WorkspaceBadge";
 import { COMPACT_RAIL_WIDTH } from "@/custom-sso/CompactRail";
 import { useUiFlags } from "@/custom-sso/ui-flags";
+import GristSearch from "@/custom-sso/GristSearch";
+import { IconGristPanel } from "@/custom-sso/GristIcons";
 
 const links = [{ link: APP_ROUTE.HOME, label: "Home" }];
 
@@ -46,6 +48,8 @@ const links = [{ link: APP_ROUTE.HOME, label: "Home" }];
 // не расходились, когда сюда что-то добавят при обновлении Docmost.
 function HeaderTools() {
   const { t } = useTranslation();
+  // В нашем виде поиск живёт строкой в шапке, а не отдельной модалкой.
+  const { customUi } = useUiFlags();
   const location = useLocation();
   const toggleAside = useToggleAside();
   const { isTrial, trialDaysLeft } = useTrial();
@@ -66,12 +70,18 @@ function HeaderTools() {
 
   return (
     <>
-      <Group visibleFrom="sm">
-        <SearchControl onClick={searchSpotlight.open} />
-      </Group>
-      <Group hiddenFrom="sm">
-        <SearchMobileControl onSearch={searchSpotlight.open} />
-      </Group>
+      {customUi ? (
+        <GristSearch />
+      ) : (
+        <>
+          <Group visibleFrom="sm">
+            <SearchControl onClick={searchSpotlight.open} />
+          </Group>
+          <Group hiddenFrom="sm">
+            <SearchMobileControl onSearch={searchSpotlight.open} />
+          </Group>
+        </>
+      )}
 
       <Group wrap="nowrap">
         {aiChatEnabled && (
@@ -270,15 +280,24 @@ function CustomHeader() {
             свёрнутом виде остаётся только квадрат с иконкой. */}
         <Group gap="xs" wrap="nowrap">
           <Tooltip label={t("Sidebar toggle")}>
-            {/* 32x32 вплотную к линии — размер и место кнопки в Grist.
-                Прямые углы задаёт тема: свойства radius у этой кнопки нет. */}
-            <SidebarToggle
+            {/* Не SidebarToggle: тот рисует свои значки Tabler, а нам нужен
+                контур Grist — стрелка, уходящая в полосу. 32x32 вплотную к
+                вертикальной линии, прямые углы — размеры и место оттуда же. */}
+            <ActionIcon
               aria-label={t("Sidebar toggle")}
-              opened={desktopOpened}
+              aria-expanded={desktopOpened}
               onClick={toggleDesktop}
               visibleFrom="sm"
-              size="32"
-            />
+              variant="subtle"
+              color="gray"
+              // Зелёный в обоих положениях — так у Grist, проверено по
+              // пикселям значка: 22,179,120. Само значение живёт в теме.
+              c="var(--grist-primary, #16b378)"
+              size={32}
+              radius={0}
+            >
+              <IconGristPanel size={16} mirrored={!desktopOpened} />
+            </ActionIcon>
           </Tooltip>
         </Group>
 
