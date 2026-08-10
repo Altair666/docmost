@@ -42,6 +42,8 @@ export default function GlobalAppShell({
   const [, setSidebarWidthTouched] = useAtom(sidebarWidthTouchedAtom);
   const sidebarWidth = useSidebarWidth();
   const [isResizing, setIsResizing] = useState(false);
+  // Курсор на свёрнутой полосе — панель временно выезжает поверх страницы
+  const [railHovered, setRailHovered] = useState(false);
   const sidebarRef = useRef(null);
 
   const startResizing = React.useCallback((mouseDownEvent) => {
@@ -151,7 +153,32 @@ export default function GlobalAppShell({
         }
       >
         {customUi && !desktopOpened ? (
-          <CompactRail />
+          <div
+            onMouseEnter={() => setRailHovered(true)}
+            onMouseLeave={() => setRailHovered(false)}
+            style={{ height: "100%", position: "relative" }}
+          >
+            <CompactRail />
+
+            {railHovered && (
+              <div
+                data-rail-overlay=""
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: sidebarWidth,
+                  height: "100%",
+                  overflowY: "auto",
+                }}
+              >
+                {isSpaceRoute && <SpaceSidebar />}
+                {isSettingsRoute && <SettingsSidebar />}
+                {isAiRoute && <AiChatSidebar />}
+                {showGlobalSidebar && <GlobalSidebar />}
+              </div>
+            )}
+          </div>
         ) : (
           <>
             {isSpaceRoute && (

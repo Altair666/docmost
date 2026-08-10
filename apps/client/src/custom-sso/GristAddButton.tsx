@@ -20,16 +20,19 @@ export default function GristAddButton({
   const { t } = useTranslation();
   const [opened, { open, close }] = useDisclosure(false);
 
-  const label = t("Create space");
+  // На кнопке — одно слово: в 208px «Создать пространство» лезет впритык
+  // и спорит с кружком. Полная фраза остаётся в подсказке и заголовке окна.
+  const label = t("Space");
+  const fullLabel = t("Create space");
 
   const circle = (
     <Box
+      data-grist-add-circle=""
       style={{
         flex: "none",
         width: 28,
         height: 28,
         borderRadius: 14,
-        background: "var(--grist-primary-muted, #009058)",
         color: "#fff",
         display: "grid",
         placeItems: "center",
@@ -42,7 +45,7 @@ export default function GristAddButton({
   return (
     <>
       <Tooltip
-        label={label}
+        label={fullLabel}
         position="right"
         withArrow
         openDelay={200}
@@ -52,7 +55,7 @@ export default function GristAddButton({
           component="button"
           type="button"
           onClick={open}
-          aria-label={label}
+          aria-label={fullLabel}
           data-grist-add=""
           style={{
             display: "flex",
@@ -63,9 +66,6 @@ export default function GristAddButton({
             padding: compact ? 0 : "0 16px 0 24px",
             border: "none",
             borderRadius: compact ? 14 : 4,
-            background: compact
-              ? "var(--grist-primary-muted, #009058)"
-              : "var(--grist-primary, #16b378)",
             color: "#fff",
             font: "inherit",
             fontSize: 13,
@@ -82,7 +82,7 @@ export default function GristAddButton({
       <Modal
         opened={opened}
         onClose={close}
-        title={label}
+        title={fullLabel}
         closeButtonProps={{ "aria-label": t("Close") }}
       >
         <Divider size="xs" mb="xs" />

@@ -182,6 +182,21 @@ html[data-mantine-color-scheme="light"] [data-rail] {
   font-weight: 400;
 }
 
+/* Выехавшая по наведению панель. Свёрнутая полоса шириной 48px не должна
+   обрезать её, поэтому у панели убираем обрезку и поднимаем наложение над
+   содержимым страницы. Фон непрозрачный — иначе сквозь панель просвечивал
+   бы текст. */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar:has([data-rail-overlay]) {
+  overflow: visible;
+}
+
+html[data-mantine-color-scheme="light"] [data-rail-overlay] {
+  background: var(--grist-bg-secondary);
+  border-right: 1px solid var(--grist-decoration-secondary);
+  box-shadow: 2px 0 6px rgba(0, 0, 0, 0.08);
+  z-index: 200;
+}
+
 /* Свёрнутая полоса живёт по своим правилам: 48px без внутренних отступов,
    плашка во всю ширину. Правило выше её не касается — иначе значки
    съезжали, а выделение обрезалось. */
@@ -237,6 +252,108 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-header svg {
    квадратная и упирается в края, скруглений там нет. */
 html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-ActionIcon-root {
   border-radius: 0;
+}
+
+/* Значки в шапке зелёные — как в Grist. Снято по пикселям его лупы:
+   45,186,133 с учётом сглаживания, то есть #16b378. Красная точка
+   уведомлений своего цвета не теряет: она рисуется отдельным элементом. */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-ActionIcon-root svg {
+  color: var(--grist-primary);
+}
+
+/* Кнопка «Пространство» — цвета и отклик как у гристовской «Add new»,
+   снято по пикселям:
+     покой     поле #16b378, кружок внутри #009058
+     наведение поле #009058, кружок #007548
+     нажатие   то же, что наведение
+   В свёрнутом виде кнопка сама и есть кружок: тёмный оттенок там не нужен. */
+html[data-mantine-color-scheme="light"] [data-grist-add] {
+  background: var(--grist-primary);
+  transition: background 0.1s ease;
+}
+
+html[data-mantine-color-scheme="light"] [data-grist-add]:hover,
+html[data-mantine-color-scheme="light"] [data-grist-add]:active {
+  background: var(--grist-primary-muted);
+}
+
+html[data-mantine-color-scheme="light"] [data-grist-add-circle] {
+  background: var(--grist-primary-muted);
+  transition: background 0.1s ease;
+}
+
+html[data-mantine-color-scheme="light"] [data-grist-add]:hover [data-grist-add-circle],
+html[data-mantine-color-scheme="light"] [data-grist-add]:active [data-grist-add-circle] {
+  background: var(--grist-primary-dim);
+}
+
+/* При наведении и нажатии Grist не показывает подложку — темнеет сам
+   значок: #16b378 в покое, #009058 под курсором и при нажатии.
+   Проверено замером: фон кнопки не меняется, меняется цвет глифа. */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-ActionIcon-root:hover,
+html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-ActionIcon-root:active {
+  background: transparent;
+}
+
+html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-ActionIcon-root:hover svg,
+html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-ActionIcon-root:active svg,
+html[data-mantine-color-scheme="light"] [data-grist-search] button:hover svg {
+  color: var(--grist-primary-muted);
+}
+
+/* Обводки Tabler тоньше сплошных фигур Grist и оттого бледнее. Там, где
+   значок остаётся обводкой (колокольчик), добираем плотность линией. */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-ActionIcon-root svg {
+  stroke-width: 2.2;
+}
+
+/* Значки свёрнутой полосы у Grist приглушённые (#929299), а не чёрные.
+   У выбранного пункта плашка тёмная, и значок на ней белый — за это
+   отвечает правило ниже. */
+html[data-mantine-color-scheme="light"] [data-rail] svg {
+  color: var(--grist-secondary);
+}
+
+html[data-mantine-color-scheme="light"] [data-rail][data-active] svg,
+html[data-mantine-color-scheme="light"] [data-rail][aria-current="page"] svg {
+  color: #ffffff;
+}
+
+/* Фильтры под строкой поиска повторяют панель «искать на всех страницах»:
+   строка 25px, значок 16, отступ 8, текст 13/16 цветом #262633, без
+   кнопочной обводки и заливки. Размеры сняты из DOM Grist. */
+html[data-mantine-color-scheme="light"] [data-search-filters] > div {
+  flex-direction: column;
+  /* Панель у Grist прижата к правому краю строки: x 685..812 при строке
+     360..813. */
+  align-items: flex-end;
+  gap: 0;
+  padding: 2px 4px;
+}
+
+html[data-mantine-color-scheme="light"] [data-search-filters] button {
+  height: 25px;
+  min-height: 25px;
+  padding: 2px 4px;
+  background: transparent;
+  border: none;
+  font-size: 13px;
+  line-height: 16px;
+  font-weight: 400;
+  color: var(--grist-body);
+}
+
+html[data-mantine-color-scheme="light"] [data-search-filters] button svg {
+  width: 16px;
+  height: 16px;
+  color: var(--grist-secondary);
+}
+
+/* Колокольчик крупнее прочих: обводка при 16px читается мельче
+   сплошного глифа лупы (12x14 чернил против 15x15). */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-header svg[data-bell] {
+  width: 20px;
+  height: 20px;
 }
 
 /* Кружок пользователя — исключение: это аватар, а не значок,

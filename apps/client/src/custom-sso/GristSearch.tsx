@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Badge, Box, Group, Loader, Popover, Text } from "@mantine/core";
-import { IconSearch, IconX } from "@tabler/icons-react";
+import { IconX } from "@tabler/icons-react";
+import { IconGristSearch } from "@/custom-sso/GristIcons";
 import { useDebouncedValue } from "@mantine/hooks";
 import { useSpotlight } from "@mantine/spotlight";
 import { Link, useNavigate } from "react-router-dom";
@@ -246,7 +247,7 @@ export default function GristSearch() {
               placeItems: "center",
             }}
           >
-            <IconSearch size={16} stroke={2} />
+            <IconGristSearch size={16} />
           </Box>
 
           {opened && (

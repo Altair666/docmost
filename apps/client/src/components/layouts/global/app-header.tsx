@@ -279,10 +279,10 @@ function CustomHeader() {
             не внутри сворачиваемой панели и не в левой ячейке, где в
             свёрнутом виде остаётся только квадрат с иконкой. */}
         <Group gap="xs" wrap="nowrap">
-          <Tooltip label={t("Sidebar toggle")}>
-            {/* Не SidebarToggle: тот рисует свои значки Tabler, а нам нужен
-                контур Grist — стрелка, уходящая в полосу. 32x32 вплотную к
-                вертикальной линии, прямые углы — размеры и место оттуда же. */}
+          {/* Без всплывающей подписи: она загораживала угол и не нужна.
+              Не SidebarToggle: тот рисует свои значки Tabler, а нам нужен
+              контур Grist — стрелка, уходящая в полосу. 32x32 вплотную к
+              вертикальной линии, прямые углы — размеры и место оттуда же. */}
             <ActionIcon
               aria-label={t("Sidebar toggle")}
               aria-expanded={desktopOpened}
@@ -298,7 +298,6 @@ function CustomHeader() {
             >
               <IconGristPanel size={16} mirrored={!desktopOpened} />
             </ActionIcon>
-          </Tooltip>
         </Group>
 
         <Group gap="xs" wrap="nowrap">

@@ -59,8 +59,10 @@ function RailItem({
   onClick?: () => void;
   current?: boolean;
 }) {
+  // Всплывающей подписи нет: в полосе она загораживала соседние значки и
+  // была не нужна. aria-label остаётся — его видно только читалкам экрана.
   return (
-    <Tooltip label={label} position="right" withArrow openDelay={200}>
+    <>
       <UnstyledButton
         component={path ? Link : "button"}
         to={path}
@@ -81,7 +83,7 @@ function RailItem({
       >
         <Icon size={16} stroke={2} />
       </UnstyledButton>
-    </Tooltip>
+    </>
   );
 }
 
@@ -98,17 +100,19 @@ function GlobalRailItems() {
         path="/home"
         current={pathname === "/home"}
       />
-      <RailItem
-        label={t("Spaces")}
-        icon={IconGristStack}
-        path="/spaces"
-        current={pathname.startsWith("/spaces")}
-      />
+      {/* Порядок тот же, что в развёрнутом меню: иначе при сворачивании
+          кнопки меняются местами. */}
       <RailItem
         label={t("Favorites")}
         icon={IconGristPin}
         path="/favorites"
         current={pathname.startsWith("/favorites")}
+      />
+      <RailItem
+        label={t("Spaces")}
+        icon={IconGristStack}
+        path="/spaces"
+        current={pathname.startsWith("/spaces")}
       />
     </>
   );
@@ -214,10 +218,11 @@ export default function CompactRail() {
       >
         <Stack gap={0} align="center">
           {/* Кружок «создать» — там же, где он у Grist в свёрнутой полосе:
-              над списком разделов. Показываем только на общих страницах,
-              как и развёрнутую кнопку. */}
+              над списком разделов, серединой на той же высоте, что и
+              развёрнутая кнопка (y 77..105 при шапке 49). Показываем
+              только на общих страницах, как и развёрнутую. */}
           {!isSettings && !isSpace && (
-            <Box pb={22} pt={6}>
+            <Box pb={28} pt={18}>
               <GristAddButton compact />
             </Box>
           )}

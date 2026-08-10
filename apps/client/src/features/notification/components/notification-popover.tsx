@@ -64,7 +64,7 @@ export function NotificationPopover() {
           <ActionIcon
             variant="subtle"
             color="dark"
-            size="sm"
+            size={32}
             aria-label={t("Notifications")}
             aria-haspopup="dialog"
             aria-expanded={opened}
@@ -76,7 +76,10 @@ export function NotificationPopover() {
               withBorder
               disabled={unreadCount === 0}
             >
-              <IconBell size={20} />
+              {/* 20px: у лупы Grist сплошной глиф даёт 15x15 чернил, а
+                  обводка колокольчика при 16px — только 12x14 и читается
+                  мельче. На 20px ширины совпадают. */}
+              <IconBell size={20} data-bell="" />
             </Indicator>
           </ActionIcon>
         </Tooltip>

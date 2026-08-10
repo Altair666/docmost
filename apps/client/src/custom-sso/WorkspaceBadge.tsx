@@ -85,7 +85,9 @@ export default function WorkspaceBadge({ compact = false }: { compact?: boolean 
             minWidth: 0,
           }}
         >
-          <Text fw={500} fz={13} lh={1} lineClamp={1}>
+          {/* 18px — высота строки с названием у Grist при кегле 13.
+              С межстрочным в один кегль хвосты букв уходили под обрез. */}
+          <Text fw={500} fz={13} lh="18px" lineClamp={1}>
             {workspace.name}
           </Text>
         </Box>

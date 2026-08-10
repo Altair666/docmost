@@ -61,9 +61,11 @@ export function useAddFavoriteMutation() {
           },
         );
       }
-      queryClient.invalidateQueries({
-        queryKey: ["favorites", variables.type],
-      });
+      // Сбрасываем все списки закладок, а не только запрошенные этим
+      // видом: страница «Закреплён» спрашивает всё сразу (ключ
+      // ["favorites", undefined]) и под прежний ключ не попадала —
+      // приходилось перезагружать страницу руками.
+      queryClient.invalidateQueries({ queryKey: ["favorites"] });
     },
   });
 }
@@ -84,9 +86,11 @@ export function useRemoveFavoriteMutation() {
           },
         );
       }
-      queryClient.invalidateQueries({
-        queryKey: ["favorites", variables.type],
-      });
+      // Сбрасываем все списки закладок, а не только запрошенные этим
+      // видом: страница «Закреплён» спрашивает всё сразу (ключ
+      // ["favorites", undefined]) и под прежний ключ не попадала —
+      // приходилось перезагружать страницу руками.
+      queryClient.invalidateQueries({ queryKey: ["favorites"] });
     },
   });
 }

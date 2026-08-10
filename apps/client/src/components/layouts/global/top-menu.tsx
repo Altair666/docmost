@@ -69,7 +69,8 @@ export default function TopMenu() {
             avatarUrl={user.avatarUrl}
             name={user.name}
             variant="filled"
-            size="sm"
+            // 32px — как у соседних кнопок шапки; было 26 и выбивалось
+            size={32}
           />
         </UnstyledButton>
       </Menu.Target>
