@@ -11,6 +11,11 @@ export const desktopSidebarAtom = atomWithWebStorage<boolean>(
 
 export const desktopAsideAtom = atom<boolean>(false);
 
+// Курсор на свёрнутой полосе: панель выезжает поверх страницы, и вместе с
+// ней должна разъезжаться левая ячейка шапки — иначе плашка с названием
+// фирмы остаётся узкой и панель выглядит выехавшей наполовину.
+export const railHoveredAtom = atom<boolean>(false);
+
 // Valid `tab` values: "" | "comments" | "toc" | "chat" | "details"
 type AsideStateType = {
   tab: string;
@@ -35,6 +40,11 @@ export const sidebarWidthTouchedAtom = atomWithWebStorage<boolean>(
 // 240px — ширина сайдбара в Grist, снята из его DOM. У Docmost — 300.
 export const GRIST_SIDEBAR_WIDTH = 240;
 export const STOCK_SIDEBAR_WIDTH = 300;
+
+// Пределы растягивания у Grist, снятые перетаскиванием: влево панель
+// упирается в 160, вправо в 320.
+export const GRIST_SIDEBAR_MIN = 160;
+export const GRIST_SIDEBAR_MAX = 320;
 
 export function useSidebarWidth(): number {
   const [width] = useAtom(sidebarWidthAtom);

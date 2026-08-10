@@ -14,7 +14,10 @@ import {
   mobileSidebarAtom,
   sidebarWidthAtom,
   sidebarWidthTouchedAtom,
+  railHoveredAtom,
   useSidebarWidth,
+  GRIST_SIDEBAR_MIN,
+  GRIST_SIDEBAR_MAX,
 } from "@/components/layouts/global/hooks/atoms/sidebar-atom.ts";
 import { SpaceSidebar } from "@/features/space/components/sidebar/space-sidebar.tsx";
 import AiChatSidebar from "@/ee/ai-chat/components/ai-chat-sidebar.tsx";
@@ -42,8 +45,9 @@ export default function GlobalAppShell({
   const [, setSidebarWidthTouched] = useAtom(sidebarWidthTouchedAtom);
   const sidebarWidth = useSidebarWidth();
   const [isResizing, setIsResizing] = useState(false);
-  // Курсор на свёрнутой полосе — панель временно выезжает поверх страницы
-  const [railHovered, setRailHovered] = useState(false);
+  // Курсор на свёрнутой полосе — панель временно выезжает поверх страницы.
+  // Атом общий: шапке нужно то же значение, чтобы ехать вместе с панелью.
+  const [railHovered, setRailHovered] = useAtom(railHoveredAtom);
   const sidebarRef = useRef(null);
 
   const startResizing = React.useCallback((mouseDownEvent) => {
@@ -63,12 +67,12 @@ export default function GlobalAppShell({
         const newWidth =
           mouseMoveEvent.clientX -
           sidebarRef.current.getBoundingClientRect().left;
-        if (newWidth < 220) {
-          setSidebarWidth(220);
+        if (newWidth < GRIST_SIDEBAR_MIN) {
+          setSidebarWidth(GRIST_SIDEBAR_MIN);
           return;
         }
-        if (newWidth > 600) {
-          setSidebarWidth(600);
+        if (newWidth > GRIST_SIDEBAR_MAX) {
+          setSidebarWidth(GRIST_SIDEBAR_MAX);
           return;
         }
         setSidebarWidth(newWidth);
@@ -160,33 +164,38 @@ export default function GlobalAppShell({
           >
             <CompactRail />
 
-            {railHovered && (
-              <div
-                data-rail-overlay=""
-                style={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  width: sidebarWidth,
-                  height: "100%",
-                  overflowY: "auto",
-                }}
-              >
-                {isSpaceRoute && <SpaceSidebar />}
-                {isSettingsRoute && <SettingsSidebar />}
-                {isAiRoute && <AiChatSidebar />}
-                {showGlobalSidebar && <GlobalSidebar />}
-              </div>
-            )}
+            {/* Наложение висит всегда и отведено за левый край: выезд
+                сдвигом можно анимировать, появление элемента — нет. */}
+            <div
+              data-rail-overlay=""
+              data-open={railHovered || undefined}
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: sidebarWidth,
+                height: "100%",
+                overflowY: "auto",
+                transform: railHovered
+                  ? "translateX(0)"
+                  : "translateX(-100%)",
+              }}
+            >
+              {isSpaceRoute && <SpaceSidebar />}
+              {isSettingsRoute && <SettingsSidebar />}
+              {isAiRoute && <AiChatSidebar />}
+              {showGlobalSidebar && <GlobalSidebar />}
+            </div>
           </div>
         ) : (
           <>
-            {isSpaceRoute && (
-              <div
-                className={classes.resizeHandle}
-                onMouseDown={startResizing}
-              />
-            )}
+            {/* Тянуть панель можно на любой странице — как в Grist,
+                а не только внутри пространства. */}
+            <div
+              className={classes.resizeHandle}
+              data-resize-handle=""
+              onMouseDown={startResizing}
+            />
             {isSpaceRoute && <SpaceSidebar />}
             {isSettingsRoute && <SettingsSidebar />}
             {isAiRoute && <AiChatSidebar />}

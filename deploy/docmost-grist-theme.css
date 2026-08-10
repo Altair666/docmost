@@ -38,6 +38,8 @@ html {
   --grist-selection: #dcf4eb;
   --grist-medium-text: #494949;
   --grist-hover: #ebebeb;
+  /* Заливка строки меню под курсором, снята с Grist по точкам */
+  --grist-hover-row: #e4e4e4;
   --grist-radius: 4px;
 
   /* Кегль текста внутри страниц. Интерфейс у Grist 13px, но там это таблицы,
@@ -162,8 +164,10 @@ html[data-mantine-color-scheme="light"] [data-workspace-badge] {
 /* Контейнер сайдбара держит по 16px с боков — из-за них плашка пункта
    не доезжала до левой границы и была уже оригинала (191 против 224).
    Гасим только горизонтальные отступы: вертикальные задают верхний и
-   нижний воздух панели. */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar > div {
+   нижний воздух панели.
+   Цепляемся за имя класса, а не за место в разметке: в выехавшей по
+   наведению панели между ними появляется ещё один слой. */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [class*="_navbar_"] {
   padding-left: 0;
   padding-right: 0;
 }
@@ -182,6 +186,25 @@ html[data-mantine-color-scheme="light"] [data-rail] {
   font-weight: 400;
 }
 
+/* Полоса для растягивания: под курсором у Grist зеленеет правая граница
+   панели (#16b378 на месте обычного #e8e8e8). Сама полоса при этом
+   прозрачная — цвет живёт на границе. */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar:has([data-resize-handle]:hover) {
+  border-right-color: var(--grist-primary);
+}
+
+/* Ширина меняется плавно — 0.4s ease, как у Grist. Двигать надо всё
+   разом: саму панель, отступ содержимого и левую ячейку шапки, иначе
+   перекрестье разъезжается на время перехода. */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar,
+html[data-mantine-color-scheme="light"] [data-brand-cell] {
+  transition: width 0.4s ease;
+}
+
+html[data-mantine-color-scheme="light"] .mantine-AppShell-main {
+  transition: padding-inline-start 0.4s ease;
+}
+
 /* Выехавшая по наведению панель. Свёрнутая полоса шириной 48px не должна
    обрезать её, поэтому у панели убираем обрезку и поднимаем наложение над
    содержимым страницы. Фон непрозрачный — иначе сквозь панель просвечивал
@@ -191,10 +214,19 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar:has([data-rail-
 }
 
 html[data-mantine-color-scheme="light"] [data-rail-overlay] {
+  /* Содержимое ровно по ширине панели: горизонтальной прокрутки быть
+     не должно. */
+  overflow-x: hidden;
   background: var(--grist-bg-secondary);
   border-right: 1px solid var(--grist-decoration-secondary);
-  box-shadow: 2px 0 6px rgba(0, 0, 0, 0.08);
   z-index: 200;
+  /* Тем же временем, что и сворачивание, — движение читается как одно */
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+  box-shadow: none;
+}
+
+html[data-mantine-color-scheme="light"] [data-rail-overlay][data-open] {
+  box-shadow: 2px 0 6px rgba(0, 0, 0, 0.08);
 }
 
 /* Свёрнутая полоса живёт по своим правилам: 48px без внутренних отступов,
@@ -207,6 +239,13 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar:has([data-rail]
 html[data-mantine-color-scheme="light"] [data-rail] {
   margin: 0;
   border-radius: 0;
+}
+
+/* Строка меню под курсором заливается #e4e4e4 — снято сравнением снимков
+   покоя и наведения (6774 точки поменялись с #f7f7f7 на #e4e4e4).
+   Выбранной строки это не касается: у неё тёмная плашка. */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [class*="_link_"]:not([data-rail]):not([data-active]):not([aria-current="page"]):hover {
+  background: var(--grist-hover-row);
 }
 
 /* Заголовки групп — прописные с разрядкой, как в Grist */
@@ -291,8 +330,9 @@ html[data-mantine-color-scheme="light"] [data-grist-add]:active [data-grist-add-
    значок: #16b378 в покое, #009058 под курсором и при нажатии.
    Проверено замером: фон кнопки не меняется, меняется цвет глифа. */
 html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-ActionIcon-root:hover,
-html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-ActionIcon-root:active {
-  background: transparent;
+html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-ActionIcon-root:active,
+html[data-mantine-color-scheme="light"] [data-grist-search] button:hover {
+  background: var(--grist-decoration-secondary);
 }
 
 html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-ActionIcon-root:hover svg,
@@ -301,10 +341,11 @@ html[data-mantine-color-scheme="light"] [data-grist-search] button:hover svg {
   color: var(--grist-primary-muted);
 }
 
-/* Обводки Tabler тоньше сплошных фигур Grist и оттого бледнее. Там, где
-   значок остаётся обводкой (колокольчик), добираем плотность линией. */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-ActionIcon-root svg {
-  stroke-width: 2.2;
+/* Толщина линии колокольчика: у лупы (и у нашей, и у гристовской) штрих
+   1–2px, у колокольчика при обводке 2 было 2–3px и он выглядел жирнее.
+   1.4 в системе координат Tabler даёт на 20px около 1.2px на экране. */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-header svg[data-bell] {
+  stroke-width: 1.4;
 }
 
 /* Значки свёрнутой полосы у Grist приглушённые (#929299), а не чёрные.
@@ -323,11 +364,11 @@ html[data-mantine-color-scheme="light"] [data-rail][aria-current="page"] svg {
    строка 25px, значок 16, отступ 8, текст 13/16 цветом #262633, без
    кнопочной обводки и заливки. Размеры сняты из DOM Grist. */
 html[data-mantine-color-scheme="light"] [data-search-filters] > div {
-  flex-direction: column;
-  /* Панель у Grist прижата к правому краю строки: x 685..812 при строке
-     360..813. */
-  align-items: flex-end;
-  gap: 0;
+  /* Фильтры идут в ряд вдоль всего поля поиска, а не столбиком. */
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
   padding: 2px 4px;
 }
 

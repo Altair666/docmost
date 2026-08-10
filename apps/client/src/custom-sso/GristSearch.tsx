@@ -150,6 +150,7 @@ export default function GristSearch() {
   }, [debounced, filters]);
 
   const { data: results, isLoading } = useUnifiedSearch(params, opened);
+  const hasQuery = query.trim().length > 0;
   const items = results ?? [];
   const isAttachment = filters.contentType === "attachment";
 
@@ -198,12 +199,16 @@ export default function GristSearch() {
 
   return (
     <Popover
-      opened={opened && query.trim().length > 0}
+      // Панель показывается сразу по щелчку на лупе, как у Grist, а не
+      // только вместе с результатами.
+      opened={opened}
       position="bottom-end"
       offset={0}
       shadow="md"
       radius={0}
-      width={EXPANDED_WIDTH}
+      // Без запроса блок сжимается по содержимому — как у Grist, где под
+      // полем висит только узкая полоска с настройкой поиска.
+      width={hasQuery ? EXPANDED_WIDTH : "auto"}
       withinPortal
     >
       <Popover.Target>
@@ -240,7 +245,8 @@ export default function GristSearch() {
               marginLeft: 16,
               padding: 8,
               border: "none",
-              background: "transparent",
+              // Фон задаёт тема: под курсором у Grist появляется серая
+              // подложка, а заданный здесь прозрачный её перебивал.
               cursor: "pointer",
               color: "var(--grist-primary, #16b378)",
               display: "grid",
@@ -300,13 +306,15 @@ export default function GristSearch() {
 
       <Popover.Dropdown p={0}>
         {/* Здесь у Grist стоит галка «искать на всех страницах».
-            У нас на её месте — фильтры поиска Docmost. */}
+            У нас на её месте — фильтры Docmost, друг за другом. */}
         <Box
           px="xs"
           py={4}
           data-search-filters=""
           style={{
-            borderBottom: "1px solid var(--grist-line-soft, #f0f0f0)",
+            borderBottom: hasQuery
+              ? "1px solid var(--grist-line-soft, #f0f0f0)"
+              : undefined,
           }}
         >
           <SearchSpotlightFilters
@@ -315,25 +323,27 @@ export default function GristSearch() {
           />
         </Box>
 
-        <Box style={{ maxHeight: 420, overflowY: "auto" }}>
-          {items.length === 0 && !isLoading && (
-            <Text size="sm" c="dimmed" px="sm" py="xs">
-              {t("No results found...")}
-            </Text>
-          )}
+        {hasQuery && (
+          <Box style={{ maxHeight: 420, overflowY: "auto" }}>
+            {items.length === 0 && !isLoading && (
+              <Text size="sm" c="dimmed" px="sm" py="xs">
+                {t("No results found...")}
+              </Text>
+            )}
 
-          {items.map((item: any, index: number) => (
-            <ResultRow
-              key={item.id}
-              result={item}
-              isAttachment={isAttachment}
-              showSpace={!filters.spaceId}
-              selected={index === selected}
-              onClick={() => searchSpotlight.close()}
-              t={t}
-            />
-          ))}
-        </Box>
+            {items.map((item: any, index: number) => (
+              <ResultRow
+                key={item.id}
+                result={item}
+                isAttachment={isAttachment}
+                showSpace={!filters.spaceId}
+                selected={index === selected}
+                onClick={() => searchSpotlight.close()}
+                t={t}
+              />
+            ))}
+          </Box>
+        )}
       </Popover.Dropdown>
     </Popover>
   );

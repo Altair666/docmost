@@ -34,7 +34,10 @@ import {
 } from "@/features/search/constants.ts";
 import { NotificationPopover } from "@/features/notification/components/notification-popover.tsx";
 import { workspaceAtom } from "@/features/user/atoms/current-user-atom.ts";
-import { useSidebarWidth } from "@/components/layouts/global/hooks/atoms/sidebar-atom.ts";
+import {
+  railHoveredAtom,
+  useSidebarWidth,
+} from "@/components/layouts/global/hooks/atoms/sidebar-atom.ts";
 import WorkspaceBadge from "@/custom-sso/WorkspaceBadge";
 import { COMPACT_RAIL_WIDTH } from "@/custom-sso/CompactRail";
 import { useUiFlags } from "@/custom-sso/ui-flags";
@@ -202,6 +205,10 @@ function CustomHeader() {
   const [desktopOpened] = useAtom(desktopSidebarAtom);
   const toggleDesktop = useToggleSidebar(desktopSidebarAtom);
   const sidebarWidth = useSidebarWidth();
+  // Панель выехала по наведению — ячейка с плашкой едет вместе с ней,
+  // иначе выезжает только нижняя часть колонки.
+  const [railHovered] = useAtom(railHoveredAtom);
+  const wide = desktopOpened || railHovered;
 
   return (
     <Group h="100%" gap={0} wrap={"nowrap"} align="stretch">
@@ -214,10 +221,10 @@ function CustomHeader() {
         gap="xs"
         // 16px по краям развёрнутой ячейки и 8px свёрнутой — так плашка
         // встаёт в те же координаты, что у Grist (x=16..224 и x=8..40).
-        px={desktopOpened ? 16 : 8}
-        justify={desktopOpened ? undefined : "center"}
+        px={wide ? 16 : 8}
+        justify={wide ? undefined : "center"}
         wrap="nowrap"
-        w={desktopOpened ? sidebarWidth : COMPACT_RAIL_WIDTH}
+        w={wide ? sidebarWidth : COMPACT_RAIL_WIDTH}
         // Метка для темы: цвет этой ячейки задаётся в CSS вместе с
         // цветом сайдбара, чтобы серая колонка читалась сплошной.
         data-brand-cell="true"
@@ -242,9 +249,9 @@ function CustomHeader() {
             она так же кликабельна и ведёт на главную. */}
         <Box
           visibleFrom="sm"
-          style={{ minWidth: 0, flex: desktopOpened ? 1 : "none" }}
+          style={{ minWidth: 0, flex: wide ? 1 : "none" }}
         >
-          <WorkspaceBadge compact={!desktopOpened} />
+          <WorkspaceBadge compact={!wide} />
         </Box>
 
         {/* На узких экранах вместо плашки — иконка, ведущая на главную.
