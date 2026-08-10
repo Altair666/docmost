@@ -18,6 +18,9 @@ import { getSpaceUrl } from "@/lib/config";
 import { useTranslation } from "react-i18next";
 import { getInitialsColor } from "@/lib/get-initials-color";
 import rowClasses from "@/components/ui/clickable-table-row.module.css";
+import { CustomAvatar } from "@/components/ui/custom-avatar";
+import { AvatarIconType } from "@/features/attachments/types/attachment.types";
+import { useUiFlags } from "@/custom-sso/ui-flags";
 
 interface Props {
   spaceId?: string;
@@ -25,6 +28,7 @@ interface Props {
 
 export default function FavoritesPages({ spaceId }: Props) {
   const { t } = useTranslation();
+  const { customUi } = useUiFlags();
   const {
     data,
     isLoading,
@@ -32,7 +36,9 @@ export default function FavoritesPages({ spaceId }: Props) {
     hasNextPage,
     fetchNextPage,
     isFetchingNextPage,
-  } = useFavoritesQuery("page", spaceId);
+    // Внутри пространства перечислять пространства незачем — там нужны
+    // только страницы этого пространства.
+  } = useFavoritesQuery(customUi && !spaceId ? undefined : "page", spaceId);
 
   const favorites = data?.pages.flatMap((p) => p.items) ?? [];
 
@@ -88,6 +94,42 @@ export default function FavoritesPages({ spaceId }: Props) {
                       )}
                     </Table.Td>
                   )}
+                  <Table.Td>
+                    <Text
+                      c="dimmed"
+                      style={{ whiteSpace: "nowrap" }}
+                      size="xs"
+                      fw={500}
+                    >
+                      {formattedDate(new Date(fav.createdAt))}
+                    </Text>
+                  </Table.Td>
+                </Table.Tr>
+              ) : fav.space ? (
+                // Закреплённое пространство. Отдельной секции для них в
+                // меню больше нет, поэтому показываем здесь же.
+                <Table.Tr key={fav.id} className={rowClasses.row}>
+                  <Table.Td>
+                    <UnstyledButton
+                      className={rowClasses.link}
+                      component={Link}
+                      to={getSpaceUrl(fav.space.slug)}
+                    >
+                      <Group wrap="nowrap">
+                        <CustomAvatar
+                          avatarUrl={fav.space.logo}
+                          name={fav.space.name}
+                          type={AvatarIconType.SPACE_ICON}
+                          size={18}
+                          radius="sm"
+                        />
+                        <Text fw={500} size="md" lineClamp={1}>
+                          {fav.space.name}
+                        </Text>
+                      </Group>
+                    </UnstyledButton>
+                  </Table.Td>
+                  {!spaceId && <Table.Td />}
                   <Table.Td>
                     <Text
                       c="dimmed"

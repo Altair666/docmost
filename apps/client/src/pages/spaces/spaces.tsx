@@ -8,10 +8,12 @@ import { AllSpacesList } from "@/features/space/components/spaces-page";
 import FavoriteSpacesGrid from "@/features/space/components/spaces-page/favorite-spaces-grid";
 import { usePaginateAndSearch } from "@/hooks/use-paginate-and-search";
 import useUserRole from "@/hooks/use-user-role";
+import { useUiFlags } from "@/custom-sso/ui-flags";
 
 export default function Spaces() {
   const { t } = useTranslation();
   const { isAdmin } = useUserRole();
+  const { customUi } = useUiFlags();
   const { search, cursor, goNext, goPrev, handleSearch } = usePaginateAndSearch();
 
   const { data, isLoading } = useGetSpacesQuery({
@@ -35,7 +37,9 @@ export default function Spaces() {
           <CreateSpaceModal />
         </Group>
 
-        <FavoriteSpacesGrid />
+        {/* Избранные пространства дублируют список ниже — на этой
+            странице они не нужны. В стоковом виде остаются. */}
+        {!customUi && <FavoriteSpacesGrid />}
 
         <Box>
           <Text size="sm" c="dimmed" mb="md">

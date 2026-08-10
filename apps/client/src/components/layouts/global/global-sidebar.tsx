@@ -25,6 +25,7 @@ import { useHasFeature } from "@/ee/hooks/use-feature";
 import { Feature } from "@/ee/features";
 import { useUpgradeLabel } from "@/ee/hooks/use-upgrade-label";
 import { hideLockedEeItems, useUiFlags } from "@/custom-sso/ui-flags";
+import GristAddButton from "@/custom-sso/GristAddButton";
 import {
   IconGristPin,
   IconGristStack,
@@ -89,7 +90,15 @@ export default function GlobalSidebar() {
   return (
     <div className={classes.navbar}>
       <ScrollArea w="100%" style={{ flex: 1 }}>
-        <div className={classes.section}>
+        {/* Зелёная кнопка на месте гристовской «Add new». Только в нашем
+              виде: в стоковом Docmost её нет и быть не должно. */}
+          {customUi && (
+            <div style={{ padding: "6px 0 22px 16px" }}>
+              <GristAddButton />
+            </div>
+          )}
+
+          <div className={classes.section}>
           {mainNavItems.map((item) =>
             item.disabled ? (
               <Tooltip

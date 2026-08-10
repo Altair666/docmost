@@ -216,7 +216,9 @@ export default function GristSearch() {
             width: opened ? EXPANDED_WIDTH : COLLAPSED_WIDTH,
             maxWidth: "100%",
             height: BAR_HEIGHT,
-            paddingRight: opened ? 8 : 16,
+            // 16px с обеих сторон: у Grist крестик отстоит от края
+            // строки ровно настолько же, насколько лупа от левого.
+            paddingRight: 16,
             // Переход ширины 0.4s ease — ровно как у Grist
             transition: "width 0.4s ease",
             background: opened ? "var(--mantine-color-body)" : "transparent",

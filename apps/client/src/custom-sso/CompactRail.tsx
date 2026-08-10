@@ -1,4 +1,4 @@
-import { Modal, Stack, Tooltip, UnstyledButton } from "@mantine/core";
+import { Box, Modal, Stack, Tooltip, UnstyledButton } from "@mantine/core";
 import {
   IconHome,
   IconPlus,
@@ -22,6 +22,7 @@ import SpaceSettingsModal from "@/features/space/components/settings-modal.tsx";
 import { searchSpotlight } from "@/features/search/constants";
 import { getSpaceUrl } from "@/lib/config.ts";
 import { useSettingsRailItems } from "@/components/settings/settings-sidebar.tsx";
+import GristAddButton from "@/custom-sso/GristAddButton";
 
 // Ширина свёрнутой панели. Её же использует левая ячейка шапки, чтобы
 // вертикаль перекрестья не разъезжалась при сворачивании.
@@ -212,6 +213,15 @@ export default function CompactRail() {
         style={{ width: COMPACT_RAIL_WIDTH }}
       >
         <Stack gap={0} align="center">
+          {/* Кружок «создать» — там же, где он у Grist в свёрнутой полосе:
+              над списком разделов. Показываем только на общих страницах,
+              как и развёрнутую кнопку. */}
+          {!isSettings && !isSpace && (
+            <Box pb={22} pt={6}>
+              <GristAddButton compact />
+            </Box>
+          )}
+
           {isSettings ? (
             <SettingsRailItems />
           ) : isSpace ? (

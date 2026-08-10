@@ -136,8 +136,11 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar a[aria-current=
    упирается в левую границу и не доходит 16px до правой; текст 13px с
    межстрочным 32px, начертание обычное, отступ слева 24px. У Docmost
    пункты были выше, жирнее и с отступом слева. */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar a:not([data-rail]),
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar > div > button:not([data-rail]) {
+/* Цепляемся за класс пункта меню, а не за место в разметке: «Пригласить
+   людей» — кнопка, вложенная глубже соседей, и прежний селектор до неё не
+   доставал (ширина 153 против 223, отступ слева 10 против 24). Хеш в имени
+   класса меняется от сборки к сборке, а часть «_link_» — нет. */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [class*="_link_"]:not([data-rail]) {
   min-height: 32px;
   margin-left: 0;
   margin-right: 16px;
