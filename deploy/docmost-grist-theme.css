@@ -82,10 +82,28 @@ html[data-mantine-color-scheme="light"] {
   --mantine-primary-color-light-color: var(--grist-primary-dim);
   --mantine-primary-color-contrast: #ffffff;
 
+  /* Вся синяя палитра целиком: подменять только 5–8 мало — светлые
+     заливки под курсором берутся из 0–4, а состояния variant="light" и
+     variant="outline" из отдельных переменных. */
+  --mantine-color-blue-0: #eef9f5;
+  --mantine-color-blue-1: var(--grist-selection);
+  --mantine-color-blue-2: #c3e9da;
+  --mantine-color-blue-3: #8ed7bd;
+  --mantine-color-blue-4: #4ec59f;
   --mantine-color-blue-5: var(--grist-primary);
   --mantine-color-blue-6: var(--grist-primary);
   --mantine-color-blue-7: var(--grist-primary-muted);
   --mantine-color-blue-8: var(--grist-primary-dim);
+  --mantine-color-blue-9: #005c39;
+
+  --mantine-color-blue-filled: var(--grist-primary);
+  --mantine-color-blue-filled-hover: var(--grist-primary-muted);
+  --mantine-color-blue-light: var(--grist-selection);
+  --mantine-color-blue-light-hover: #d6eee5;
+  --mantine-color-blue-light-color: var(--grist-primary-dim);
+  --mantine-color-blue-outline: var(--grist-primary);
+  --mantine-color-blue-outline-hover: #eef9f5;
+  --mantine-color-blue-text: var(--grist-primary-muted);
 }
 
 /* ============================================================
@@ -186,6 +204,32 @@ html[data-mantine-color-scheme="light"] [data-rail] {
   font-weight: 400;
 }
 
+/* Полоса для растягивания шириной 7px, как у Grist, и заходит за край
+   панели: попасть в 3px мышью тяжело. Своей подсветки у неё нет — вместо
+   серой заливки зеленеет граница панели (правило ниже). */
+html[data-mantine-color-scheme="light"] [data-resize-handle] {
+  width: 7px;
+  right: -3px;
+  /* Над содержимым меню: без этого нажатие уходило в список пунктов,
+     и панель не тянулась вовсе. */
+  z-index: 5;
+}
+
+html[data-mantine-color-scheme="light"] [data-resize-handle]:hover,
+html[data-mantine-color-scheme="light"] [data-resize-handle]:active {
+  width: 7px;
+  background: transparent;
+}
+
+/* Затемнение строки под курсором — одно и то же по всему сайту, а не
+   только в боковом меню: списки документов, закреплённых, участников,
+   пункты выпадающих меню. */
+html[data-mantine-color-scheme="light"] table tbody tr:hover,
+html[data-mantine-color-scheme="light"] .mantine-Menu-item:hover,
+html[data-mantine-color-scheme="light"] .mantine-NavLink-root:hover {
+  background: var(--grist-hover-row);
+}
+
 /* Полоса для растягивания: под курсором у Grist зеленеет правая граница
    панели (#16b378 на месте обычного #e8e8e8). Сама полоса при этом
    прозрачная — цвет живёт на границе. */
@@ -218,16 +262,13 @@ html[data-mantine-color-scheme="light"] [data-rail-overlay] {
      не должно. */
   overflow-x: hidden;
   background: var(--grist-bg-secondary);
-  border-right: 1px solid var(--grist-decoration-secondary);
+  /* Рамки нет: она рисовала кромку обрезки, и та ехала по значкам белой
+     полосой. Границу колонки держит сама панель. */
   z-index: 200;
   /* То же свойство и то же время, что у ячейки шапки: обе части колонки
-     обязаны ехать как одно целое. */
-  transition: width 0.4s ease, box-shadow 0.4s ease;
-  box-shadow: none;
-}
-
-html[data-mantine-color-scheme="light"] [data-rail-overlay][data-open] {
-  box-shadow: 2px 0 6px rgba(0, 0, 0, 0.08);
+     обязаны ехать как одно целое. Тени нет: она ехала вместе с кромкой и
+     читалась как вторая полоса, бегущая по значкам. */
+  transition: width 0.4s ease;
 }
 
 /* Свёрнутая полоса живёт по своим правилам: 48px без внутренних отступов,
@@ -293,6 +334,12 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-header svg {
 html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-ActionIcon-root,
 html[data-mantine-color-scheme="light"] [data-grist-search] button {
   border-radius: 50%;
+}
+
+/* В покое фона нет — кружок появляется только под курсором. Задавать
+   прозрачность в разметке нельзя: она перебила бы правило наведения. */
+html[data-mantine-color-scheme="light"] [data-grist-search] button {
+  background: transparent;
 }
 
 /* Значки в шапке зелёные — как в Grist. Снято по пикселям его лупы:

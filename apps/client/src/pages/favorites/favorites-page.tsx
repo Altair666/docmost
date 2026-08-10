@@ -19,6 +19,7 @@ import { getSpaceUrl } from "@/lib/config";
 import { useTranslation } from "react-i18next";
 import { getInitialsColor } from "@/lib/get-initials-color";
 import PageListSkeleton from "@/components/ui/page-list-skeleton";
+import { PageListIcon } from "@/components/common/page-list-icon";
 import rowClasses from "@/components/ui/clickable-table-row.module.css";
 import { CustomAvatar } from "@/components/ui/custom-avatar";
 import { AvatarIconType } from "@/features/attachments/types/attachment.types";
@@ -79,15 +80,12 @@ export default function FavoritesPage() {
                           )}
                         >
                           <Group wrap="nowrap">
-                            {fav.page.icon || (
-                              <ThemeIcon
-                                variant="transparent"
-                                color="gray"
-                                size={18}
-                              >
-                                <IconFileDescription size={18} />
-                              </ThemeIcon>
-                            )}
+                            {/* Тот же значок, что в списке документов, —
+                                иначе строки выглядят по-разному. */}
+                            <PageListIcon
+                              icon={fav.page.icon}
+                              isBase={fav.page.isBase}
+                            />
                             <Text fw={500} size="md" lineClamp={1}>
                               {getPageTitle(fav.page.title, undefined, t)}
                             </Text>
@@ -133,7 +131,7 @@ export default function FavoritesPage() {
                               avatarUrl={fav.space.logo}
                               name={fav.space.name}
                               type={AvatarIconType.SPACE_ICON}
-                              size={18}
+                              size={16}
                               radius="sm"
                             />
                             <Text fw={500} size="md" lineClamp={1}>
