@@ -169,7 +169,7 @@ export class SpaceRepo {
     let query = this.db
       .selectFrom('spaces')
       .selectAll('spaces')
-      .select((eb) => [this.withMemberCount(eb)])
+      .select((eb) => [this.withMemberCount(eb), this.withLastEditedAt(eb)])
       .where('workspaceId', '=', workspaceId);
 
     if (pagination.query) {
@@ -219,6 +219,21 @@ export class SpaceRepo {
       .selectFrom(subquery)
       .select((eb) => eb.fn.count('userId').as('count'))
       .as('memberCount');
+  }
+
+  // Когда в пространстве последний раз меняли страницу. Нужна для колонки
+  // «Последнее редактирование» в списке пространств: у Grist в таком же
+  // списке документов есть колонка Last edited.
+  //
+  // Считается подзапросом в той же выборке — иначе на каждую строку
+  // уходил бы отдельный запрос.
+  withLastEditedAt(eb: ExpressionBuilder<DB, 'spaces'>) {
+    return eb
+      .selectFrom('pages')
+      .select((eb2) => eb2.fn.max('pages.updatedAt').as('lastEditedAt'))
+      .whereRef('pages.spaceId', '=', 'spaces.id')
+      .where('pages.deletedAt', 'is', null)
+      .as('lastEditedAt');
   }
 
   async deleteSpace(spaceId: string, workspaceId: string): Promise<void> {

@@ -22,6 +22,7 @@ import { useTranslation } from "react-i18next";
 import React, { useState } from "react";
 import { useDisclosure } from "@mantine/hooks";
 import { formatMemberCount } from "@/lib";
+import { formattedDate } from "@/lib/time";
 import { getSpaceUrl } from "@/lib/config";
 import { prefetchSpace } from "@/features/space/queries/space-query";
 import { SearchInput } from "@/components/common/search-input";
@@ -76,6 +77,9 @@ function WatchButton({ spaceId, watchedIds, size = 16 }: { spaceId: string; watc
 
 interface AllSpacesListProps {
   spaces: any[];
+  // Выбор сортировки рисуется в шапке таблицы, справа от заголовков
+  // колонок — так он стоит у Grist.
+  sortControl?: React.ReactNode;
   onSearch: (query: string) => void;
   hasPrevPage?: boolean;
   hasNextPage?: boolean;
@@ -85,6 +89,7 @@ interface AllSpacesListProps {
 
 export default function AllSpacesList({
   spaces,
+  sortControl,
   onSearch,
   hasPrevPage,
   hasNextPage,
@@ -104,10 +109,9 @@ export default function AllSpacesList({
 
   return (
     <Box>
-      <SearchInput onSearch={onSearch} />
-
-      <Space h="md" />
-
+      {/* Поиска здесь нет: он живёт в шапке приложения и ищет
+          по всем пространствам сразу. Отбивка под ним ушла вместе с ним:
+          зазор до таблицы задаёт заголовок страницы. */}
       <Table.ScrollContainer minWidth={500}>
         <Table highlightOnHover verticalSpacing="sm">
           <Table.Caption>
@@ -117,10 +121,30 @@ export default function AllSpacesList({
           </Table.Caption>
           <Table.Thead>
             <Table.Tr>
-              <Table.Th>{t("Space")}</Table.Th>
-              <Table.Th>{t("Members")}</Table.Th>
-              <Table.Th w={130}>
+              {/* Доли колонок — из списка документов Grist: имя 50%,
+                  второе поле 20% с потолком 200, дата 30% с потолком 250. */}
+              <Table.Th style={{ width: "50%" }}>{t("Space")}</Table.Th>
+              <Table.Th style={{ width: "20%", maxWidth: 200 }}>
+                {t("Members")}
+              </Table.Th>
+              <Table.Th style={{ width: "30%", maxWidth: 250 }}>
+                {t("Last edited")}
+              </Table.Th>
+              {/* Ширина по содержимому: полоса слева обрывается ровно за
+                  24px до сортировки при любой длине подписи (column-gap
+                  24px у cssHeader в Grist). */}
+              <Table.Th
+                data-sort-cell=""
+                style={{
+                  width: "1%",
+                  whiteSpace: "nowrap",
+                  textAlign: "right",
+                  paddingLeft: 24,
+                  paddingRight: 0,
+                }}
+              >
                 <VisuallyHidden>{t("Action")}</VisuallyHidden>
+                {sortControl}
               </Table.Th>
             </Table.Tr>
           </Table.Thead>
@@ -170,6 +194,16 @@ export default function AllSpacesList({
                   <Table.Td>
                     <Text size="sm" style={{ whiteSpace: "nowrap" }}>
                       {formatMemberCount(space.memberCount, t)}
+                    </Text>
+                  </Table.Td>
+
+                  {/* Когда в пространстве последний раз меняли страницу —
+                      колонка Last edited из списка документов Grist */}
+                  <Table.Td>
+                    <Text size="sm" c="dimmed" style={{ whiteSpace: "nowrap" }}>
+                      {space.lastEditedAt
+                        ? formattedDate(new Date(space.lastEditedAt))
+                        : "—"}
                     </Text>
                   </Table.Td>
                   <Table.Td>

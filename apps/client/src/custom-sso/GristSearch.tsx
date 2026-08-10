@@ -13,6 +13,12 @@ import {
   searchSpotlightStore,
 } from "@/features/search/constants.ts";
 import { SearchSpotlightFilters } from "@/features/search/components/search-spotlight-filters.tsx";
+import { useGetSpacesQuery } from "@/features/space/queries/space-query";
+import { CustomAvatar } from "@/components/ui/custom-avatar";
+import { AvatarIconType } from "@/features/attachments/types/attachment.types";
+import { getSpaceUrl } from "@/lib/config";
+import { listFilterAtom } from "@/custom-sso/list-filter";
+import { useSetAtom } from "jotai";
 import { useUnifiedSearch } from "@/features/search/hooks/use-unified-search.ts";
 import {
   IAttachmentSearch,
@@ -129,6 +135,47 @@ function ResultRow({
   );
 }
 
+// Строка результата для пространства: значок и название, как в списке
+// пространств. Ведёт в само пространство.
+function SpaceRow({
+  space,
+  selected,
+  onClick,
+}: {
+  space: any;
+  selected: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <Box
+      component={Link}
+      to={getSpaceUrl(space.slug)}
+      onClick={onClick}
+      data-selected={selected || undefined}
+      style={{
+        display: "block",
+        padding: "6px 12px",
+        textDecoration: "none",
+        color: "inherit",
+        background: selected ? "var(--mantine-color-default-hover)" : undefined,
+      }}
+    >
+      <Group wrap="nowrap" gap="xs">
+        <CustomAvatar
+          avatarUrl={space.logo}
+          name={space.name}
+          type={AvatarIconType.SPACE_ICON}
+          size={20}
+          radius="sm"
+        />
+        <Text size="sm" lineClamp={1}>
+          {space.name}
+        </Text>
+      </Group>
+    </Box>
+  );
+}
+
 export default function GristSearch() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -141,18 +188,44 @@ export default function GristSearch() {
   const [filters, setFilters] = useState<{
     spaceId?: string | null;
     contentType?: string;
+    findSpace?: boolean;
   }>({ contentType: "page" });
+
+  const findSpace = Boolean(filters.findSpace);
+  const setListFilter = useSetAtom(listFilterAtom);
+
 
   const params = useMemo(() => {
     const p: any = { query: debounced, contentType: filters.contentType || "page" };
+    // Пустой spaceId — режим «все пространства», сервер тогда ищет во всех
+    // пространствах, где пользователь состоит.
     if (filters.spaceId) p.spaceId = filters.spaceId;
     return p;
   }, [debounced, filters]);
 
-  const { data: results, isLoading } = useUnifiedSearch(params, opened);
+  const { data: results, isLoading } = useUnifiedSearch(
+    params,
+    opened && !findSpace,
+  );
+
+  // В режиме «Найти пространство» ищем пространства, а не страницы.
+  // Запрос лёгкий и кэшируется, поэтому идёт всегда — отдельного
+  // выключателя у него нет.
+  const { data: spaceResults } = useGetSpacesQuery({
+    query: findSpace ? debounced : "",
+    limit: 20,
+  });
+
   const hasQuery = query.trim().length > 0;
-  const items = results ?? [];
-  const isAttachment = filters.contentType === "attachment";
+  const items = findSpace ? (spaceResults?.items ?? []) : (results ?? []);
+  const isAttachment = !findSpace && filters.contentType === "attachment";
+
+  // Набранное отсеивает строки списков на открытой странице. Гасим, когда
+  // поиск закрыт или режим выключен, — иначе список останется подрезанным.
+  useEffect(() => {
+    setListFilter(opened && findSpace ? debounced : "");
+    return () => setListFilter("");
+  }, [opened, findSpace, debounced, setListFilter]);
 
   // Фокус в поле сразу после раскрытия — иначе пришлось бы ещё раз щёлкать
   useEffect(() => {
@@ -169,6 +242,11 @@ export default function GristSearch() {
   const go = (index: number) => {
     const item: any = items[index];
     if (!item) return;
+    if (findSpace) {
+      searchSpotlight.close();
+      navigate(getSpaceUrl(item.slug));
+      return;
+    }
     const to = isAttachment
       ? buildPageUrl(item.space.slug, item.page.slugId, item.page.title)
       : buildPageUrl(item.space.slug, item.slugId, item.title);
@@ -206,9 +284,9 @@ export default function GristSearch() {
       offset={0}
       shadow="md"
       radius={0}
-      // Без запроса блок сжимается по содержимому — как у Grist, где под
-      // полем висит только узкая полоска с настройкой поиска.
-      width={hasQuery ? EXPANDED_WIDTH : "auto"}
+      // Ширина всегда равна строке поиска: по содержимому блок дёргался
+      // вслед за длиной названия выбранного пространства.
+      width={EXPANDED_WIDTH}
       withinPortal
     >
       <Popover.Target>
@@ -331,7 +409,18 @@ export default function GristSearch() {
               </Text>
             )}
 
-            {items.map((item: any, index: number) => (
+            {findSpace &&
+              items.map((item: any, index: number) => (
+                <SpaceRow
+                  key={item.id}
+                  space={item}
+                  selected={index === selected}
+                  onClick={() => searchSpotlight.close()}
+                />
+              ))}
+
+            {!findSpace &&
+              items.map((item: any, index: number) => (
               <ResultRow
                 key={item.id}
                 result={item}

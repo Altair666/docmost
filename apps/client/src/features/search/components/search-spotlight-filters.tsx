@@ -21,6 +21,7 @@ import { RadioMenuItem } from "@/components/ui/radio-menu-item";
 import { useHasFeature } from "@/ee/hooks/use-feature";
 import { Feature } from "@/ee/features";
 import classes from "./search-spotlight-filters.module.css";
+import { useUiFlags } from "@/custom-sso/ui-flags";
 import { useAtom } from "jotai";
 import { workspaceAtom } from "@/features/user/atoms/current-user-atom.ts";
 
@@ -44,6 +45,9 @@ export function SearchSpotlightFilters({
   );
   const [contentType, setContentType] = useState<string | null>("page");
   const [workspace] = useAtom(workspaceAtom);
+  const { customUi } = useUiFlags();
+  // Поиск пространств вместо страниц
+  const [findSpace, setFindSpace] = useState(false);
 
   const { data: spacesData } = useGetSpacesQuery({ limit: 100 });
   const selectedSpaceData = selectedSpaceId
@@ -55,9 +59,19 @@ export function SearchSpotlightFilters({
       onFiltersChange({
         spaceId: selectedSpaceId,
         contentType,
+        findSpace: false,
       });
     }
   }, []);
+
+  const handleFindMode = (value: boolean) => {
+    setFindSpace(value);
+    onFiltersChange?.({
+      spaceId: value ? null : selectedSpaceId,
+      contentType,
+      findSpace: value,
+    });
+  };
 
   const contentTypeOptions = [
     { value: "page", label: t("Pages") },
@@ -72,9 +86,11 @@ export function SearchSpotlightFilters({
     setSelectedSpaceId(spaceId);
 
     if (onFiltersChange) {
+      setFindSpace(false);
       onFiltersChange({
         spaceId: spaceId,
         contentType,
+        findSpace: false,
       });
     }
   };
@@ -98,6 +114,7 @@ export function SearchSpotlightFilters({
       onFiltersChange({
         spaceId: newSelectedSpaceId,
         contentType: newContentType,
+        findSpace,
       });
     }
   };
@@ -132,6 +149,9 @@ export function SearchSpotlightFilters({
       <SpaceFilterMenu
         value={selectedSpaceId}
         onChange={handleSpaceSelect}
+        withScopeToggle={customUi}
+        findMode={findSpace}
+        onFindModeChange={handleFindMode}
         position="bottom-start"
         width={250}
         zIndex={getDefaultZIndex("max")}
@@ -145,9 +165,11 @@ export function SearchSpotlightFilters({
           className={classes.filterButton}
           fw={500}
         >
-          {selectedSpaceId
-            ? `${t("Space")}: ${selectedSpaceData?.name || t("Unknown")}`
-            : `${t("Space")}: ${t("All spaces")}`}
+          {findSpace
+            ? t("Find a space")
+            : selectedSpaceId
+              ? `${t("Space")}: ${selectedSpaceData?.name || t("Unknown")}`
+              : `${t("Space")}: ${t("All spaces")}`}
         </Button>
       </SpaceFilterMenu>
 

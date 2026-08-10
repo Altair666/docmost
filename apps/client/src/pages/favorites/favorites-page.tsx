@@ -8,6 +8,7 @@ import {
   Title,
   ThemeIcon,
   Button,
+  VisuallyHidden,
 } from "@mantine/core";
 import { Link } from "react-router-dom";
 import { buildPageUrl, getPageTitle } from "@/features/page/page.utils";
@@ -24,19 +25,44 @@ import rowClasses from "@/components/ui/clickable-table-row.module.css";
 import { CustomAvatar } from "@/components/ui/custom-avatar";
 import { AvatarIconType } from "@/features/attachments/types/attachment.types";
 import { useUiFlags } from "@/custom-sso/ui-flags";
+import { IconGristPin } from "@/custom-sso/GristIcons";
+import GristSortSelect, { GristSort } from "@/custom-sso/GristSortSelect";
+import { useState } from "react";
+import { useAtomValue } from "jotai";
+import { listFilterAtom } from "@/custom-sso/list-filter";
 
 export default function FavoritesPage() {
   const { t } = useTranslation();
   // Без указания вида сервер отдаёт всё закреплённое — и страницы, и
   // пространства. В стоковом виде оставляем прежнее поведение.
   const { customUi } = useUiFlags();
+  const [sort, setSort] = useState<GristSort>("date");
   const { data, isLoading, isError, hasNextPage, fetchNextPage, isFetchingNextPage } =
     useFavoritesQuery(customUi ? undefined : "page");
-  const favorites = data?.pages.flatMap((p) => p.items) ?? [];
+  const loaded = data?.pages.flatMap((p) => p.items) ?? [];
+
+  // Порядок как у Grist: по имени или по дате (свежие сверху).
+  // Сравниваем показанное имя, а не сырое поле: у страницы без названия
+  // оно пустое, и такие строки не переставлялись вовсе.
+  const nameOf = (f: any) =>
+    f.page ? getPageTitle(f.page.title, undefined, t) : f.space?.name || "";
+  // Набранное в шапке в режиме «Найти пространство» отсеивает строки
+  const listFilter = useAtomValue(listFilterAtom).trim().toLowerCase();
+  const shown = listFilter
+    ? loaded.filter((f: any) =>
+        nameOf(f).toLowerCase().includes(listFilter),
+      )
+    : loaded;
+
+  const favorites = [...shown].sort((a, b) =>
+    sort === "name"
+      ? nameOf(a).localeCompare(nameOf(b), undefined, { sensitivity: "base" })
+      : new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  );
 
   if (isLoading) {
     return (
-      <Container size={800} py="xl">
+      <Container size={1340} px={24} py="xl">
         <Title order={3} mb="lg">
           {t("Favorites")}
         </Title>
@@ -47,7 +73,7 @@ export default function FavoritesPage() {
 
   if (isError) {
     return (
-      <Container size={800} py="xl">
+      <Container size={1340} px={24} py="xl">
         <Title order={3} mb="lg">
           {t("Favorites")}
         </Title>
@@ -56,15 +82,50 @@ export default function FavoritesPage() {
     );
   }
 
+  // Поле и отступ сверху те же, что на «Все документы»
   return (
-    <Container size={800} py="xl">
-      <Title order={1} size="h3" mb="lg">
-        {t("Favorites")}
-      </Title>
+    <Container size={1340} px={24} pt={16} pb="xl">
+      {/* Ярлычок раздела — как на «Все документы» */}
+      <Group gap={11} align="center" mb="xl">
+        <IconGristPin size={24} stroke={2} />
+        <Title order={1} size="h3">
+          {t("Favorites")}
+        </Title>
+      </Group>
+
       {favorites.length > 0 ? (
         <>
           <Table.ScrollContainer minWidth={500}>
             <Table highlightOnHover verticalSpacing="sm">
+              {/* Шапка та же, что на «Все документы»: подписи столбцов,
+                  полоса под ними и сортировка в последней ячейке. */}
+              {customUi && (
+                <Table.Thead>
+                  <Table.Tr>
+                    <Table.Th style={{ width: "50%" }}>{t("Name")}</Table.Th>
+                    <Table.Th style={{ width: "20%", maxWidth: 200 }}>
+                      {t("Space")}
+                    </Table.Th>
+                    <Table.Th style={{ width: "30%", maxWidth: 250 }}>
+                      {t("Added")}
+                    </Table.Th>
+                    <Table.Th
+                      data-sort-cell=""
+                      style={{
+                        width: "1%",
+                        whiteSpace: "nowrap",
+                        textAlign: "right",
+                        paddingLeft: 24,
+                        paddingRight: 0,
+                      }}
+                    >
+                      <VisuallyHidden>{t("Sort")}</VisuallyHidden>
+                      <GristSortSelect value={sort} onChange={setSort} />
+                    </Table.Th>
+                  </Table.Tr>
+                </Table.Thead>
+              )}
+
               <Table.Tbody>
                 {favorites.map((fav) =>
                   fav.page ? (
@@ -115,6 +176,8 @@ export default function FavoritesPage() {
                           {formattedDate(new Date(fav.createdAt))}
                         </Text>
                       </Table.Td>
+                      {/* Под столбцом сортировки — он же столбец действий */}
+                      <Table.Td />
                     </Table.Tr>
                   ) : fav.space ? (
                     // Закреплённое пространство. Отдельной секции для них
@@ -151,6 +214,7 @@ export default function FavoritesPage() {
                           {formattedDate(new Date(fav.createdAt))}
                         </Text>
                       </Table.Td>
+                      <Table.Td />
                     </Table.Tr>
                   ) : null,
                 )}

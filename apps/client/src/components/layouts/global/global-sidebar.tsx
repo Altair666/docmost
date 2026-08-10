@@ -26,6 +26,7 @@ import { Feature } from "@/ee/features";
 import { useUpgradeLabel } from "@/ee/hooks/use-upgrade-label";
 import { hideLockedEeItems, useUiFlags } from "@/custom-sso/ui-flags";
 import GristAddButton from "@/custom-sso/GristAddButton";
+import { useSidebarCollapsed } from "@/components/layouts/global/hooks/atoms/sidebar-atom.ts";
 import {
   IconGristPin,
   IconGristStack,
@@ -41,6 +42,7 @@ export default function GlobalSidebar() {
   // Значки из Grist ставим только в нашем виде; в стоковом — те,
   // что рисует сам Docmost.
   const { customUi } = useUiFlags();
+  const sidebarCollapsed = useSidebarCollapsed();
   const upgradeLabel = useUpgradeLabel();
   const mainNavItems = [
     { label: "Home", icon: IconHome, path: "/home" },
@@ -93,7 +95,21 @@ export default function GlobalSidebar() {
         {/* Зелёная кнопка на месте гристовской «Add new». Только в нашем
               виде: в стоковом Docmost её нет и быть не должно. */}
           {customUi && (
-            <div style={{ padding: "6px 16px 22px 16px" }}>
+            <div
+              data-grist-add-slot=""
+              style={{
+                // В свёрнутом виде боковых отступов нет: кружок стоит по
+                // центру полосы. Задаём здесь, а не в теме — стили из
+                // разметки всё равно перебивают правила.
+                // Высоты сверены с Grist: кружок стоит на 77, пункты
+                // начинаются со 133 — как и в развёрнутом виде. Кружок на
+                // 12px ниже кнопки, поэтому отступы другие: 28 сверху и
+                // 28 снизу вместо 22 и 22.
+                padding: sidebarCollapsed ? "28px 0" : "22px 16px",
+                width: "100%",
+                alignSelf: "stretch",
+              }}
+            >
               <GristAddButton />
             </div>
           )}

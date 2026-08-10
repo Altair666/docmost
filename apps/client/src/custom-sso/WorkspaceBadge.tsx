@@ -4,6 +4,7 @@ import { useAtom } from "jotai";
 import { workspaceAtom } from "@/features/user/atoms/current-user-atom.ts";
 import { CustomAvatar } from "@/components/ui/custom-avatar.tsx";
 import { AvatarIconType } from "@/features/attachments/types/attachment.types.ts";
+import { useSidebarCollapsed } from "@/components/layouts/global/hooks/atoms/sidebar-atom.ts";
 
 // Плашка с названием фирмы в левом верхнем углу. Ведёт на главную —
 // в Grist этот блок выполняет ту же роль, поэтому отдельной ссылки
@@ -20,8 +21,12 @@ import { AvatarIconType } from "@/features/attachments/types/attachment.types.ts
 // по радиусу рамки, а не рисуются отдельно.
 // compact: свёрнутый вид — остаётся только иконка, но ссылка на главную
 // сохраняется, поэтому по ней по-прежнему можно кликнуть.
-export default function WorkspaceBadge({ compact = false }: { compact?: boolean }) {
+export default function WorkspaceBadge({ compact }: { compact?: boolean }) {
   const [workspace] = useAtom(workspaceAtom);
+  // Состояние панели спрашиваем сами: разметка одна на оба вида, и
+  // передавать признак сверху больше неоткуда.
+  const collapsedNow = useSidebarCollapsed();
+  const isCompact = compact ?? collapsedNow;
 
   if (!workspace) return null;
 
@@ -41,8 +46,8 @@ export default function WorkspaceBadge({ compact = false }: { compact?: boolean 
         // Свёрнутый вид — КВАДРАТ 32x32, а не растянутая пилюля.
         // Развёрнутый — во всю ячейку: ячейка сама держит отступы по 16px,
         // и внутри остаётся 208px, как у Grist (x=16..224 при панели 240).
-        width: compact ? 32 : "100%",
-        flex: compact ? "none" : undefined,
+        width: isCompact ? 32 : "100%",
+        flex: isCompact ? "none" : undefined,
         minWidth: 0,
         maxWidth: "100%",
         textDecoration: "none",
@@ -71,11 +76,11 @@ export default function WorkspaceBadge({ compact = false }: { compact?: boolean 
           // Тонкая черта между плиткой и названием: в Grist у плитки логотипа
           // рамка со всех сторон, а у поля с именем левой нет — на стыке
           // остаётся линия в 1px.
-          borderRight: compact ? "none" : "1px solid var(--app-shell-border-color)",
+          borderRight: isCompact ? "none" : "1px solid var(--app-shell-border-color)",
         }}
       />
 
-      {!compact && (
+      {!isCompact && (
         <Box
           style={{
             display: "flex",

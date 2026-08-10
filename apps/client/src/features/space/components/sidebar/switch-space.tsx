@@ -46,6 +46,7 @@ export function SwitchSpace({
           variant="subtle"
           fullWidth
           justify="space-between"
+          data-space-switch=""
           rightSection={opened ? <IconChevronUp size={18} /> : <IconChevronDown size={18} />}
           color="gray"
           onClick={toggle}

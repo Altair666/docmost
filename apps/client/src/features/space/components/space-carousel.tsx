@@ -1,4 +1,11 @@
-import { Text, Card, rem, Group, Button, Skeleton, Title } from "@mantine/core";
+import {
+  Text,
+  Card,
+  rem,
+  Group,
+  Skeleton,
+  Title,
+} from "@mantine/core";
 import {
   prefetchSpace,
   useGetSpacesQuery,
@@ -8,7 +15,6 @@ import { Link } from "react-router-dom";
 import classes from "./space-carousel.module.css";
 import { formatMemberCount } from "@/lib";
 import { useTranslation } from "react-i18next";
-import { IconArrowRight } from "@tabler/icons-react";
 import { CustomAvatar } from "@/components/ui/custom-avatar.tsx";
 import { AvatarIconType } from "@/features/attachments/types/attachment.types.ts";
 import CardCarousel from "@/components/ui/card-carousel";
@@ -86,20 +92,6 @@ export default function SpaceCarousel() {
       </Group>
 
       <CardCarousel ariaLabel={t("Spaces you belong to")}>{cards}</CardCarousel>
-
-      {data?.items && data.items.length > 1 && (
-        <Group justify="flex-end" mt="lg">
-          <Button
-            component={Link}
-            to="/spaces"
-            variant="subtle"
-            rightSection={<IconArrowRight size={16} />}
-            size="sm"
-          >
-            {t("View all spaces")}
-          </Button>
-        </Group>
-      )}
     </>
   );
 }

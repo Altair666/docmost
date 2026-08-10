@@ -41,10 +41,25 @@ export const sidebarWidthTouchedAtom = atomWithWebStorage<boolean>(
 export const GRIST_SIDEBAR_WIDTH = 240;
 export const STOCK_SIDEBAR_WIDTH = 300;
 
-// Пределы растягивания у Grist, снятые перетаскиванием: влево панель
-// упирается в 160, вправо в 320.
+// Вправо панель упирается в 320 — как у Grist.
+//
+// Влево предел считается по самой разметке (measureMinWidth в оболочке):
+// сколько места просит самый широкий пункт с подписью, значком и зазорами.
+// Здесь — только нижняя страховка на случай, если мерить нечего: столько же,
+// сколько у Grist.
 export const GRIST_SIDEBAR_MIN = 160;
 export const GRIST_SIDEBAR_MAX = 320;
+
+// Свёрнута ли панель прямо сейчас. Нужен тем частям, что рисуются
+// внутри неё: плашке фирмы и кнопке создания — им надо знать состояние,
+// а разметка у нас одна на оба вида.
+export function useSidebarCollapsed(): boolean {
+  const [opened] = useAtom(desktopSidebarAtom);
+  const [hovered] = useAtom(railHoveredAtom);
+  const { customUi } = useUiFlags();
+
+  return customUi && !opened && !hovered;
+}
 
 export function useSidebarWidth(): number {
   const [width] = useAtom(sidebarWidthAtom);

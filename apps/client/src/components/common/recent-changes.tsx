@@ -18,15 +18,39 @@ import { getSpaceUrl } from "@/lib/config.ts";
 import { useTranslation } from "react-i18next";
 import { getInitialsColor } from "@/lib/get-initials-color.ts";
 import rowClasses from "@/components/ui/clickable-table-row.module.css";
+import { CustomAvatar } from "@/components/ui/custom-avatar";
+import { AvatarIconType } from "@/features/attachments/types/attachment.types";
+import { useUiFlags } from "@/custom-sso/ui-flags";
+import type { GristSort } from "@/custom-sso/GristSortSelect";
 
 interface Props {
   spaceId?: string;
+  sort?: GristSort;
 }
 
-export default function RecentChanges({ spaceId }: Props) {
+export default function RecentChanges({ spaceId, sort }: Props) {
   const { t } = useTranslation();
+  const { customUi } = useUiFlags();
   const { data, isLoading, isError, hasNextPage, fetchNextPage, isFetchingNextPage } = useRecentChangesQuery(spaceId);
-  const pages = data?.pages.flatMap((p) => p.items) ?? [];
+  const loaded = data?.pages.flatMap((p) => p.items) ?? [];
+
+  // Подписи столбцов и «Кем создано» — только на странице пространства:
+  // на главной у этого же списка свой набор столбцов.
+  const withColumns = Boolean(customUi && spaceId);
+
+  // Порядок как у Grist: по наименованию или по дате (свежие сверху).
+  // Переставляется загруженная часть: список приходит с сервера кусками.
+  const pages = sort
+    ? [...loaded].sort((a: any, b: any) =>
+        sort === "name"
+          ? getPageTitle(a.title, a.isBase, t).localeCompare(
+              getPageTitle(b.title, b.isBase, t),
+              undefined,
+              { sensitivity: "base" },
+            )
+          : new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+      )
+    : loaded;
 
   if (isLoading) {
     return <PageListSkeleton />;
@@ -40,6 +64,20 @@ export default function RecentChanges({ spaceId }: Props) {
     <>
       <Table.ScrollContainer minWidth={500}>
         <Table highlightOnHover verticalSpacing="sm">
+          {withColumns && (
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th style={{ width: "50%" }}>{t("Name")}</Table.Th>
+                <Table.Th style={{ width: "20%", maxWidth: 200 }}>
+                  {t("Author")}
+                </Table.Th>
+                <Table.Th style={{ width: "30%", maxWidth: 250 }}>
+                  {t("Last edited")}
+                </Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+          )}
+
           <Table.Tbody>
             {pages.map((page) => (
               <Table.Tr key={page.id} className={rowClasses.row}>
@@ -58,6 +96,28 @@ export default function RecentChanges({ spaceId }: Props) {
                     </Group>
                   </UnstyledButton>
                 </Table.Td>
+                {withColumns && (
+                  <Table.Td>
+                    {(page as any).creator ? (
+                      <Group wrap="nowrap" gap="xs">
+                        <CustomAvatar
+                          avatarUrl={(page as any).creator.avatarUrl}
+                          name={(page as any).creator.name}
+                          type={AvatarIconType.AVATAR}
+                          size={24}
+                        />
+                        <Text size="sm" lineClamp={1}>
+                          {(page as any).creator.name}
+                        </Text>
+                      </Group>
+                    ) : (
+                      <Text size="sm" c="dimmed">
+                        —
+                      </Text>
+                    )}
+                  </Table.Td>
+                )}
+
                 {!spaceId && (
                   <Table.Td>
                     <Badge

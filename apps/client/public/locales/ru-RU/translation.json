@@ -628,9 +628,11 @@
   "List all subpages of the current page": "Показать все подстраницы текущей страницы",
   "Attachments": "Вложения",
   "All spaces": "Все пространства",
+  "Added": "Добавлено",
   "Unknown": "Неизвестно",
   "Find a space": "Найти пространство",
   "Search in all your spaces": "Искать во всех ваших пространствах",
+  "Filter lists on the current page": "Отсеивать строки на открытой странице",
   "Type": "Тип",
   "Enterprise": "Корпоративный",
   "Download attachment": "Скачать вложение",
@@ -946,6 +948,7 @@
   "{{credential}} created": "{{credential}} создан",
   "{{credential}} created successfully": "{{credential}} успешно создан",
   "Created by": "Создан",
+  "Author": "Кем создано",
   "Custom": "Пользовательский",
   "Enable SCIM": "Включить SCIM",
   "Enter a descriptive name": "Введите понятное имя",
@@ -1290,5 +1293,9 @@
   "{{count}} rows deleted_other": "{{count}} rows deleted",
   "{{count}} selected_one": "1 selected",
   "{{count}} selected_other": "{{count}} selected",
-  "Created by me": "Кем создано"
+  "Created by me": "Кем создано",
+  "Sort by name": "Сортировка по наименованию",
+  "Sort by date": "Сортировка по дате",
+  "Last edited": "Последнее редактирование",
+  "By space": "По пространствам"
 }

@@ -38,7 +38,9 @@ export default function HomeAiPrompt() {
   };
 
   return (
-    <div className={classes.wrapper}>
+    // Отбивка снизу — своя: снаружи она занимала место и тогда, когда
+    // блока нет (ИИ выключен).
+    <div className={classes.wrapper} style={{ marginBottom: 32 }}>
       <h1 className={classes.heading}>
         {t("Welcome to {{name}}", { name: workspace?.name ?? "Docmost" })}
       </h1>

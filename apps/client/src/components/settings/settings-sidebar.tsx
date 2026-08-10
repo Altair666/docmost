@@ -342,22 +342,8 @@ export default function SettingsSidebar() {
 
   return (
     <div className={classes.navbar}>
-      <Group className={classes.title} justify="flex-start">
-        <ActionIcon
-          onClick={() => {
-            goBack();
-            if (mobileSidebarOpened) {
-              toggleMobileSidebar();
-            }
-          }}
-          variant="transparent"
-          c="gray"
-          aria-label={t("Back")}
-        >
-          <IconArrowLeft stroke={2} />
-        </ActionIcon>
-        <Text fw={500}>{t("Settings")}</Text>
-      </Group>
+      {/* Строки «← Настройки» здесь нет: назад ведёт плашка с названием
+          фирмы наверху панели, а заголовок дублировал содержимое. */}
 
       <ScrollArea w="100%">{menuItems}</ScrollArea>
 

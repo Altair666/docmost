@@ -28,6 +28,12 @@ type SpaceFilterMenuProps = {
     | "top-end"
     | "top";
   zIndex?: number;
+  /** Показывать пару «Все пространства» / «Найти пространство».
+   *  Включаем только в нашем оформлении: в стоковом виде список прежний. */
+  withScopeToggle?: boolean;
+  /** Включён режим поиска пространств. */
+  findMode?: boolean;
+  onFindModeChange?: (value: boolean) => void;
 };
 
 export function SpaceFilterMenu({
@@ -37,6 +43,9 @@ export function SpaceFilterMenu({
   width = 280,
   position = "bottom-end",
   zIndex,
+  withScopeToggle = false,
+  findMode = false,
+  onFindModeChange,
 }: SpaceFilterMenuProps) {
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
@@ -77,8 +86,11 @@ export function SpaceFilterMenu({
         <ScrollArea.Autosize mah={280}>
           <Menu.Item
             component={RadioMenuItem}
-            aria-checked={!value}
-            onClick={() => onChange(null)}
+            aria-checked={!value && !findMode}
+            onClick={() => {
+              onChange(null);
+              onFindModeChange?.(false);
+            }}
           >
             <Group flex="1" gap="xs">
               <Avatar
@@ -95,9 +107,41 @@ export function SpaceFilterMenu({
                   {t("Search in all your spaces")}
                 </Text>
               </div>
-              {!value && <IconCheck size={20} aria-hidden />}
+              {!value && !findMode && <IconCheck size={20} aria-hidden />}
             </Group>
           </Menu.Item>
+
+          {/* Второй режим: искать пространства. Строка поиска в шапке
+              тогда ищет не страницы, а пространства, и заодно отсеивает
+              строки списков на открытой странице. */}
+          {withScopeToggle && (
+            <Menu.Item
+              component={RadioMenuItem}
+              aria-checked={findMode}
+              onClick={() => {
+                onChange(null);
+                onFindModeChange?.(true);
+              }}
+            >
+              <Group flex="1" gap="xs">
+                <Avatar
+                  color="initials"
+                  variant="filled"
+                  name={t("Find a space")}
+                  size={20}
+                />
+                <div style={{ flex: 1 }}>
+                  <Text size="sm" fw={500}>
+                    {t("Find a space")}
+                  </Text>
+                  <Text size="xs" c="dimmed">
+                    {t("Filter lists on the current page")}
+                  </Text>
+                </div>
+                {findMode && <IconCheck size={20} aria-hidden />}
+              </Group>
+            </Menu.Item>
+          )}
 
           <Divider my="xs" />
 
@@ -106,7 +150,10 @@ export function SpaceFilterMenu({
               key={space.id}
               component={RadioMenuItem}
               aria-checked={value === space.id}
-              onClick={() => onChange(space.id)}
+              onClick={() => {
+                onChange(space.id);
+                onFindModeChange?.(false);
+              }}
             >
               <Group flex="1" gap="xs">
                 <Avatar

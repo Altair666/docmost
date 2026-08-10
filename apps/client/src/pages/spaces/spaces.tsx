@@ -1,4 +1,4 @@
-import { Container, Title, Text, Group, Box } from "@mantine/core";
+import { Container, Title, Group, Box } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
 import { getAppName } from "@/lib/config";
@@ -9,11 +9,18 @@ import FavoriteSpacesGrid from "@/features/space/components/spaces-page/favorite
 import { usePaginateAndSearch } from "@/hooks/use-paginate-and-search";
 import useUserRole from "@/hooks/use-user-role";
 import { useUiFlags } from "@/custom-sso/ui-flags";
+import { IconGristStack } from "@/custom-sso/GristIcons";
+import GristSortSelect, { GristSort } from "@/custom-sso/GristSortSelect";
+import { useState } from "react";
+import { useAtomValue } from "jotai";
+import { listFilterAtom } from "@/custom-sso/list-filter";
 
 export default function Spaces() {
   const { t } = useTranslation();
   const { isAdmin } = useUserRole();
   const { customUi } = useUiFlags();
+  const [sort, setSort] = useState<GristSort>("date");
+
   const { search, cursor, goNext, goPrev, handleSearch } = usePaginateAndSearch();
 
   const { data, isLoading } = useGetSpacesQuery({
@@ -21,6 +28,23 @@ export default function Spaces() {
     limit: 30,
     query: search,
   });
+
+  // Набранное в шапке в режиме «Найти пространство» отсеивает строки
+  const listFilter = useAtomValue(listFilterAtom).trim().toLowerCase();
+  const shownSpaces = (data?.items || []).filter((s: any) =>
+    listFilter ? (s.name || "").toLowerCase().includes(listFilter) : true,
+  );
+
+  // Порядок как у Grist: по наименованию или по дате (свежие сверху).
+  // Сортируется показанная страница: список приходит с сервера частями.
+  const sortedSpaces = [...shownSpaces].sort((a: any, b: any) =>
+    sort === "name"
+      ? (a.name || "").localeCompare(b.name || "", undefined, {
+          sensitivity: "base",
+        })
+      : new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  );
+
 
   return (
     <>
@@ -30,11 +54,19 @@ export default function Spaces() {
         </title>
       </Helmet>
 
-      <Container size={"800"} pt="xl">
-        <Group justify="space-between" mb="xl">
-          <Title order={1} size="h3">{t("Spaces")}</Title>
-          {/* создавать пространства может любой участник */}
-          <CreateSpaceModal />
+      {/* 16px от верха поля — так заголовок стоит у Grist */}
+      <Container size={1340} px={24} pt={16}>
+        <Group justify="space-between" mb="xl" align="flex-end">
+          {/* Значок тот же, что у пункта меню «Все документы» */}
+          <Group gap={11} align="center">
+            <IconGristStack size={24} stroke={2} />
+            <Title order={1} size="h3">
+              {t("Spaces")}
+            </Title>
+          </Group>
+
+          {/* Кнопки создания здесь нет: пространство создаётся зелёной
+              кнопкой в меню слева, а дублировать её на странице незачем. */}
         </Group>
 
         {/* Избранные пространства дублируют список ниже — на этой
@@ -42,12 +74,14 @@ export default function Spaces() {
         {!customUi && <FavoriteSpacesGrid />}
 
         <Box>
-          <Text size="sm" c="dimmed" mb="md">
-            {t("All spaces")}
-          </Text>
-
+          {/* Второго заголовка здесь нет: страница уже подписана сверху */}
           <AllSpacesList
-            spaces={data?.items || []}
+            spaces={sortedSpaces}
+            sortControl={
+              customUi ? (
+                <GristSortSelect value={sort} onChange={setSort} />
+              ) : undefined
+            }
             onSearch={handleSearch}
             hasPrevPage={data?.meta?.hasPrevPage}
             hasNextPage={data?.meta?.hasNextPage}

@@ -312,7 +312,8 @@ export class PageRepo {
     const query = this.db
       .selectFrom('pages')
       .select(this.baseFields)
-      .select((eb) => this.withSpace(eb))
+      // Автор нужен списку недавних: там есть столбец «Кем создано»
+      .select((eb) => [this.withSpace(eb), this.withCreator(eb)])
       .where('spaceId', '=', spaceId)
       .where('deletedAt', 'is', null);
 

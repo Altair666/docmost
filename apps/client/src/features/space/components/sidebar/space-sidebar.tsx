@@ -14,7 +14,6 @@ import {
   IconFileExport,
   IconHome,
   IconPlus,
-  IconSearch,
   IconSettings,
   IconStar,
   IconStarFilled,
@@ -53,7 +52,6 @@ import {
 } from "@/features/favorite/queries/favorite-query";
 import { mobileSidebarAtom } from "@/components/layouts/global/hooks/atoms/sidebar-atom.ts";
 import { useToggleSidebar } from "@/components/layouts/global/hooks/hooks/use-toggle-sidebar.ts";
-import { searchSpotlight } from "@/features/search/constants";
 import TemplatePickerModal from "@/ee/template/components/template-picker-modal";
 import { useHasFeature } from "@/ee/hooks/use-feature";
 import { useUpgradeLabel } from "@/ee/hooks/use-upgrade-label";
@@ -131,19 +129,8 @@ export function SpaceSidebar() {
               </div>
             </UnstyledButton>
 
-            <UnstyledButton
-              className={classes.menu}
-              onClick={searchSpotlight.open}
-            >
-              <div className={classes.menuItemInner}>
-                <IconSearch
-                  size={18}
-                  className={classes.menuItemIcon}
-                  stroke={2}
-                />
-                <span>{t("Search")}</span>
-              </div>
-            </UnstyledButton>
+            {/* Отдельного «Поиска» здесь нет: та же лупа стоит в шапке
+                и ищет по всем пространствам сразу. */}
 
             <UnstyledButton className={classes.menu} onClick={openSettings}>
               <div className={classes.menuItemInner}>
@@ -160,8 +147,12 @@ export function SpaceSidebar() {
               SpaceCaslAction.Manage,
               SpaceCaslSubject.Page,
             ) && (
+              // Собрана как зелёная кнопка с главной: подпись слева,
+              // плюс в кружке справа. Размеры — строк меню над ней.
               <UnstyledButton
                 className={classes.menu}
+                data-new-page=""
+                aria-label={t("New page")}
                 onClick={() => {
                   handleCreatePage();
                   if (mobileSidebarOpened) {
@@ -169,14 +160,15 @@ export function SpaceSidebar() {
                   }
                 }}
               >
-                <div className={classes.menuItemInner}>
-                  <IconPlus
-                    size={18}
-                    className={classes.menuItemIcon}
-                    stroke={2}
-                  />
-                  <span>{t("New page")}</span>
-                </div>
+                <span>{t("New page")}</span>
+
+                {/* Распорка прижимает кружок к правому краю и не даёт
+                    подписи подойти к нему ближе 16px. */}
+                <span data-new-page-gap="" />
+
+                <span data-new-page-circle="">
+                  <IconPlus size={16} stroke={2} />
+                </span>
               </UnstyledButton>
             )}
           </div>

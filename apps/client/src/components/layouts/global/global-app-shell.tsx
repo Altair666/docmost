@@ -17,6 +17,7 @@ import {
   sidebarWidthTouchedAtom,
   railHoveredAtom,
   useSidebarWidth,
+  useSidebarCollapsed,
   GRIST_SIDEBAR_MIN,
   GRIST_SIDEBAR_MAX,
 } from "@/components/layouts/global/hooks/atoms/sidebar-atom.ts";
@@ -33,7 +34,11 @@ import { MAIN_CONTENT_ID, SkipToMain } from "@/components/ui/skip-to-main.tsx";
 
 // Шапка левой панели: плашка с логотипом и названием фирмы.
 // Живёт внутри панели, как у Grist, а не в шапке приложения.
-function SidebarHeader({ compact = false }: { compact?: boolean }) {
+function SidebarHeader() {
+  // Признак «свёрнуто» плашка узнаёт сама: разметка одна на оба вида, и
+  // навязанный сверху признак перебивал её собственный.
+  const collapsed = useSidebarCollapsed();
+
   return (
     <div
       data-sidebar-header=""
@@ -42,10 +47,10 @@ function SidebarHeader({ compact = false }: { compact?: boolean }) {
         alignItems: "center",
         height: 49,
         flex: "none",
-        padding: compact ? "0 8px" : "0 16px",
+        padding: collapsed ? "0 8px" : "0 16px",
       }}
     >
-      <WorkspaceBadge compact={compact} />
+      <WorkspaceBadge />
     </div>
   );
 }
@@ -69,9 +74,26 @@ export default function GlobalAppShell({
   // Атом общий: шапке нужно то же значение, чтобы ехать вместе с панелью.
   const [railHovered, setRailHovered] = useAtom(railHoveredAtom);
   const sidebarRef = useRef(null);
+  // Содержимое панели: по его собственной ширине определяется, до каких
+  // пор панель вообще можно сузить
+  const contentRef = useRef<HTMLDivElement>(null);
+  // Минимальная ширина, посчитанная браузером по содержимому
+  const minWidthRef = useRef(GRIST_SIDEBAR_MIN);
 
   const startResizing = React.useCallback((mouseDownEvent) => {
     mouseDownEvent.preventDefault();
+
+    // Спрашиваем браузер, сколько места просит содержимое: на миг ставим
+    // ширину min-content и читаем результат. Никаких чисел в коде — что
+    // бы ни лежало в меню и на каком бы языке, предел получится верный.
+    const el = contentRef.current;
+    if (el) {
+      const prev = el.style.width;
+      el.style.width = "min-content";
+      minWidthRef.current = Math.max(GRIST_SIDEBAR_MIN, el.offsetWidth);
+      el.style.width = prev;
+    }
+
     setIsResizing(true);
     // С этого момента ширину задаёт пользователь, а не вид интерфейса
     setSidebarWidthTouched(true);
@@ -87,8 +109,9 @@ export default function GlobalAppShell({
         const newWidth =
           mouseMoveEvent.clientX -
           sidebarRef.current.getBoundingClientRect().left;
-        if (newWidth < GRIST_SIDEBAR_MIN) {
-          setSidebarWidth(GRIST_SIDEBAR_MIN);
+        const need = minWidthRef.current;
+        if (newWidth < need) {
+          setSidebarWidth(need);
           return;
         }
         if (newWidth > GRIST_SIDEBAR_MAX) {
@@ -115,6 +138,27 @@ export default function GlobalAppShell({
   // шапка 45px, свёрнутый сайдбар прячется целиком, узкой полосы нет.
   const { customUi } = useUiFlags();
 
+  // Ширина могла остаться с прошлых заходов и не влезать в нынешние
+  // пределы. Проверяем один раз при загрузке — иначе панель выглядит
+  // сломанной до первого движения черты, которое этот предел применяет.
+  useEffect(() => {
+    if (!customUi) return;
+
+    const el = contentRef.current;
+    if (!el) return;
+
+    const prev = el.style.width;
+    el.style.width = "min-content";
+    const min = Math.max(GRIST_SIDEBAR_MIN, el.offsetWidth);
+    el.style.width = prev;
+
+    minWidthRef.current = min;
+
+    const fixed = Math.min(Math.max(sidebarWidth, min), GRIST_SIDEBAR_MAX);
+    if (fixed !== sidebarWidth) setSidebarWidth(fixed);
+    // один раз при загрузке: дальше ширину держит перетаскивание
+  }, [customUi]);
+
   const location = useLocation();
   const isSettingsRoute = location.pathname.startsWith("/settings");
   const isSpaceRoute = location.pathname.startsWith("/s/");
@@ -122,10 +166,7 @@ export default function GlobalAppShell({
   const isPageRoute = location.pathname.includes("/p/");
   const showGlobalSidebar = !isSpaceRoute && !isSettingsRoute && !isAiRoute;
 
-  // В настройках панель всегда развёрнута: сворачивать и тянуть её там
-  // незачем — разделы одни и те же на всех подстраницах.
-  const panelFixed = customUi && isSettingsRoute;
-  const collapsed = customUi && !desktopOpened && !panelFixed;
+  const collapsed = customUi && !desktopOpened;
 
   return (
     <>
@@ -138,6 +179,11 @@ export default function GlobalAppShell({
       // логотипом внутри. Собранная из двух кусков, она разъезжалась при
       // движении, а вертикальная линия упиралась в шапку.
       layout={customUi ? "alt" : "default"}
+      // 0.4s — время перехода панели у Grist. Задаём его самому AppShell,
+      // чтобы шапка и содержимое ехали ровно с ней: иначе между ними на
+      // время перехода открывается полоса фона.
+      transitionDuration={customUi ? 400 : undefined}
+      transitionTimingFunction="ease"
       navbar={{
         // Ширина тянется мышью везде, а не только в пространствах:
         // раньше на главной и в настройках она была жёстко 300px.
@@ -146,6 +192,9 @@ export default function GlobalAppShell({
         // значками — как в Grist. Поэтому desktop: false: пусть Mantine
         // не прячет панель, шириной управляем сами. На мобильных всё
         // по-прежнему скрывается полностью, полоса там только мешала бы.
+        // В свёрнутом виде страница отступает на ширину полосы; выезд по
+        // наведению меняет только саму панель (она поверх), поэтому
+        // содержимое страницы при этом не едет.
         width: collapsed ? COMPACT_RAIL_WIDTH : sidebarWidth,
         breakpoint: "sm",
         collapsed: {
@@ -177,6 +226,19 @@ export default function GlobalAppShell({
         // Пока тянут мышью, переход выключен — иначе каждое движение
         // запускает новую анимацию и панель ползёт с задержкой.
         data-dragging={isResizing || undefined}
+        // Свёрнутый вид и временный выезд по наведению — метками, а не
+        // подменой разметки.
+        data-collapsed={collapsed && !railHovered ? "" : undefined}
+        data-hover-open={collapsed && railHovered ? "" : undefined}
+        // Выезжает на ту ширину, что выставлена вертикальной чертой,
+        // а не на заранее прописанную
+        style={
+          collapsed && railHovered
+            ? ({ "--sidebar-open-width": sidebarWidth + "px" } as any)
+            : undefined
+        }
+        onMouseEnter={collapsed ? () => setRailHovered(true) : undefined}
+        onMouseLeave={collapsed ? () => setRailHovered(false) : undefined}
         ref={sidebarRef}
         aria-label={
           isSpaceRoute
@@ -188,81 +250,51 @@ export default function GlobalAppShell({
                 : t("Main navigation")
         }
       >
-        {collapsed ? (
-          <div
-            onMouseEnter={() => setRailHovered(true)}
-            onMouseLeave={() => setRailHovered(false)}
-            style={{ height: "100%", position: "relative" }}
-          >
-            {/* Шапка панели — внутри неё самой, как у Grist.
-                Пока панель выезжает, полосу прячем: иначе видно сразу две
-                плашки, и наезд одной на другую читается как рябь. */}
-            <div
-              style={{
-                height: "100%",
-                visibility: railHovered ? "hidden" : "visible",
-              }}
-            >
-              <SidebarHeader compact />
-              <CompactRail />
-            </div>
+        {/* Разметка одна на оба состояния, как у Grist: свёрнутый вид —
+            это метка на панели, по которой тема прячет подписи. Подмена
+            компонента давала мерцание, сползание значков и «шторку». */}
+        {/* Обёртка, подрезающая содержимое: пока панель едет, оно не должно
+            торчать поверх страницы. У Grist это cssOverflowContainer. */}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden",
+            flex: "1 1 0px",
+            minHeight: 0,
+          }}
+        >
+          <SidebarHeader />
 
-            {/* Наложение висит всегда и раскрывается по ширине — тем же
-                свойством и временем, что ячейка шапки с плашкой. Иначе
-                колонка выезжает двумя кусками вразнобой. */}
-            <div
-              data-rail-overlay=""
-              data-open={railHovered || undefined}
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: railHovered ? sidebarWidth : 0,
-                height: "100%",
-                overflow: "hidden",
-              }}
-            >
-              {/* Постоянная ширина: содержимое не перестраивается по
-                  дороге, значки и подписи стоят на месте и просто
-                  выезжают из-под полосы. */}
-              <div
-                style={{
-                  width: sidebarWidth,
-                  height: "100%",
-                  overflowY: "auto",
-                }}
-              >
-                <SidebarHeader />
-                {isSpaceRoute && <SpaceSidebar />}
-                {isSettingsRoute && <SettingsSidebar />}
-                {isAiRoute && <AiChatSidebar />}
-                {showGlobalSidebar && <GlobalSidebar />}
-              </div>
-            </div>
-          </div>
-        ) : (
-          <>
-            {customUi && <SidebarHeader />}
-            {/* Тянуть панель можно на любой странице — как в Grist.
-                Кроме настроек: там ширина зафиксирована. */}
-            {!panelFixed && (
-              <div
-                className={classes.resizeHandle}
-                data-resize-handle=""
-                onMouseDown={startResizing}
-              />
-            )}
-            {/* Постоянная ширина: иначе при сворачивании содержимое
-                перестраивается вслед за анимацией и текст прыгает.
-                Grist на время перехода делает то же самое. */}
-            <div style={{ width: sidebarWidth, flex: "1 1 auto", minHeight: 0 }}>
-              {isSpaceRoute && <SpaceSidebar />}
-              {isSettingsRoute && <SettingsSidebar />}
-              {isAiRoute && <AiChatSidebar />}
-              {showGlobalSidebar && <GlobalSidebar />}
-            </div>
-          </>
+        {/* Тянуть можно только развёрнутую панель. В свёрнутой полосы нет
+            даже когда она временно выехала по наведению: менять там
+            нечего, а край хватался и подсвечивался. */}
+        {!collapsed && (
+          <div
+            className={classes.resizeHandle}
+            data-resize-handle=""
+            onMouseDown={startResizing}
+          />
         )}
+
+        {/* Ширина содержимого — целевая, а не всегда развёрнутая: иначе в
+            свёрнутом виде пункты шире панели и лезут за край. Grist на
+            время перехода ставит ровно её же. */}
+        <div
+          ref={contentRef}
+          data-sidebar-content=""
+          style={{
+            width: collapsed && !railHovered ? COMPACT_RAIL_WIDTH : sidebarWidth,
+            flex: "1 1 auto",
+            minHeight: 0,
+          }}
+        >
+          {isSpaceRoute && <SpaceSidebar />}
+          {isSettingsRoute && <SettingsSidebar />}
+          {isAiRoute && <AiChatSidebar />}
+          {showGlobalSidebar && <GlobalSidebar />}
+        </div>
+        </div>
       </AppShell.Navbar>
       <AppShell.Main id={MAIN_CONTENT_ID} tabIndex={-1}>
         {isSettingsRoute ? (

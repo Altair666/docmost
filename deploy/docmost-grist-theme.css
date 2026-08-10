@@ -109,6 +109,24 @@ html[data-mantine-color-scheme="light"] {
      без них синева остаётся в текстовых ссылках и обводке при выборе. */
   --mantine-color-anchor: var(--grist-primary-muted);
   --mantine-focus-ring-color: var(--grist-primary);
+
+  /* Серая палитра Mantine холодная, с синим уклоном: #f8f9fa, #f1f3f5,
+     #e9ecef, #dee2e6, #ced4da. Из неё берут цвет разделители и подсветки
+     по всему приложению — отсюда и синева, всплывавшая то тут, то там.
+     Меняем на нейтральные тона Grist. */
+  --mantine-color-gray-0: #fafafa;
+  --mantine-color-gray-1: var(--grist-bg-secondary);
+  --mantine-color-gray-2: var(--grist-line-soft);
+  --mantine-color-gray-3: var(--grist-decoration-secondary);
+  --mantine-color-gray-4: var(--grist-decoration);
+  --mantine-color-gray-5: #c4c4c4;
+  --mantine-color-gray-6: var(--grist-secondary);
+  --mantine-color-gray-7: #66666f;
+  --mantine-color-gray-8: var(--grist-medium-text);
+  --mantine-color-gray-9: var(--grist-body);
+
+  --mantine-color-default-hover: var(--grist-hover-row);
+  --mantine-color-default-border: var(--grist-decoration-secondary);
 }
 
 /* ============================================================
@@ -170,7 +188,8 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [class*="_link_
   margin-left: 0;
   margin-right: 16px;
   padding-left: 24px;
-  border-radius: 0 4px 4px 0;
+  /* 3px — скругление пункта у Grist (cssPageEntry), не 4 */
+  border-radius: 0 3px 3px 0;
   font-size: 13px;
   line-height: 32px;
   font-weight: 400;
@@ -193,6 +212,9 @@ html[data-mantine-color-scheme="light"] [data-workspace-badge] {
 html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [class*="_navbar_"] {
   padding-left: 0;
   padding-right: 0;
+  /* Верхний отступ даёт обёртка кнопки; лишний сдвигал всё меню на 16px
+     ниже, чем у Grist (кнопка 87 вместо 71, пункты 149 вместо 133). */
+  padding-top: 0;
 }
 
 /* Кнопки в меню (например «Пригласить людей») берут ширину от текста, а
@@ -200,6 +222,32 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [class*="_navba
    выбивается и подсветка под курсором обрывается на полуслове. */
 html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar button[class*="_link_"] {
   width: calc(100% - 16px);
+}
+
+/* Содержимое панели не сжимается ниже своей естественной ширины:
+   браузер считает её сам, а мы упираем в неё перетаскивание. */
+html[data-mantine-color-scheme="light"] [data-sidebar-content] {
+  min-width: min-content;
+}
+
+/* Значки не сжимаются вместе с панелью */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar svg,
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [class*="_linkIcon_"],
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [class*="_menuItemIcon_"] {
+  flex: none;
+}
+
+/* Подписи в меню в одну строку: перенос ломает высоту пунктов при
+   сужении панели. */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [class*="_link_"] {
+  white-space: nowrap;
+}
+
+/* Подписи пунктов не обрезаются: минимальная ширина панели считается по
+   ним, поэтому места им хватает всегда. */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [class*="_link_"] span {
+  overflow: visible;
+  text-overflow: clip;
 }
 
 /* Цвет текста пунктов — основной #262633, как в Grist. Docmost брал
@@ -267,6 +315,152 @@ html[data-mantine-color-scheme="light"] [data-resize-handle]:active {
   background: transparent;
 }
 
+/* Заголовок страницы: 24px, начертание 600 — размеры Grist
+   (test-welcome-title: 24px/36px 600). */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-main .mantine-Title-root {
+  font-size: 24px;
+  line-height: 36px;
+  /* Приоритет: у заголовков Mantine своё начертание по уровню */
+  font-weight: 600 !important;
+}
+
+/* ============================================================
+   4d. Списки документов
+   ============================================================ */
+
+/* Размеры сняты из исходника Grist (DocList.js): название 14px полужирным,
+   строка со скруглением 3px, зазор от значка до названия 11px. */
+html[data-mantine-color-scheme="light"] table tbody tr td:first-child .mantine-Text-root:first-of-type {
+  font-size: 14px;
+  /* Приоритет: начертание задано прямо в разметке компонента */
+  font-weight: 600 !important;
+}
+
+/* Выбор сортировки: зелёный текст без рамки и заливки, темнеет под
+   курсором — cssSortSelect из DocList.js. */
+html[data-mantine-color-scheme="light"] [data-grist-sort] {
+  color: var(--grist-primary);
+  white-space: nowrap;
+}
+
+html[data-mantine-color-scheme="light"] [data-grist-sort]:hover {
+  color: var(--grist-primary-muted);
+}
+
+/* Шапка таблицы у Grist без линии и без фона: только приглушённые
+   подписи колонок (cssDocHeaderRow: padding 0 8px, цвет lightText). */
+html[data-mantine-color-scheme="light"] table thead,
+html[data-mantine-color-scheme="light"] table thead tr {
+  border-bottom: none;
+}
+
+/* Черта под шапкой обрывается перед выбором сортировки: она есть у всех
+   ячеек шапки, кроме последней, где стоит сам выбор. */
+html[data-mantine-color-scheme="light"] table thead th {
+  /* 1px #d9d9d9 — как tableBodyBorder у cssTabs в Grist */
+  border-bottom: 1px solid var(--grist-decoration) !important;
+  background: transparent;
+  padding: 0 8px 8px;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--grist-secondary);
+}
+
+/* Ячейка с выбором сортировки: черта до неё не доходит. Там, где
+   сортировка стоит выше (на черте вкладок), последний столбец обычный
+   и черта идёт до конца. */
+html[data-mantine-color-scheme="light"] table thead th[data-sort-cell] {
+  border-bottom: none !important;
+}
+
+/* 8px от шапки до первой строки — margin-bottom у cssHeader в Grist.
+   У строки уже есть свои 12px сверху, поэтому здесь 12 + 8. */
+html[data-mantine-color-scheme="light"] table tbody tr:first-child td {
+  padding-top: 20px;
+}
+
+/* Кегль строки списка — 14px (cssDocRow) */
+html[data-mantine-color-scheme="light"] table tbody tr td {
+  font-size: 14px;
+}
+
+/* Значок документа у Grist — квадрат 48x48 со скруглением 4, а не кружок;
+   инициалы внутри 18px начертанием 600 (DocIcon.js). */
+html[data-mantine-color-scheme="light"] table tbody tr td .mantine-Avatar-root {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  border-radius: 4px;
+}
+
+html[data-mantine-color-scheme="light"] table tbody tr td .mantine-Avatar-root .mantine-Avatar-placeholder,
+html[data-mantine-color-scheme="light"] table tbody tr td .mantine-Avatar-root .mantine-Avatar-image {
+  font-size: 18px;
+  font-weight: 600;
+  border-radius: 4px;
+}
+
+/* Скругление строки: у таблицы его вешают на крайние ячейки */
+html[data-mantine-color-scheme="light"] table tbody tr td:first-child {
+  border-radius: 3px 0 0 3px;
+}
+
+html[data-mantine-color-scheme="light"] table tbody tr td:last-child {
+  border-radius: 0 3px 3px 0;
+}
+
+/* Зазор между значком и названием — 11px, как у cssDocIconAndName */
+html[data-mantine-color-scheme="light"] table tbody tr td:first-child .mantine-Group-root {
+  gap: 11px;
+}
+
+/* Разделители в списке уведомлений — те же лишние линии */
+html[data-mantine-color-scheme="light"] [class*="_divider_"] {
+  display: none;
+}
+
+/* Разделители строк в списках убраны: строка и так подсвечивается серым
+   при наведении, а линия спорит с этой подсветкой. */
+html[data-mantine-color-scheme="light"] table tbody tr td,
+html[data-mantine-color-scheme="light"] table tbody tr th,
+html[data-mantine-color-scheme="light"] table tbody tr {
+  /* Шапка сюда не входит: под ней черта нужна, она обрывается перед
+     выбором сортировки (правило выше). */
+  border-bottom: none;
+}
+
+/* Разделители Mantine берут свой холодный серый — переводим на наш тон */
+html[data-mantine-color-scheme="light"] .mantine-Divider-root {
+  border-color: var(--grist-line-soft);
+}
+
+/* Кнопки внутри панелей: серая заливка под курсором и никакой обводки
+   после нажатия — зелёное кольцо фокуса читалось как лишняя подсветка. */
+html[data-mantine-color-scheme="light"] .mantine-Popover-dropdown .mantine-ActionIcon-root:hover,
+html[data-mantine-color-scheme="light"] .mantine-Menu-dropdown .mantine-ActionIcon-root:hover {
+  background: var(--grist-hover-row);
+}
+
+html[data-mantine-color-scheme="light"] .mantine-Popover-dropdown .mantine-ActionIcon-root:focus,
+html[data-mantine-color-scheme="light"] .mantine-Popover-dropdown .mantine-ActionIcon-root:focus-visible,
+html[data-mantine-color-scheme="light"] .mantine-Menu-dropdown .mantine-ActionIcon-root:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Вкладки: подсветка под курсором такая же серая, как у строк списков */
+html[data-mantine-color-scheme="light"] .mantine-Tabs-tab:hover:not([data-active]) {
+  /* Приоритет: у вкладок Mantine своё правило наведения, и без него
+     подсветка не появлялась вовсе. */
+  background: var(--grist-hover-row) !important;
+}
+
+/* Подложки под значками в выпадающих панелях — круглые, как в шапке */
+html[data-mantine-color-scheme="light"] .mantine-Popover-dropdown .mantine-ActionIcon-root,
+html[data-mantine-color-scheme="light"] .mantine-Menu-dropdown .mantine-ActionIcon-root {
+  border-radius: 50%;
+}
+
 /* Затемнение строки под курсором — одно и то же по всему сайту, а не
    только в боковом меню: списки документов, закреплённых, участников,
    пункты выпадающих меню. */
@@ -282,7 +476,7 @@ html[data-mantine-color-scheme="light"] .mantine-NavLink-root:hover {
 /* Ширина меняется плавно — 0.4s ease, как у Grist. Двигать надо всё
    разом: саму панель, отступ содержимого и левую ячейку шапки, иначе
    перекрестье разъезжается на время перехода. */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar {
+html[data-app-ready][data-mantine-color-scheme="light"] .mantine-AppShell-navbar {
   transition: width 0.4s ease;
 }
 
@@ -294,9 +488,9 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar[data-dragging] 
   transition: none;
 }
 
-html[data-mantine-color-scheme="light"] .mantine-AppShell-main {
-  transition: padding-inline-start 0.4s ease;
-}
+/* Длительность перехода задана самому AppShell (transitionDuration), там
+   же, где Mantine двигает шапку и содержимое. Свои правила тут спорили с
+   его собственными, и между частями открывалась полоса фона. */
 
 /* Выехавшая по наведению панель. Свёрнутая полоса шириной 48px не должна
    обрезать её, поэтому у панели убираем обрезку и поднимаем наложение над
@@ -318,6 +512,292 @@ html[data-mantine-color-scheme="light"] [data-rail-overlay] {
      обязаны ехать как одно целое. Тени нет: она ехала вместе с кромкой и
      читалась как вторая полоса, бегущая по значкам. */
   transition: width 0.4s ease;
+}
+
+/* Перекрестье: под строкой с логотипом идёт та же черта, что отделяет
+   шапку приложения. Пока плашка жила в шапке, её давала граница шапки;
+   теперь плашка внутри панели, и черту рисует она сама — как у Grist. */
+html[data-mantine-color-scheme="light"] [data-sidebar-header] {
+  border-bottom: 1px solid rgba(217, 217, 217, 0.6);
+}
+
+/* ============================================================
+   2c. Меню пространства
+   ============================================================ */
+
+/* Секции меню пространства раздвинуты отрицательными отступами, а внутри
+   добавлены свои — из-за них пункты уезжали за левый край панели.
+   Обнуляем, чтобы работали общие размеры. Черта между секциями убрана:
+   она холоднее нашего тона и спорит с серой подсветкой строк. */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [class*="_section_"] {
+  margin-left: 0;
+  margin-right: 0;
+  border-bottom: none;
+}
+
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [class*="_menuItems_"] {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* Те же размеры, что у пунктов на главной и в настройках */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [class*="_menu_"] {
+  width: calc(100% - 16px);
+  min-height: 32px;
+  margin: 0;
+  /* Отступы целиком: свои 4px сверху и снизу растягивали строку до 40px */
+  padding: 0 8px 0 24px;
+  border-radius: 0 3px 3px 0;
+  font-size: 13px;
+  line-height: 32px;
+  font-weight: 400;
+  color: var(--grist-body);
+}
+
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [class*="_menu_"]:hover {
+  background: var(--grist-hover-row);
+}
+
+/* Выбранный пункт — тёмная плашка с белым текстом, как везде */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [class*="_activeButton_"] {
+  background: var(--grist-bg-emphasis);
+  color: #ffffff;
+}
+
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [class*="_activeButton_"] svg,
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [class*="_activeButton_"] span {
+  color: #ffffff;
+}
+
+/* Выбранный пункт не светлеет под курсором: правило наведения выше
+   перебивало тёмную плашку, и «Обзор» становился белым. */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [class*="_activeButton_"]:hover {
+  background: var(--grist-bg-emphasis);
+  color: #ffffff;
+}
+
+/* Выбор пространства — такая же строка, как пункты меню под ним:
+   высота 32, тот же левый отступ, та же подсветка. */
+html[data-mantine-color-scheme="light"] [data-space-switch] {
+  width: calc(100% - 16px);
+  height: 32px;
+  min-height: 32px;
+  padding: 0 8px 0 24px;
+  border-radius: 0 3px 3px 0;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--grist-body);
+}
+
+html[data-mantine-color-scheme="light"] [data-space-switch]:hover {
+  background: var(--grist-hover-row);
+}
+
+/* Подпись пространства шла с отступом в 12px со всех сторон и роняла
+   строку вниз — зазор до значка задаём сами. */
+html[data-mantine-color-scheme="light"] [data-space-switch] [class*="_spaceName_"] {
+  padding: 0 0 0 8px;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--grist-body);
+}
+
+/* «Новая страница» — зелёная строка с плюсом в кружке справа, как кнопка
+   создания на главной. Поле светлее самой кнопки: просили лёгкую
+   подсветку, а не сплошную заливку. */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [data-new-page] {
+  display: flex;
+  align-items: center;
+  padding-right: 8px;
+  background: color-mix(in srgb, var(--grist-primary) 12%, #ffffff);
+  color: var(--grist-primary-muted);
+  font-weight: 500;
+  transition: background 0.1s ease;
+}
+
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [data-new-page]:hover {
+  background: color-mix(in srgb, var(--grist-primary) 20%, #ffffff);
+}
+
+/* Подпись зелёная: цвет строк меню задан длинным правилом и перебивал */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [data-new-page] span:not([data-new-page-circle]) {
+  color: var(--grist-primary-muted);
+}
+
+/* Распорка прижимает кружок к правому краю и держит зазор до подписи */
+html[data-mantine-color-scheme="light"] [data-new-page-gap] {
+  flex: 1 1 auto;
+  min-width: 16px;
+}
+
+html[data-mantine-color-scheme="light"] [data-new-page-circle] {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 12px;
+  background: var(--grist-primary);
+  color: #ffffff;
+  transition: background 0.1s ease;
+}
+
+html[data-mantine-color-scheme="light"] [data-new-page]:hover [data-new-page-circle] {
+  background: var(--grist-primary-muted);
+}
+
+/* Свёрнутая полоса: у выбора пространства остаётся один значок,
+   у «Новой страницы» — один кружок. Раньше обе строки не сжимались и
+   вылезали за полосу. */
+html[data-mantine-color-scheme="light"] [data-collapsed] [data-space-switch] {
+  width: 48px !important;
+  min-width: 48px;
+  padding: 0 !important;
+  justify-content: center;
+}
+
+html[data-mantine-color-scheme="light"] [data-collapsed] [data-space-switch] [class*="_spaceName_"],
+html[data-mantine-color-scheme="light"] [data-collapsed] [data-space-switch] .mantine-Button-section {
+  display: none;
+}
+
+html[data-mantine-color-scheme="light"] [data-collapsed] [data-new-page][data-new-page] {
+  width: 48px !important;
+  min-width: 48px !important;
+  max-width: 48px !important;
+  /* Общее правило свёрнутых строк задаёт левый отступ 16px через
+     !important — здесь он не нужен, кружок стоит по центру полосы. */
+  padding: 0 !important;
+  justify-content: center;
+  background: transparent !important;
+}
+
+html[data-mantine-color-scheme="light"] [data-collapsed] [data-new-page]:hover {
+  background: transparent;
+}
+
+html[data-mantine-color-scheme="light"] [data-collapsed] [data-new-page] span:not([data-new-page-circle]) {
+  display: none !important;
+}
+
+html[data-mantine-color-scheme="light"] [data-collapsed] [data-new-page] [data-new-page-circle] {
+  /* Правило выше гасит подписи внутри строк меню — кружок это не подпись.
+     По центру полосы его ставят собственные поля: так положение не
+     зависит от того, что ещё лежит в строке. */
+  display: grid !important;
+  width: 28px;
+  height: 28px;
+  margin: 0 auto;
+  border-radius: 14px;
+}
+
+/* Строка поиска и блок под ней — одно целое: одинаковая ширина, сверху
+   без скруглений. */
+html[data-mantine-color-scheme="light"] .mantine-Popover-dropdown:has([data-search-filters]) {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+/* Значки меню пространства — того же приглушённого тона, что и остальные */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [class*="_menuItemIcon_"] {
+  color: var(--grist-secondary);
+}
+
+/* В свёрнутом виде: полоса 48px, подписи скрыты, значок по центру */
+html[data-mantine-color-scheme="light"] [data-collapsed] [class*="_menu_"] {
+  width: 48px !important;
+  min-width: 48px !important;
+  max-width: 48px !important;
+  padding-left: 16px !important;
+  margin: 0 !important;
+}
+
+html[data-mantine-color-scheme="light"] [data-collapsed] [class*="_menu_"] span,
+html[data-mantine-color-scheme="light"] [data-collapsed] [class*="_pagesHeader_"],
+html[data-mantine-color-scheme="light"] [data-collapsed] [class*="_sectionPages_"] {
+  display: none;
+}
+
+/* ============================================================
+   2b. Свёрнутая панель
+   ============================================================ */
+
+/* Выезд по наведению: меняется только ширина самой панели. Страница при
+   этом не едет — панель лежит поверх неё, как «-overlap» у Grist. */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar[data-hover-open] {
+  /* Ширина берётся из выставленной чертой, а не прописана заранее */
+  width: var(--sidebar-open-width, 240px) !important;
+  z-index: 200;
+}
+
+/* Подписи прячутся, значок остаётся на месте — ровно так это сделано в
+   LeftPanelCommon.js. Элементы не подменяются, поэтому нет ни мерцания,
+   ни сползания. */
+html[data-mantine-color-scheme="light"] [data-collapsed] [class*="_link_"] span,
+html[data-mantine-color-scheme="light"] [data-collapsed] [class*="_link_"] > div > span,
+html[data-mantine-color-scheme="light"] [data-collapsed] [class*="_sectionHeader_"],
+html[data-mantine-color-scheme="light"] [data-collapsed] [data-workspace-badge] p {
+  display: none;
+}
+
+/* Заголовки разделов и подпись версии в свёрнутом виде прячутся.
+   У Grist это visibility: hidden (cssSectionHeader), а не display: none —
+   место сохраняется, и пункты не подпрыгивают при сворачивании. */
+html[data-mantine-color-scheme="light"] [data-collapsed] [class*="_linkHeader_"],
+html[data-mantine-color-scheme="light"] [data-collapsed] [class*="_text_"] {
+  visibility: hidden;
+}
+
+/* Пункт сжимается до полосы: 48px, значок по центру (отступ слева 16 при
+   значке 16 даёт ровно середину). Приоритет обязателен: базовое правило
+   пунктов длиннее и иначе побеждает — значки стояли на 24, а кнопки
+   выходили за край полосы. */
+html[data-mantine-color-scheme="light"] [data-collapsed] [class*="_link_"] {
+  width: 48px !important;
+  min-width: 48px !important;
+  max-width: 48px !important;
+  margin-right: 0 !important;
+  padding-left: 16px !important;
+  /* Скругление справа остаётся и в свёрнутом виде — так у Grist
+     (cssPageEntry: border-radius: 0 3px 3px 0). */
+  border-radius: 0 3px 3px 0 !important;
+}
+
+/* Плашка фирмы: остаётся только квадрат с логотипом */
+html[data-mantine-color-scheme="light"] [data-collapsed] [data-sidebar-header] {
+  padding: 0 8px;
+}
+
+html[data-mantine-color-scheme="light"] [data-collapsed] [data-workspace-badge] {
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border-radius: 4px;
+}
+
+/* В свёрнутом виде боковые отступы обёртке не нужны: кружок и так по центру */
+html[data-mantine-color-scheme="light"] [data-collapsed] [data-grist-add-slot] {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* Кнопка «Пространство» сжимается до кружка: подпись и зазоры уходят,
+   кружок остаётся ровно 28x28 — он и так flex: none. */
+html[data-mantine-color-scheme="light"] [data-collapsed] [data-grist-add] {
+  width: 28px;
+  height: 28px;
+  margin: 0 auto;
+  border-radius: 14px;
+  background: var(--grist-primary);
+  justify-content: center;
+}
+
+html[data-mantine-color-scheme="light"] [data-collapsed] [data-grist-add] > *:not([data-grist-add-circle]) {
+  display: none;
+}
+
+html[data-mantine-color-scheme="light"] [data-collapsed] [data-grist-add-circle] {
+  background: transparent;
 }
 
 /* Свёрнутая полоса живёт по своим правилам: 48px без внутренних отступов,
@@ -435,8 +915,11 @@ html[data-mantine-color-scheme="light"] [data-grist-search] button:hover {
 
 /* У стрелки сворачивания подложки нет вовсе — темнеет только сам значок.
    Кружок под ней просили убрать. */
-html[data-mantine-color-scheme="light"] [data-sidebar-toggle]:hover,
-html[data-mantine-color-scheme="light"] [data-sidebar-toggle]:active {
+html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-ActionIcon-root[data-sidebar-toggle],
+html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-ActionIcon-root[data-sidebar-toggle]:hover,
+html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-ActionIcon-root[data-sidebar-toggle]:active {
+  /* Точность выше, чем у общего правила для значков шапки: иначе оно
+     перебивало и кружок оставался. */
   background: transparent;
 }
 

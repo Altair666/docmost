@@ -209,9 +209,7 @@ function CustomHeader() {
   // иначе выезжает только нижняя часть колонки.
   const [railHovered] = useAtom(railHoveredAtom);
   const wide = desktopOpened || railHovered;
-  // В настройках панель не сворачивается — кнопки там нет
-  const { pathname } = useLocation();
-  const panelFixed = pathname.startsWith("/settings");
+
 
   return (
     <Group h="100%" gap={0} wrap={"nowrap"} align="stretch">
@@ -251,8 +249,6 @@ function CustomHeader() {
             />
           </Tooltip>
 
-          {!panelFixed && (
-          <>
           {/* Без всплывающей подписи: она загораживала угол и не нужна.
               Не SidebarToggle: тот рисует свои значки Tabler, а нам нужен
               контур Grist — стрелка, уходящая в полосу. 32x32 вплотную к
@@ -272,8 +268,6 @@ function CustomHeader() {
             >
               <IconGristPanel size={16} mirrored={!desktopOpened} />
             </ActionIcon>
-          </>
-          )}
         </Group>
 
         <Group gap="xs" wrap="nowrap">

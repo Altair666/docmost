@@ -6,7 +6,10 @@ import CreatedByMe from "@/features/home/components/created-by-me";
 import { useParams } from "react-router-dom";
 import { useGetSpaceBySlugQuery } from "@/features/space/queries/space-query";
 import { useTranslation } from "react-i18next";
+import { useState } from "react";
 import { useAtom } from "jotai";
+import { useUiFlags } from "@/custom-sso/ui-flags";
+import GristSortSelect, { GristSort } from "@/custom-sso/GristSortSelect";
 import { homeTabAtom } from "@/features/home/atoms/home-tab-atom";
 
 export default function SpaceHomeTabs() {
@@ -14,6 +17,8 @@ export default function SpaceHomeTabs() {
   const { spaceSlug } = useParams();
   const { data: space } = useGetSpaceBySlugQuery(spaceSlug);
   const [activeTab, setActiveTab] = useAtom(homeTabAtom);
+  const { customUi } = useUiFlags();
+  const [sort, setSort] = useState<GristSort>("date");
 
   return (
     <Tabs
@@ -23,28 +28,36 @@ export default function SpaceHomeTabs() {
         if (value) setActiveTab(value);
       }}
     >
-      <Tabs.List style={{ flexWrap: "nowrap", overflowX: "auto" }}>
-        <Tabs.Tab value="recent" leftSection={<IconClockHour3 size={18} />}>
-          <Text size="sm" fw={500}>
-            {t("Recently updated")}
-          </Text>
-        </Tabs.Tab>
-        <Tabs.Tab value="favorites" leftSection={<IconStar size={18} />}>
-          <Text size="sm" fw={500}>
-            {t("Favorites")}
-          </Text>
-        </Tabs.Tab>
-        <Tabs.Tab value="created" leftSection={<IconUser size={18} />}>
-          <Text size="sm" fw={500}>
-            {t("Created by me")}
-          </Text>
-        </Tabs.Tab>
-      </Tabs.List>
+      {/* Вкладки растянуты, выбор сортировки стоит за ними через 24px —
+          так же, как на «Все документы» (column-gap у cssHeader в Grist). */}
+      <div style={{ display: "flex", columnGap: 24, alignItems: "flex-end" }}>
+        <Tabs.List
+          style={{ flex: 1, minWidth: 0, flexWrap: "nowrap", overflowX: "auto" }}
+        >
+          <Tabs.Tab value="recent" leftSection={<IconClockHour3 size={18} />}>
+            <Text size="sm" fw={500}>
+              {t("Recently updated")}
+            </Text>
+          </Tabs.Tab>
+          <Tabs.Tab value="favorites" leftSection={<IconStar size={18} />}>
+            <Text size="sm" fw={500}>
+              {t("Favorites")}
+            </Text>
+          </Tabs.Tab>
+          <Tabs.Tab value="created" leftSection={<IconUser size={18} />}>
+            <Text size="sm" fw={500}>
+              {t("Created by me")}
+            </Text>
+          </Tabs.Tab>
+        </Tabs.List>
+
+        {customUi && <GristSortSelect value={sort} onChange={setSort} />}
+      </div>
 
       <Space my="md" />
 
       <Tabs.Panel value="recent">
-        {space?.id && <RecentChanges spaceId={space.id} />}
+        {space?.id && <RecentChanges spaceId={space.id} sort={sort} />}
       </Tabs.Panel>
       <Tabs.Panel value="favorites">
         {space?.id && <FavoritesPages spaceId={space.id} />}

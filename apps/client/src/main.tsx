@@ -53,6 +53,15 @@ if (isCloud() && isPostHogEnabled) {
 // Оформление и переключатели вида приходят одним запросом. Флаги
 // раскладываем сразу: разметка читает их синхронно при отрисовке,
 // а до ответа берёт прошлые значения из localStorage.
+// Анимации переходов — только со второго кадра. Иначе выставление ширины
+// панели при монтировании само считается изменением и запускает переход,
+// а до его конца нарисованное расходится с посчитанным.
+requestAnimationFrame(() => {
+  requestAnimationFrame(() => {
+    document.documentElement.setAttribute("data-app-ready", "");
+  });
+});
+
 void loadUiTheme().then((state) => {
   storeUiFlags(state);
   applyUiTheme(state);
