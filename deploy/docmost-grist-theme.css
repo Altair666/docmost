@@ -386,15 +386,15 @@ html[data-mantine-color-scheme="light"] table tbody tr td {
 
 /* Значок документа у Grist — квадрат 48x48 со скруглением 4, а не кружок;
    инициалы внутри 18px начертанием 600 (DocIcon.js). */
-html[data-mantine-color-scheme="light"] table tbody tr td .mantine-Avatar-root {
+html[data-mantine-color-scheme="light"] table tbody tr td:first-child .mantine-Avatar-root {
   width: 48px;
   height: 48px;
   min-width: 48px;
   border-radius: 4px;
 }
 
-html[data-mantine-color-scheme="light"] table tbody tr td .mantine-Avatar-root .mantine-Avatar-placeholder,
-html[data-mantine-color-scheme="light"] table tbody tr td .mantine-Avatar-root .mantine-Avatar-image {
+html[data-mantine-color-scheme="light"] table tbody tr td:first-child .mantine-Avatar-root .mantine-Avatar-placeholder,
+html[data-mantine-color-scheme="light"] table tbody tr td:first-child .mantine-Avatar-root .mantine-Avatar-image {
   font-size: 18px;
   font-weight: 600;
   border-radius: 4px;

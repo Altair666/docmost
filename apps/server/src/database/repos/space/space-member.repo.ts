@@ -339,7 +339,11 @@ export class SpaceMemberRepo {
     let query = this.db
       .selectFrom('spaces')
       .selectAll()
-      .select((eb) => [this.spaceRepo.withMemberCount(eb)])
+      // Дата нужна столбцу «Последнее редактирование» в списке пространств
+      .select((eb) => [
+        this.spaceRepo.withMemberCount(eb),
+        this.spaceRepo.withLastEditedAt(eb),
+      ])
       .where('id', 'in', this.getUserSpaceIdsQuery(userId));
 
     if (pagination.query) {
