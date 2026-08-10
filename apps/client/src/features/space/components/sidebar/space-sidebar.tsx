@@ -59,7 +59,7 @@ import { useHasFeature } from "@/ee/hooks/use-feature";
 import { useUpgradeLabel } from "@/ee/hooks/use-upgrade-label";
 import { Feature } from "@/ee/features";
 import { ErrorBoundary } from "react-error-boundary";
-import { HIDE_LOCKED_EE_ITEMS } from "@/custom-sso/ui-flags";
+import { hideLockedEeItems } from "@/custom-sso/ui-flags";
 
 export function SpaceSidebar() {
   const { t } = useTranslation();
@@ -328,7 +328,7 @@ function SpaceMenu({
             {isWatching ? t("Stop watching space") : t("Watch space")}
           </Menu.Item>
 
-          {canManagePages && (hasTemplates || !HIDE_LOCKED_EE_ITEMS) && (
+          {canManagePages && (hasTemplates || !hideLockedEeItems()) && (
             <>
               <Menu.Divider />
               <Tooltip

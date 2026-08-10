@@ -24,7 +24,7 @@ import { AvatarIconType } from "@/features/attachments/types/attachment.types";
 import { useHasFeature } from "@/ee/hooks/use-feature";
 import { Feature } from "@/ee/features";
 import { useUpgradeLabel } from "@/ee/hooks/use-upgrade-label";
-import { HIDE_LOCKED_EE_ITEMS } from "@/custom-sso/ui-flags";
+import { hideLockedEeItems, useUiFlags } from "@/custom-sso/ui-flags";
 import {
   IconGristPin,
   IconGristStack,
@@ -37,13 +37,24 @@ export default function GlobalSidebar() {
   const [mobileSidebarOpened] = useAtom(mobileSidebarAtom);
   const toggleMobileSidebar = useToggleSidebar(mobileSidebarAtom);
   const hasTemplates = useHasFeature(Feature.TEMPLATES);
+  // Значки из Grist ставим только в нашем виде; в стоковом — те,
+  // что рисует сам Docmost.
+  const { customUi } = useUiFlags();
   const upgradeLabel = useUpgradeLabel();
   const mainNavItems = [
     { label: "Home", icon: IconHome, path: "/home" },
     // Значки из Grist: закреп — канцелярская кнопка, «все документы» —
     // стопка слоёв. Подписи меняются в файле переводов.
-    { label: "Favorites", icon: IconGristPin, path: "/favorites" },
-    { label: "Spaces", icon: IconGristStack, path: "/spaces" },
+    {
+      label: "Favorites",
+      icon: customUi ? IconGristPin : IconStar,
+      path: "/favorites",
+    },
+    {
+      label: "Spaces",
+      icon: customUi ? IconGristStack : IconLayoutGrid,
+      path: "/spaces",
+    },
     {
       label: "Templates",
       icon: IconTemplate,
@@ -52,7 +63,7 @@ export default function GlobalSidebar() {
     },
     // недоступные по лицензии пункты не показываем вовсе
   ].filter(
-    (item) => !(HIDE_LOCKED_EE_ITEMS && "disabled" in item && item.disabled),
+    (item) => !(hideLockedEeItems() && "disabled" in item && item.disabled),
   );
   const { data: favoriteSpacesData, isPending: isFavoritesPending } = useFavoritesQuery("space");
   const favoriteSpaces = favoriteSpacesData?.pages.flatMap((p) => p.items) ?? [];
@@ -115,7 +126,7 @@ export default function GlobalSidebar() {
 
         {/* Секция избранных пространств: по требованию скрыта.
             Флаг тот же, что и у платных пунктов, — вернуть можно одной строкой. */}
-        {!HIDE_LOCKED_EE_ITEMS && (
+        {!hideLockedEeItems() && (
           <>
         <Divider my="xs" />
         <div className={classes.section}>

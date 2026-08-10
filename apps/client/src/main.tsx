@@ -3,7 +3,11 @@ import "@mantine/spotlight/styles.css";
 import "@mantine/notifications/styles.css";
 import '@mantine/dates/styles.css';
 import "@/styles/a11y-overrides.css";
-import { applyUiTheme, loadUiTheme } from "@/custom-sso/ui-theme";
+import {
+  applyUiTheme,
+  loadUiTheme,
+  storeUiFlags,
+} from "@/custom-sso/ui-theme";
 
 import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
@@ -46,7 +50,13 @@ if (isCloud() && isPostHogEnabled) {
 
 // Оформление общее для всех участников, поэтому спрашиваем сервер
 // до отрисовки. Не смогли — остаётся стоковый вид.
-void loadUiTheme().then(applyUiTheme);
+// Оформление и переключатели вида приходят одним запросом. Флаги
+// раскладываем сразу: разметка читает их синхронно при отрисовке,
+// а до ответа берёт прошлые значения из localStorage.
+void loadUiTheme().then((state) => {
+  storeUiFlags(state);
+  applyUiTheme(state);
+});
 
 const container = document.getElementById("root") as HTMLElement;
 const root = (container as any).__reactRoot ??= ReactDOM.createRoot(container);

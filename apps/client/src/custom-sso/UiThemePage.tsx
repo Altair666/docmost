@@ -1,14 +1,13 @@
 import { useEffect, useState } from "react";
 import {
   Alert,
-  Badge,
   Button,
+  Checkbox,
   Code,
   FileInput,
   Group,
   Loader,
   Paper,
-  Radio,
   Stack,
   Text,
   Textarea,
@@ -25,7 +24,12 @@ import SettingsTitle from "@/components/settings/settings-title";
 import { getAppName } from "@/lib/config";
 import api from "@/lib/api-client";
 import useUserRole from "@/hooks/use-user-role";
-import { applyUiTheme, UiTheme, UiThemeState } from "@/custom-sso/ui-theme";
+import {
+  applyUiTheme,
+  storeUiFlags,
+  UiTheme,
+  UiThemeState,
+} from "@/custom-sso/ui-theme";
 
 function unwrap<T>(res: any): T {
   return (res?.data ?? res) as T;
@@ -37,6 +41,7 @@ export default function UiThemePage() {
 
   const [theme, setTheme] = useState<UiTheme>("stock");
   const [css, setCss] = useState("");
+  const [hideEe, setHideEe] = useState(true);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -49,6 +54,7 @@ export default function UiThemePage() {
         const state = unwrap<UiThemeState>(res);
         setTheme(state.theme);
         setCss(state.customCss ?? "");
+        setHideEe(state.hideEeItems !== false);
       })
       .catch((e) => setError(e?.message ?? "request failed"))
       .finally(() => setLoading(false));
@@ -58,13 +64,20 @@ export default function UiThemePage() {
     return null;
   }
 
-  const save = (nextTheme: UiTheme, nextCss?: string) => {
+  const save = (patch: {
+    theme?: UiTheme;
+    customCss?: string;
+    hideEeItems?: boolean;
+  }) => {
     setSaving(true);
     setError(null);
     setSaved(false);
 
-    const payload: Record<string, unknown> = { theme: nextTheme };
-    if (nextCss !== undefined) payload.customCss = nextCss;
+    // theme отправляем всегда: сервер ждёт его обязательным полем.
+    // Остальное — только когда меняем, чтобы не затирать чужое.
+    const payload: Record<string, unknown> = { theme: patch.theme ?? theme };
+    if (patch.customCss !== undefined) payload.customCss = patch.customCss;
+    if (patch.hideEeItems !== undefined) payload.hideEeItems = patch.hideEeItems;
 
     api
       .post("/ui-theme", payload)
@@ -72,6 +85,8 @@ export default function UiThemePage() {
         const state = unwrap<UiThemeState>(res);
         setTheme(state.theme);
         setCss(state.customCss ?? "");
+        setHideEe(state.hideEeItems !== false);
+        storeUiFlags(state);
         applyUiTheme(state);
         setSaved(true);
       })
@@ -88,6 +103,8 @@ export default function UiThemePage() {
     reader.onerror = () => setError(t("Could not read the file"));
     reader.readAsText(file);
   };
+
+  const noCss = css.trim().length === 0;
 
   return (
     <>
@@ -121,54 +138,42 @@ export default function UiThemePage() {
         <Loader size="sm" />
       ) : (
         <Stack gap="md">
-          <Radio.Group
-            value={theme}
-            onChange={(value) => save(value as UiTheme)}
-            name="ui-theme"
-          >
-            <Stack gap="sm">
-              <Paper withBorder p="md" radius="md">
-                <Radio
-                  value="stock"
-                  disabled={saving}
-                  label={
-                    <Group gap="xs">
-                      <Text fw={600} size="sm">{t("Docmost, as shipped")}</Text>
-                      {theme === "stock" && (
-                        <Badge size="xs" variant="light" color="gray">{t("current")}</Badge>
-                      )}
-                    </Group>
-                  }
-                  description={t("The original look, nothing overridden.")}
-                />
-              </Paper>
+          <Paper withBorder p="md" radius="md">
+            <Stack gap="lg">
+              <Checkbox
+                checked={theme === "custom"}
+                disabled={saving || (noCss && theme !== "custom")}
+                onChange={(e) =>
+                  save({ theme: e.currentTarget.checked ? "custom" : "stock" })
+                }
+                label={t("Our interface")}
+                description={
+                  noCss && theme !== "custom"
+                    ? t("Add a stylesheet below first.")
+                    : t(
+                        "The stylesheet below plus our own header, menu and collapsed rail. Unchecked: Docmost exactly as shipped.",
+                      )
+                }
+              />
 
-              <Paper withBorder p="md" radius="md">
-                <Radio
-                  value="custom"
-                  disabled={saving || css.trim().length === 0}
-                  label={
-                    <Group gap="xs">
-                      <Text fw={600} size="sm">{t("Your own stylesheet")}</Text>
-                      {theme === "custom" && (
-                        <Badge size="xs" variant="light" color="green">{t("current")}</Badge>
-                      )}
-                    </Group>
-                  }
-                  description={
-                    css.trim().length === 0
-                      ? t("Add a stylesheet below first.")
-                      : t("The stylesheet below, applied to everyone.")
-                  }
-                />
-              </Paper>
+              <Checkbox
+                checked={hideEe}
+                disabled={saving}
+                onChange={(e) => save({ hideEeItems: e.currentTarget.checked })}
+                label={t("Hide paid-edition items")}
+                description={t(
+                  "Docmost greys out features that need a paid licence and leaves them in place. Checked: they are hidden entirely.",
+                )}
+              />
             </Stack>
-          </Radio.Group>
+          </Paper>
 
           <Paper withBorder p="md" radius="md">
             <Stack gap="sm">
               <Group justify="space-between" align="flex-end">
-                <Text fw={600} size="sm">{t("Stylesheet")}</Text>
+                <Text fw={600} size="sm">
+                  {t("Stylesheet")}
+                </Text>
                 <Text size="xs" c="dimmed">
                   {css.length.toLocaleString()} {t("characters")}
                 </Text>
@@ -201,9 +206,9 @@ export default function UiThemePage() {
                 />
                 <Button
                   loading={saving}
-                  disabled={css.trim().length === 0}
+                  disabled={noCss}
                   leftSection={<IconDeviceFloppy size={16} />}
-                  onClick={() => save("custom", css)}
+                  onClick={() => save({ theme: "custom", customCss: css })}
                 >
                   {t("Save and apply")}
                 </Button>

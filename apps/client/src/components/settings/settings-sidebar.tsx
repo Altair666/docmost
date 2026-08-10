@@ -25,7 +25,7 @@ import useUserRole from "@/hooks/use-user-role.tsx";
 import { useAtom } from "jotai";
 import { entitlementAtom } from "@/ee/entitlement/entitlement-atom";
 import { Feature } from "@/ee/features";
-import { HIDE_LOCKED_EE_ITEMS } from "@/custom-sso/ui-flags";
+import { hideLockedEeItems } from "@/custom-sso/ui-flags";
 import { useUpgradeLabel } from "@/ee/hooks/use-upgrade-label";
 import {
   prefetchApiKeyManagement,
@@ -185,7 +185,7 @@ export function useSettingsRailItems(): DataItem[] {
     // где и в развёрнутом виде.
     if (
       group.heading === "System" &&
-      (!isAdmin || isCloud() || HIDE_LOCKED_EE_ITEMS)
+      (!isAdmin || isCloud() || hideLockedEeItems())
     ) {
       return [];
     }
@@ -226,7 +226,7 @@ export default function SettingsSidebar() {
     // лицензии). Прячем вместе с остальным ee, если включён флаг.
     if (
       group.heading === "System" &&
-      (!isAdmin || isCloud() || HIDE_LOCKED_EE_ITEMS)
+      (!isAdmin || isCloud() || hideLockedEeItems())
     ) {
       return null;
     }
@@ -290,7 +290,7 @@ export default function SettingsSidebar() {
           if (isDisabled) {
             // Штатно Docmost рисует серый пункт с тултипом про лицензию.
             // Нам такие пункты не нужны — убираем совсем.
-            if (HIDE_LOCKED_EE_ITEMS) {
+            if (hideLockedEeItems()) {
               return null;
             }
             return (

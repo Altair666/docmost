@@ -20,7 +20,7 @@ import { useTranslation } from "react-i18next";
 import { useHasFeature } from "@/ee/hooks/use-feature";
 import { Feature } from "@/ee/features";
 import { useUpgradeLabel } from "@/ee/hooks/use-upgrade-label";
-import { HIDE_LOCKED_EE_ITEMS } from "@/custom-sso/ui-flags";
+import { hideLockedEeItems } from "@/custom-sso/ui-flags";
 
 const CommandList = ({
   items,
@@ -52,7 +52,7 @@ const CommandList = ({
   // только сбивает с толку. Фильтруем и список, и раскладку по категориям,
   // иначе разъедется нумерация для клавиатурной навигации.
   const visibleItems = useMemo(() => {
-    if (!HIDE_LOCKED_EE_ITEMS) return items;
+    if (!hideLockedEeItems()) return items;
     const filtered: Record<string, SlashMenuItemType[]> = {};
     for (const [category, list] of Object.entries(items)) {
       const kept = (list as SlashMenuItemType[]).filter(

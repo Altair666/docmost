@@ -35,7 +35,7 @@ import { insertBaseEmbedBlock } from "@/features/editor/components/base-embed/in
 import { useHasFeature } from "@/ee/hooks/use-feature";
 import { Feature } from "@/ee/features";
 import { useUpgradeLabel } from "@/ee/hooks/use-upgrade-label";
-import { HIDE_LOCKED_EE_ITEMS } from "@/custom-sso/ui-flags";
+import { hideLockedEeItems } from "@/custom-sso/ui-flags";
 
 interface Props {
   editor: Editor;
@@ -111,7 +111,7 @@ export const MoreInsertsGroup: FC<Props> = ({ editor, templateMode }) => {
             {t("Synced block")}
           </Menu.Item>
         )}
-        {!templateMode && (hasBases || !HIDE_LOCKED_EE_ITEMS) && (
+        {!templateMode && (hasBases || !hideLockedEeItems()) && (
           <Tooltip label={upgradeLabel} disabled={hasBases} position="right">
             <Menu.Item
               leftSection={<IconTable size={16} />}
@@ -133,7 +133,7 @@ export const MoreInsertsGroup: FC<Props> = ({ editor, templateMode }) => {
             </Menu.Item>
           </Tooltip>
         )}
-        {!templateMode && (hasBases || !HIDE_LOCKED_EE_ITEMS) && (
+        {!templateMode && (hasBases || !hideLockedEeItems()) && (
           <Tooltip label={upgradeLabel} disabled={hasBases} position="right">
             <Menu.Item
               leftSection={<IconLayoutKanban size={16} />}

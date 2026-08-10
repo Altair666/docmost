@@ -4,6 +4,7 @@ import { useLocation } from "react-router-dom";
 import CompactRail, {
   COMPACT_RAIL_WIDTH,
 } from "@/custom-sso/CompactRail";
+import { useUiFlags } from "@/custom-sso/ui-flags";
 import { useTranslation } from "react-i18next";
 import SettingsSidebar from "@/components/settings/settings-sidebar.tsx";
 import { useAtom } from "jotai";
@@ -12,6 +13,8 @@ import {
   desktopSidebarAtom,
   mobileSidebarAtom,
   sidebarWidthAtom,
+  sidebarWidthTouchedAtom,
+  useSidebarWidth,
 } from "@/components/layouts/global/hooks/atoms/sidebar-atom.ts";
 import { SpaceSidebar } from "@/features/space/components/sidebar/space-sidebar.tsx";
 import AiChatSidebar from "@/ee/ai-chat/components/ai-chat-sidebar.tsx";
@@ -35,13 +38,17 @@ export default function GlobalAppShell({
   const toggleMobile = useToggleSidebar(mobileSidebarAtom);
   const [desktopOpened] = useAtom(desktopSidebarAtom);
   const [{ isAsideOpen, tab: asideTab }] = useAtom(asideStateAtom);
-  const [sidebarWidth, setSidebarWidth] = useAtom(sidebarWidthAtom);
+  const [, setSidebarWidth] = useAtom(sidebarWidthAtom);
+  const [, setSidebarWidthTouched] = useAtom(sidebarWidthTouchedAtom);
+  const sidebarWidth = useSidebarWidth();
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef(null);
 
   const startResizing = React.useCallback((mouseDownEvent) => {
     mouseDownEvent.preventDefault();
     setIsResizing(true);
+    // С этого момента ширину задаёт пользователь, а не вид интерфейса
+    setSidebarWidthTouched(true);
   }, []);
 
   const stopResizing = React.useCallback(() => {
@@ -78,6 +85,10 @@ export default function GlobalAppShell({
     };
   }, [resize, stopResizing]);
 
+  // Выключен наш интерфейс — оболочка ведёт себя как у апстрима:
+  // шапка 45px, свёрнутый сайдбар прячется целиком, узкой полосы нет.
+  const { customUi } = useUiFlags();
+
   const location = useLocation();
   const isSettingsRoute = location.pathname.startsWith("/settings");
   const isSpaceRoute = location.pathname.startsWith("/s/");
@@ -89,9 +100,8 @@ export default function GlobalAppShell({
     <>
       <SkipToMain />
       <AppShell
-      // 49px — высота шапки Grist на странице документа, снята с пикселей.
-      // На его главной 45, но сравниваем по рабочему экрану.
-      header={{ height: 49 }}
+      // 49px — высота шапки Grist, снята из его DOM. У Docmost 45.
+      header={{ height: customUi ? 49 : 45 }}
       navbar={{
         // Ширина тянется мышью везде, а не только в пространствах:
         // раньше на главной и в настройках она была жёстко 300px.
@@ -100,11 +110,15 @@ export default function GlobalAppShell({
         // значками — как в Grist. Поэтому desktop: false: пусть Mantine
         // не прячет панель, шириной управляем сами. На мобильных всё
         // по-прежнему скрывается полностью, полоса там только мешала бы.
-        width: desktopOpened ? sidebarWidth : COMPACT_RAIL_WIDTH,
+        width:
+          desktopOpened || !customUi ? sidebarWidth : COMPACT_RAIL_WIDTH,
         breakpoint: "sm",
         collapsed: {
           mobile: !mobileOpened,
-          desktop: false,
+          // В нашем виде панель не исчезает, а сжимается до полосы со
+          // значками, поэтому прятать её Mantine не даём. В стоковом —
+          // всё как в апстриме.
+          desktop: customUi ? false : !desktopOpened,
         },
       }}
       aside={
@@ -119,7 +133,7 @@ export default function GlobalAppShell({
       {/* Без горизонтального отступа: иначе левая ячейка шапки съезжает
           на 16px и вертикаль перекрестья не совпадает с краем сайдбара.
           Отступы теперь задают сами группы внутри AppHeader. */}
-      <AppShell.Header px={0} className={classes.header}>
+      <AppShell.Header px={customUi ? 0 : undefined} className={classes.header}>
         <AppHeader />
       </AppShell.Header>
       <AppShell.Navbar
@@ -136,7 +150,7 @@ export default function GlobalAppShell({
                 : t("Main navigation")
         }
       >
-        {!desktopOpened ? (
+        {customUi && !desktopOpened ? (
           <CompactRail />
         ) : (
           <>
