@@ -270,14 +270,14 @@ function CustomHeader() {
             свёрнутом виде остаётся только квадрат с иконкой. */}
         <Group gap="xs" wrap="nowrap">
           <Tooltip label={t("Sidebar toggle")}>
-            {/* 32x32 вплотную к линии — размер и место кнопки в Grist. */}
+            {/* 32x32 вплотную к линии — размер и место кнопки в Grist.
+                Прямые углы задаёт тема: свойства radius у этой кнопки нет. */}
             <SidebarToggle
               aria-label={t("Sidebar toggle")}
               opened={desktopOpened}
               onClick={toggleDesktop}
               visibleFrom="sm"
-              size={32}
-              radius={0}
+              size="32"
             />
           </Tooltip>
         </Group>

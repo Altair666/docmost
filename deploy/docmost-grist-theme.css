@@ -230,6 +230,12 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-header svg {
   height: 16px;
 }
 
+/* Кнопки в шапке — с прямыми углами: у Grist подсветка при наведении
+   квадратная и упирается в края, скруглений там нет. */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-ActionIcon-root {
+  border-radius: 0;
+}
+
 /* Кружок пользователя — исключение: это аватар, а не значок,
    ему размер задаёт сам компонент. */
 html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-Avatar-root svg {

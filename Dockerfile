@@ -5,6 +5,12 @@ RUN npm install -g pnpm@11.15.1
 
 FROM base AS builder
 
+# Потолок кучи для сборки. Без него сборка клиента растёт, пока не кончится
+# память у всей машины: на сервере с ограниченной виртуалкой это вешает её
+# целиком, вместе с уже работающими контейнерами.
+ARG NODE_OPTIONS=--max-old-space-size=2048
+ENV NODE_OPTIONS=
+
 WORKDIR /app
 
 COPY . .
