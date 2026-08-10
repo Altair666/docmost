@@ -5,6 +5,7 @@ import CompactRail, {
   COMPACT_RAIL_WIDTH,
 } from "@/custom-sso/CompactRail";
 import { useUiFlags } from "@/custom-sso/ui-flags";
+import WorkspaceBadge from "@/custom-sso/WorkspaceBadge";
 import { useTranslation } from "react-i18next";
 import SettingsSidebar from "@/components/settings/settings-sidebar.tsx";
 import { useAtom } from "jotai";
@@ -29,6 +30,25 @@ import { useToggleSidebar } from "@/components/layouts/global/hooks/hooks/use-to
 import GlobalSidebar from "@/components/layouts/global/global-sidebar.tsx";
 import { ASIDE_PANEL_ID } from "@/hooks/use-toggle-aside.tsx";
 import { MAIN_CONTENT_ID, SkipToMain } from "@/components/ui/skip-to-main.tsx";
+
+// Шапка левой панели: плашка с логотипом и названием фирмы.
+// Живёт внутри панели, как у Grist, а не в шапке приложения.
+function SidebarHeader({ compact = false }: { compact?: boolean }) {
+  return (
+    <div
+      data-sidebar-header=""
+      style={{
+        display: "flex",
+        alignItems: "center",
+        height: 49,
+        flex: "none",
+        padding: compact ? "0 8px" : "0 16px",
+      }}
+    >
+      <WorkspaceBadge compact={compact} />
+    </div>
+  );
+}
 
 export default function GlobalAppShell({
   children,
@@ -102,12 +122,22 @@ export default function GlobalAppShell({
   const isPageRoute = location.pathname.includes("/p/");
   const showGlobalSidebar = !isSpaceRoute && !isSettingsRoute && !isAiRoute;
 
+  // В настройках панель всегда развёрнута: сворачивать и тянуть её там
+  // незачем — разделы одни и те же на всех подстраницах.
+  const panelFixed = customUi && isSettingsRoute;
+  const collapsed = customUi && !desktopOpened && !panelFixed;
+
   return (
     <>
       <SkipToMain />
       <AppShell
       // 49px — высота шапки Grist, снята из его DOM. У Docmost 45.
       header={{ height: customUi ? 49 : 45 }}
+      // alt: панель идёт во всю высоту страницы, шапка начинается справа
+      // от неё. Так собрана левая колонка у Grist — одним элементом, с
+      // логотипом внутри. Собранная из двух кусков, она разъезжалась при
+      // движении, а вертикальная линия упиралась в шапку.
+      layout={customUi ? "alt" : "default"}
       navbar={{
         // Ширина тянется мышью везде, а не только в пространствах:
         // раньше на главной и в настройках она была жёстко 300px.
@@ -116,8 +146,7 @@ export default function GlobalAppShell({
         // значками — как в Grist. Поэтому desktop: false: пусть Mantine
         // не прячет панель, шириной управляем сами. На мобильных всё
         // по-прежнему скрывается полностью, полоса там только мешала бы.
-        width:
-          desktopOpened || !customUi ? sidebarWidth : COMPACT_RAIL_WIDTH,
+        width: collapsed ? COMPACT_RAIL_WIDTH : sidebarWidth,
         breakpoint: "sm",
         collapsed: {
           mobile: !mobileOpened,
@@ -145,6 +174,9 @@ export default function GlobalAppShell({
       <AppShell.Navbar
         className={classes.navbar}
         withBorder={false}
+        // Пока тянут мышью, переход выключен — иначе каждое движение
+        // запускает новую анимацию и панель ползёт с задержкой.
+        data-dragging={isResizing || undefined}
         ref={sidebarRef}
         aria-label={
           isSpaceRoute
@@ -156,13 +188,24 @@ export default function GlobalAppShell({
                 : t("Main navigation")
         }
       >
-        {customUi && !desktopOpened ? (
+        {collapsed ? (
           <div
             onMouseEnter={() => setRailHovered(true)}
             onMouseLeave={() => setRailHovered(false)}
             style={{ height: "100%", position: "relative" }}
           >
-            <CompactRail />
+            {/* Шапка панели — внутри неё самой, как у Grist.
+                Пока панель выезжает, полосу прячем: иначе видно сразу две
+                плашки, и наезд одной на другую читается как рябь. */}
+            <div
+              style={{
+                height: "100%",
+                visibility: railHovered ? "hidden" : "visible",
+              }}
+            >
+              <SidebarHeader compact />
+              <CompactRail />
+            </div>
 
             {/* Наложение висит всегда и раскрывается по ширине — тем же
                 свойством и временем, что ячейка шапки с плашкой. Иначе
@@ -189,6 +232,7 @@ export default function GlobalAppShell({
                   overflowY: "auto",
                 }}
               >
+                <SidebarHeader />
                 {isSpaceRoute && <SpaceSidebar />}
                 {isSettingsRoute && <SettingsSidebar />}
                 {isAiRoute && <AiChatSidebar />}
@@ -198,17 +242,25 @@ export default function GlobalAppShell({
           </div>
         ) : (
           <>
-            {/* Тянуть панель можно на любой странице — как в Grist,
-                а не только внутри пространства. */}
-            <div
-              className={classes.resizeHandle}
-              data-resize-handle=""
-              onMouseDown={startResizing}
-            />
-            {isSpaceRoute && <SpaceSidebar />}
-            {isSettingsRoute && <SettingsSidebar />}
-            {isAiRoute && <AiChatSidebar />}
-            {showGlobalSidebar && <GlobalSidebar />}
+            {customUi && <SidebarHeader />}
+            {/* Тянуть панель можно на любой странице — как в Grist.
+                Кроме настроек: там ширина зафиксирована. */}
+            {!panelFixed && (
+              <div
+                className={classes.resizeHandle}
+                data-resize-handle=""
+                onMouseDown={startResizing}
+              />
+            )}
+            {/* Постоянная ширина: иначе при сворачивании содержимое
+                перестраивается вслед за анимацией и текст прыгает.
+                Grist на время перехода делает то же самое. */}
+            <div style={{ width: sidebarWidth, flex: "1 1 auto", minHeight: 0 }}>
+              {isSpaceRoute && <SpaceSidebar />}
+              {isSettingsRoute && <SettingsSidebar />}
+              {isAiRoute && <AiChatSidebar />}
+              {showGlobalSidebar && <GlobalSidebar />}
+            </div>
           </>
         )}
       </AppShell.Navbar>

@@ -104,6 +104,11 @@ html[data-mantine-color-scheme="light"] {
   --mantine-color-blue-outline: var(--grist-primary);
   --mantine-color-blue-outline-hover: #eef9f5;
   --mantine-color-blue-text: var(--grist-primary-muted);
+
+  /* Цвет ссылок и кольца фокуса Mantine берёт из отдельных переменных —
+     без них синева остаётся в текстовых ссылках и обводке при выборе. */
+  --mantine-color-anchor: var(--grist-primary-muted);
+  --mantine-focus-ring-color: var(--grist-primary);
 }
 
 /* ============================================================
@@ -190,6 +195,13 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [class*="_navba
   padding-right: 0;
 }
 
+/* Кнопки в меню (например «Пригласить людей») берут ширину от текста, а
+   ссылки — от блока: 167 против 224. Выравниваем явно, иначе нижний ряд
+   выбивается и подсветка под курсором обрывается на полуслове. */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar button[class*="_link_"] {
+  width: calc(100% - 16px);
+}
+
 /* Цвет текста пунктов — основной #262633, как в Grist. Docmost брал
    приглушённый серый Mantine (#495057), отчего меню читалось бледнее. */
 html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar a:not([data-rail]):not([data-active]):not([aria-current="page"]) {
@@ -210,9 +222,43 @@ html[data-mantine-color-scheme="light"] [data-rail] {
 html[data-mantine-color-scheme="light"] [data-resize-handle] {
   width: 7px;
   right: -3px;
-  /* Над содержимым меню: без этого нажатие уходило в список пунктов,
-     и панель не тянулась вовсе. */
-  z-index: 5;
+  /* Поверх всего: иначе нажатие уходит в список пунктов, а разделитель
+     над нижним блоком перекрывает саму линию. */
+  z-index: 10;
+  background: transparent;
+  cursor: ew-resize;
+}
+
+/* Линию рисует сама полоса двумя слоями: обычный и подсвеченный. */
+html[data-mantine-color-scheme="light"] [data-resize-handle]::before,
+html[data-mantine-color-scheme="light"] [data-resize-handle]::after {
+  content: "";
+  position: absolute;
+  height: 100%;
+  width: 1px;
+  left: 3px;
+  top: 0;
+}
+
+html[data-mantine-color-scheme="light"] [data-resize-handle]::before {
+  background: var(--grist-decoration-secondary);
+}
+
+html[data-mantine-color-scheme="light"] [data-resize-handle]::after {
+  background: var(--grist-primary);
+  opacity: 0;
+  transition: opacity linear 0.2s;
+}
+
+/* Загорается с задержкой 0.2s, гаснет без задержки — тайминги Grist */
+html[data-mantine-color-scheme="light"] [data-resize-handle]:hover::after {
+  opacity: 1;
+  transition: opacity linear 0.2s 0.2s;
+}
+
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar[data-dragging] [data-resize-handle]::after {
+  opacity: 1;
+  transition: none;
 }
 
 html[data-mantine-color-scheme="light"] [data-resize-handle]:hover,
@@ -230,19 +276,22 @@ html[data-mantine-color-scheme="light"] .mantine-NavLink-root:hover {
   background: var(--grist-hover-row);
 }
 
-/* Полоса для растягивания: под курсором у Grist зеленеет правая граница
-   панели (#16b378 на месте обычного #e8e8e8). Сама полоса при этом
-   прозрачная — цвет живёт на границе. */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar:has([data-resize-handle]:hover) {
-  border-right-color: var(--grist-primary);
-}
+/* Граница панели цвет не меняет: подсветку рисует сама полоса (выше),
+   как это сделано у Grist. Иначе её перекрывали элементы сайдбара. */
 
 /* Ширина меняется плавно — 0.4s ease, как у Grist. Двигать надо всё
    разом: саму панель, отступ содержимого и левую ячейку шапки, иначе
    перекрестье разъезжается на время перехода. */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar,
-html[data-mantine-color-scheme="light"] [data-brand-cell] {
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar {
   transition: width 0.4s ease;
+}
+
+/* Пока тянут мышью — никакой анимации. У Grist на это время стоит
+   transition: unset, иначе каждое движение мыши запускает новый переход
+   и панель тащится за курсором с задержкой. */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar[data-dragging],
+html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar[data-dragging] [data-rail-overlay] {
+  transition: none;
 }
 
 html[data-mantine-color-scheme="light"] .mantine-AppShell-main {
@@ -382,6 +431,13 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-Action
 html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-ActionIcon-root:active,
 html[data-mantine-color-scheme="light"] [data-grist-search] button:hover {
   background: var(--grist-decoration-secondary);
+}
+
+/* У стрелки сворачивания подложки нет вовсе — темнеет только сам значок.
+   Кружок под ней просили убрать. */
+html[data-mantine-color-scheme="light"] [data-sidebar-toggle]:hover,
+html[data-mantine-color-scheme="light"] [data-sidebar-toggle]:active {
+  background: transparent;
 }
 
 html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-ActionIcon-root:hover svg,

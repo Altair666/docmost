@@ -93,7 +93,7 @@ export default function GlobalSidebar() {
         {/* Зелёная кнопка на месте гристовской «Add new». Только в нашем
               виде: в стоковом Docmost её нет и быть не должно. */}
           {customUi && (
-            <div style={{ padding: "6px 0 22px 16px" }}>
+            <div style={{ padding: "6px 16px 22px 16px" }}>
               <GristAddButton />
             </div>
           )}

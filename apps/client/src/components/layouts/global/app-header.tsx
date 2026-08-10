@@ -209,6 +209,9 @@ function CustomHeader() {
   // иначе выезжает только нижняя часть колонки.
   const [railHovered] = useAtom(railHoveredAtom);
   const wide = desktopOpened || railHovered;
+  // В настройках панель не сворачивается — кнопки там нет
+  const { pathname } = useLocation();
+  const panelFixed = pathname.startsWith("/settings");
 
   return (
     <Group h="100%" gap={0} wrap={"nowrap"} align="stretch">
@@ -217,59 +220,9 @@ function CustomHeader() {
           нижнего края шапки. Ширина берётся из того же атома, что и у
           сайдбара, поэтому при перетаскивании граница едет вместе с ним.
           Когда сайдбар свёрнут, ячейка сжимается до ширины полосы. */}
-      <Group
-        gap="xs"
-        // 16px по краям развёрнутой ячейки и 8px свёрнутой — так плашка
-        // встаёт в те же координаты, что у Grist (x=16..224 и x=8..40).
-        px={wide ? 16 : 8}
-        justify={wide ? undefined : "center"}
-        wrap="nowrap"
-        w={wide ? sidebarWidth : COMPACT_RAIL_WIDTH}
-        // Метка для темы: цвет этой ячейки задаётся в CSS вместе с
-        // цветом сайдбара, чтобы серая колонка читалась сплошной.
-        data-brand-cell="true"
-        style={{
-          flex: "none",
-          borderRight: "1px solid var(--app-shell-border-color)",
-          overflow: "hidden",
-        }}
-      >
-        <Tooltip label={t("Sidebar toggle")}>
-          <SidebarToggle
-            aria-label={t("Sidebar toggle")}
-            opened={mobileOpened}
-            onClick={toggleMobile}
-            hiddenFrom="sm"
-            size="sm"
-          />
-        </Tooltip>
-
-        {/* Название фирмы из настроек рабочего пространства. Заменило
-            надпись «Docmost». В свёрнутом виде остаётся только иконка —
-            она так же кликабельна и ведёт на главную. */}
-        <Box
-          visibleFrom="sm"
-          style={{ minWidth: 0, flex: wide ? 1 : "none" }}
-        >
-          <WorkspaceBadge compact={!wide} />
-        </Box>
-
-        {/* На узких экранах вместо плашки — иконка, ведущая на главную.
-            hiddenFrom понимает Box, а не Link из react-router. */}
-        <Box hiddenFrom="sm">
-          <Link to="/home" className={classes.brand} aria-label="Docmost">
-            <Box className={classes.brandIcon}>
-              <img
-                src="/icons/favicon-32x32.png"
-                alt="Docmost"
-                width={22}
-                height={22}
-              />
-            </Box>
-          </Link>
-        </Box>
-      </Group>
-
+      {/* Левой ячейки больше нет: плашка с названием фирмы переехала
+          внутрь самой панели, как это сделано у Grist. Пока она жила в
+          шапке, колонка состояла из двух кусков и разъезжалась. */}
       <Group
         flex={1}
         pl={0}
@@ -286,12 +239,27 @@ function CustomHeader() {
             не внутри сворачиваемой панели и не в левой ячейке, где в
             свёрнутом виде остаётся только квадрат с иконкой. */}
         <Group gap="xs" wrap="nowrap">
+          {/* На узких экранах меню открывается этой кнопкой: раньше она
+              стояла в левой ячейке, которой больше нет. */}
+          <Tooltip label={t("Sidebar toggle")}>
+            <SidebarToggle
+              aria-label={t("Sidebar toggle")}
+              opened={mobileOpened}
+              onClick={toggleMobile}
+              hiddenFrom="sm"
+              size="sm"
+            />
+          </Tooltip>
+
+          {!panelFixed && (
+          <>
           {/* Без всплывающей подписи: она загораживала угол и не нужна.
               Не SidebarToggle: тот рисует свои значки Tabler, а нам нужен
               контур Grist — стрелка, уходящая в полосу. 32x32 вплотную к
               вертикальной линии, прямые углы — размеры и место оттуда же. */}
             <ActionIcon
               aria-label={t("Sidebar toggle")}
+              data-sidebar-toggle=""
               aria-expanded={desktopOpened}
               onClick={toggleDesktop}
               visibleFrom="sm"
@@ -304,6 +272,8 @@ function CustomHeader() {
             >
               <IconGristPanel size={16} mirrored={!desktopOpened} />
             </ActionIcon>
+          </>
+          )}
         </Group>
 
         <Group gap="xs" wrap="nowrap">

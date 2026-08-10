@@ -44,13 +44,9 @@ export default function GristAddButton({
 
   return (
     <>
-      <Tooltip
-        label={fullLabel}
-        position="right"
-        withArrow
-        openDelay={200}
-        disabled={!compact}
-      >
+      {/* Всплывающей подсказки нет: она загораживала соседние кнопки.
+          Подпись для читалок экрана остаётся в aria-label. */}
+      <>
         <Box
           component="button"
           type="button"
@@ -61,7 +57,9 @@ export default function GristAddButton({
             display: "flex",
             alignItems: "center",
             justifyContent: compact ? "center" : "space-between",
-            width: compact ? 28 : 208,
+            // Ширина по панели, а не жёсткие 208px: при растягивании
+            // кнопка должна идти вровень с пунктами меню.
+            width: compact ? 28 : "100%",
             height: compact ? 28 : 40,
             padding: compact ? 0 : "0 16px 0 24px",
             border: "none",
@@ -77,7 +75,7 @@ export default function GristAddButton({
           {compact ? <IconPlus size={16} stroke={2} /> : label}
           {!compact && circle}
         </Box>
-      </Tooltip>
+      </>
 
       <Modal
         opened={opened}
