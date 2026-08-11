@@ -879,10 +879,27 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-ta
   background: transparent;
 }
 
-/* Кружки со счётчиками остаются как были — слева от подписи и со своими
-   цветами. Только прижимаем их к низу, чтобы стояли вровень с подписью. */
+/* Кружки со счётчиками — слева от подписи, прижаты к низу */
 html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-tabSection {
   align-self: flex-end;
+}
+
+/* Разными цветами, как было. Синий из палитры вычищен, поэтому у
+   «открыто» тёмный нейтральный, у «решено» — зелёный. */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-tab:first-of-type .mantine-Badge-root {
+  background: var(--grist-decoration-secondary);
+  color: var(--grist-body);
+}
+
+html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-tab:last-of-type .mantine-Badge-root {
+  background: color-mix(in srgb, var(--grist-primary) 18%, #ffffff);
+  color: var(--grist-primary-muted);
+}
+
+/* Кнопка отправки круглая: у неё radius xl, а наше общее правило делало
+   из неё скруглённый квадрат. */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-ActionIcon-root[aria-label] {
+  border-radius: 50% !important;
 }
 
 /* Значок отправки: у него своя ширина в rem, и общее правило значков
@@ -999,7 +1016,7 @@ html[data-mantine-color-scheme="light"] [data-panel-section] {
 /* До краёв панели тянется только полоса вкладок: отступ раздела нужен
    самому содержимому — без него поле ввода вылезало за край. */
 html[data-mantine-color-scheme="light"] [data-panel-section] .mantine-Tabs-list {
-  margin: -8px -16px 0;
+  margin: 0 -16px;
 }
 
 /* Переход ширины у содержимого убран: оно ехало само по себе, слева
