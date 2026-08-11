@@ -762,7 +762,8 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-main:has([class*="_edi
    ============================================================ */
 
 html[data-mantine-color-scheme="light"] .mantine-AppShell-aside {
-  background: var(--grist-bg);
+  /* rightPanelBg = bgSecondary у Grist, а не белый */
+  background: var(--grist-bg-secondary, #f7f7f7);
   border-left: 1px solid var(--grist-decoration-secondary);
   padding: 0;
   overflow: hidden;
