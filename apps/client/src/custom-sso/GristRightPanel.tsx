@@ -28,6 +28,10 @@ const EMBEDS = new Set([
   "Framer",
   "Google Drive",
   "Google Sheets",
+  // Диаграммы и доски — тоже внешние службы
+  "Mermaid diagram",
+  "Draw.io (diagrams.net)",
+  "Excalidraw (Whiteboard)",
 ]);
 
 // Команды меню «/». Корпоративные выброшены: requiresBases — это Bases,
