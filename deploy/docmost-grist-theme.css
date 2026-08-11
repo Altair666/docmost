@@ -609,6 +609,8 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [data-new-page]
   display: flex;
   align-items: center;
   padding-right: 8px;
+  /* Подпись после кружка, слева — как в соседних строках */
+  justify-content: flex-start;
   background: color-mix(in srgb, var(--grist-primary) 12%, #ffffff);
   color: var(--grist-primary-muted);
   font-weight: 500;
@@ -624,18 +626,16 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [data-new-page]
   color: var(--grist-primary-muted);
 }
 
-/* Распорка прижимает кружок к правому краю и держит зазор до подписи */
-html[data-mantine-color-scheme="light"] [data-new-page-gap] {
-  flex: 1 1 auto;
-  min-width: 16px;
-}
-
 html[data-mantine-color-scheme="light"] [data-new-page-circle] {
   flex: none;
   display: grid;
   place-items: center;
   width: 24px;
   height: 24px;
+  /* Середина кружка на 33 — там же, где середина значков 18px,
+     стоящих на x=24. До подписи 9px, она начинается на 54. */
+  margin-left: -3px;
+  margin-right: 9px;
   border-radius: 12px;
   background: var(--grist-primary);
   color: #ffffff;
@@ -659,6 +659,13 @@ html[data-mantine-color-scheme="light"] [data-collapsed] [data-space-switch] {
 html[data-mantine-color-scheme="light"] [data-collapsed] [data-space-switch] [class*="_spaceName_"],
 html[data-mantine-color-scheme="light"] [data-collapsed] [data-space-switch] .mantine-Button-section {
   display: none;
+}
+
+/* Подпись растянута на всю ширину кнопки, поэтому значок надо центрировать
+   внутри неё, а не в самой кнопке. */
+html[data-mantine-color-scheme="light"] [data-collapsed] [data-space-switch] .mantine-Button-label {
+  width: 100%;
+  justify-content: center;
 }
 
 html[data-mantine-color-scheme="light"] [data-collapsed] [data-new-page][data-new-page] {

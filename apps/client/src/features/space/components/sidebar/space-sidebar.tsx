@@ -160,15 +160,13 @@ export function SpaceSidebar() {
                   }
                 }}
               >
-                <span>{t("New page")}</span>
-
-                {/* Распорка прижимает кружок к правому краю и не даёт
-                    подписи подойти к нему ближе 16px. */}
-                <span data-new-page-gap="" />
-
+                {/* Кружок стоит в том же столбце, что значки соседних
+                    строк, — подпись тогда начинается вровень с ними. */}
                 <span data-new-page-circle="">
                   <IconPlus size={16} stroke={2} />
                 </span>
+
+                <span>{t("New page")}</span>
               </UnstyledButton>
             )}
           </div>
