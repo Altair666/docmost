@@ -376,11 +376,6 @@ html[data-mantine-color-scheme="light"] table thead th[data-sort-cell] {
   border-bottom: none !important;
 }
 
-/* 8px от шапки до первой строки — margin-bottom у cssHeader в Grist.
-   У строки уже есть свои 12px сверху, поэтому здесь 12 + 8. */
-html[data-mantine-color-scheme="light"] table tbody tr:first-child td {
-  padding-top: 20px;
-}
 
 /* Кегль строки списка — 14px (cssDocRow) */
 html[data-mantine-color-scheme="light"] table tbody tr td {
@@ -596,10 +591,19 @@ html[data-mantine-color-scheme="light"] [data-space-switch]:hover {
   background: var(--grist-hover-row);
 }
 
+/* Значок пространства — того же размера, что плюс «Новой страницы»,
+   и в том же столбце: 24px серединой на 33. */
+html[data-mantine-color-scheme="light"] [data-space-switch] .mantine-Avatar-root {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  margin-left: -4px;
+}
+
 /* Подпись пространства шла с отступом в 12px со всех сторон и роняла
    строку вниз — зазор до значка задаём сами. */
 html[data-mantine-color-scheme="light"] [data-space-switch] [class*="_spaceName_"] {
-  padding: 0 0 0 8px;
+  padding: 0 0 0 9px;
   font-size: 13px;
   font-weight: 400;
   color: var(--grist-body);
@@ -669,6 +673,15 @@ html[data-mantine-color-scheme="light"] [data-collapsed] [data-space-switch] .ma
 html[data-mantine-color-scheme="light"] [data-collapsed] [data-space-switch] .mantine-Button-label {
   width: 100%;
   justify-content: center;
+}
+
+/* В свёрнутой полосе — 28px, как кружок с плюсом. Сдвиг влево здесь не
+   нужен: значок и так по центру полосы. */
+html[data-mantine-color-scheme="light"] [data-collapsed] [data-space-switch] .mantine-Avatar-root {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  margin-left: 0;
 }
 
 html[data-mantine-color-scheme="light"] [data-collapsed] [data-new-page][data-new-page] {
