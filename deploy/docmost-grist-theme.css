@@ -925,12 +925,15 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Group-r
 
 /* Кнопка отправки: квадратная, меньше строки, у самого края и по
    середине по высоте. */
+/* Кнопка отправки во всю высоту поля: ширина равна высоте, скруглены
+   только правые углы — по рамке поля. */
 html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-ActionIcon-root[aria-label] {
-  width: 24px;
-  height: 24px;
-  min-width: 24px;
-  min-height: 24px;
-  border-radius: 3px !important;
+  width: auto !important;
+  height: auto !important;
+  min-width: 0;
+  min-height: 0;
+  aspect-ratio: 1;
+  border-radius: 0 4px 4px 0 !important;
 }
 
 /* Значок отправки: у него своя ширина в rem, и общее правило значков
@@ -1049,7 +1052,9 @@ html[data-mantine-color-scheme="light"] [data-panel-section] {
 /* До краёв панели тянется только полоса вкладок: отступ раздела нужен
    самому содержимому — без него поле ввода вылезало за край. */
 html[data-mantine-color-scheme="light"] [data-panel-section] .mantine-Tabs-list {
-  margin: 0 -16px;
+  /* -8px сверху: столько отступа у раздела, и без этого строка
+     начинается на 8px ниже, чем у подвкладок. */
+  margin: -8px -16px 0;
 }
 
 /* Переход ширины у содержимого убран: оно ехало само по себе, слева
