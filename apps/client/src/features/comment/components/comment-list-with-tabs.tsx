@@ -376,7 +376,7 @@ const PageCommentInput = ({ onSave, isLoading }) => {
           name={currentUser?.user?.name}
           style={{ flexShrink: 0, marginTop: 10 }}
         />
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ flex: 1, minWidth: 0, position: "relative" }}>
           <CommentEditor
             ref={commentEditorRef}
             onUpdate={setContent}
@@ -385,22 +385,31 @@ const PageCommentInput = ({ onSave, isLoading }) => {
             placeholder={t("Add a comment...")}
             surface="muted"
           />
+
+          {/* Кнопка внутри того же блока, что и поле: прижата к правому
+              краю и по середине высоты. Снаружи она равнялась по всей
+              обёртке и не совпадала с полем. */}
+          {focused && (
+            <ActionIcon
+              variant="filled"
+              size="sm"
+              aria-label={t("Send comment")}
+              onClick={handleSave}
+              onMouseDown={(e) => e.preventDefault()}
+              loading={isLoading}
+              style={{
+                position: "absolute",
+                right: 0,
+                // По низу, а не по середине обёртки: сверху она на 10px
+                // выше поля, снизу — на 2px, и середины не совпадают.
+                bottom: 8,
+              }}
+            >
+              <IconArrowUp size={16} />
+            </ActionIcon>
+          )}
         </div>
       </Group>
-      {focused && (
-        <ActionIcon
-          variant="filled"
-          radius="xl"
-          size="sm"
-          aria-label={t("Send comment")}
-          onClick={handleSave}
-          onMouseDown={(e) => e.preventDefault()}
-          loading={isLoading}
-          style={{ position: "absolute", right: 8, bottom: 30 }}
-        >
-          <IconArrowUp size={16} />
-        </ActionIcon>
-      )}
     </div>
   );
 };

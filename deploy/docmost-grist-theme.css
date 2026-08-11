@@ -931,10 +931,6 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-ActionI
   min-width: 24px;
   min-height: 24px;
   border-radius: 3px !important;
-  top: 50%;
-  bottom: auto !important;
-  right: 6px !important;
-  transform: translateY(-50%);
 }
 
 /* Значок отправки: у него своя ширина в rem, и общее правило значков
