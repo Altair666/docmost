@@ -1,11 +1,6 @@
 import { useMemo } from "react";
 import { Box, Text, Tooltip, UnstyledButton } from "@mantine/core";
-import {
-  IconInfoCircle,
-  IconList,
-  IconMessage,
-  IconSlash,
-} from "@tabler/icons-react";
+import { IconInfoCircle, IconMessage } from "@tabler/icons-react";
 import { useAtom, useAtomValue } from "jotai";
 import { useTranslation } from "react-i18next";
 import { getSuggestionItems } from "@/features/editor/components/slash-menu/menu-items";
@@ -41,22 +36,11 @@ export default function GristRightPanel() {
   const [, setOpen] = useAtom(rightPanelOpenAtom);
   const toggleAside = useToggleAside();
 
-  // Значки свёрнутой полосы: щелчок раскрывает панель на нужном.
-  const rail = [
-    { key: "commands", icon: IconSlash, label: t("Commands") },
+  // Вкладки на полосе. «Оглавление» убрано — оно не нужно.
+  const tabs = [
     { key: "comments", icon: IconMessage, label: t("Comments") },
-    { key: "toc", icon: IconList, label: t("Table of contents") },
     { key: "details", icon: IconInfoCircle, label: t("Details") },
   ];
-
-  const openRail = (key: string) => {
-    if (key === "commands") {
-      setAsideState((st) => ({ ...st, isAsideOpen: false }));
-      setOpen(true);
-      return;
-    }
-    toggleAside(key as any);
-  };
   const editor = useAtomValue(pageEditorAtom);
   const editMode = useAtomValue(currentPageEditModeAtom);
   const commands = useCommands();
@@ -90,22 +74,55 @@ export default function GristRightPanel() {
           начинаются под чертой шапки, а не поверх неё. */}
       <div data-right-panel-head="" />
 
-      {/* Свёрнутая полоса: одни значки, как слева */}
+      {/* Свёрнутая полоса: вкладки, а под ними все команды в два
+          столбца — щелчок вставляет ту же команду, что и в списке. */}
       <div data-right-rail="">
-        {rail.map((item) => {
-          const Icon = item.icon;
-          return (
-            <Tooltip key={item.key} label={item.label} position="left" withArrow>
-              <UnstyledButton
-                data-rail-item=""
-                aria-label={item.label}
-                onClick={() => openRail(item.key)}
+        <div data-rail-tabs="">
+          {tabs.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Tooltip
+                key={item.key}
+                label={item.label}
+                position="left"
+                withArrow
               >
-                <Icon size={18} stroke={2} />
-              </UnstyledButton>
-            </Tooltip>
-          );
-        })}
+                <UnstyledButton
+                  data-rail-item=""
+                  aria-label={item.label}
+                  onClick={() => toggleAside(item.key as any)}
+                >
+                  <Icon size={18} stroke={2} />
+                </UnstyledButton>
+              </Tooltip>
+            );
+          })}
+        </div>
+
+        <div data-rail-commands="" data-disabled={!canInsert || undefined}>
+          {commands.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Tooltip
+                key={item.title}
+                label={t(item.title)}
+                position="left"
+                withArrow
+              >
+                <UnstyledButton
+                  data-rail-item=""
+                  aria-label={t(item.title)}
+                  draggable={canInsert}
+                  disabled={!canInsert}
+                  onClick={() => runAt(item)}
+                  onDragEnd={(e) => onDragEnd(item, e)}
+                >
+                  {Icon && <Icon size={16} stroke={2} />}
+                </UnstyledButton>
+              </Tooltip>
+            );
+          })}
+        </div>
       </div>
 
       {isAsideOpen && (

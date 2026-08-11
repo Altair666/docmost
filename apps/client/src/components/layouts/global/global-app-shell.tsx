@@ -31,6 +31,7 @@ import {
   rightPanelWidthAtom,
   RIGHT_PANEL_MIN,
   RIGHT_PANEL_MAX,
+  RIGHT_PANEL_DEFAULT,
 } from "@/custom-sso/right-panel-atom";
 import classes from "./app-shell.module.css";
 import { useTrialEndAction } from "@/ee/hooks/use-trial-end-action.tsx";
@@ -74,7 +75,11 @@ export default function GlobalAppShell({
   const [desktopOpened] = useAtom(desktopSidebarAtom);
   const [{ isAsideOpen, tab: asideTab }] = useAtom(asideStateAtom);
   const [rightOpen] = useAtom(rightPanelOpenAtom);
-  const [rightWidth, setRightWidth] = useAtom(rightPanelWidthAtom);
+  const [rightWidthRaw, setRightWidth] = useAtom(rightPanelWidthAtom);
+  // Хранилище отдаёт число строкой: «300» вместо 300. В раскладке такая
+  // ширина недействительна, и панель разъезжалась до первого движения
+  // черты, которое записывало уже число.
+  const rightWidth = Number(rightWidthRaw) || RIGHT_PANEL_DEFAULT;
   // Правая панель повторяет левую: свёрнута — полоса, наведение —
   // временный выезд, черта у левого края — растягивание.
   const [isRightResizing, setIsRightResizing] = useState(false);

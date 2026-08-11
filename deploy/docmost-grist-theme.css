@@ -871,6 +871,46 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-aside[data-collapsed] 
   flex-direction: column;
   align-items: center;
   gap: 4px;
+  /* Команд много: полоса прокручивается сама */
+  height: calc(100% - 49px);
+  overflow-y: auto;
+  padding-bottom: 16px;
+}
+
+/* Вкладки — в тот же столбец, что и команды */
+html[data-mantine-color-scheme="light"] [data-rail-tabs] {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding-bottom: 4px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--grist-decoration-secondary);
+  width: 40px;
+}
+
+/* Все значки команд — в два столбца по 20px */
+html[data-mantine-color-scheme="light"] [data-rail-commands] {
+  display: grid;
+  grid-template-columns: repeat(2, 20px);
+  gap: 2px;
+  justify-content: center;
+}
+
+html[data-mantine-color-scheme="light"] [data-rail-commands] [data-rail-item] {
+  width: 20px;
+  height: 20px;
+}
+
+html[data-mantine-color-scheme="light"] [data-rail-commands] svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* В режиме чтения команды на полосе тоже недоступны */
+html[data-mantine-color-scheme="light"] [data-rail-commands][data-disabled] [data-rail-item] {
+  color: var(--grist-decoration);
+  pointer-events: none;
 }
 
 html[data-mantine-color-scheme="light"] [data-rail-item] {
@@ -1216,7 +1256,10 @@ html[data-mantine-color-scheme="light"] [data-grist-search] button:hover {
    Кружок под ней просили убрать. */
 html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-ActionIcon-root[data-sidebar-toggle],
 html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-ActionIcon-root[data-sidebar-toggle]:hover,
-html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-ActionIcon-root[data-sidebar-toggle]:active {
+html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-ActionIcon-root[data-sidebar-toggle]:active,
+html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-ActionIcon-root[data-right-toggle],
+html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-ActionIcon-root[data-right-toggle]:hover,
+html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-ActionIcon-root[data-right-toggle]:active {
   /* Точность выше, чем у общего правила для значков шапки: иначе оно
      перебивало и кружок оставался. */
   background: transparent;

@@ -8,9 +8,11 @@ export const rightPanelOpenAtom = atomWithWebStorage<boolean>(
 );
 
 // Ширина развёрнутой панели — как у левой, её тоже можно тянуть.
+export const RIGHT_PANEL_DEFAULT = 300;
+
 export const rightPanelWidthAtom = atomWithWebStorage<number>(
   "grist-right-panel-width",
-  300,
+  RIGHT_PANEL_DEFAULT,
 );
 
 // Пределы растягивания. Уже 240 команды не читаются, шире 480 панель
