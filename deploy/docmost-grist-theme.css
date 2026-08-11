@@ -857,6 +857,10 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-li
 html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-tab {
   flex: auto;
   font-weight: 400;
+  /* Та же высота, что у подвкладок; по бокам 8px — без них кружок
+     счётчика уезжает за край панели. */
+  padding: 0 8px 8px;
+  margin: 0;
   height: 100%;
   justify-content: center;
   align-items: flex-end;
@@ -874,32 +878,63 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-ta
   background: transparent;
 }
 
+/* Под курсором темнеет подпись, а не загорается весь блок */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-tab:hover {
+  background: transparent !important;
+  font-weight: 600;
+}
+
 html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-tab:not([data-active]):hover {
   color: var(--grist-body);
-  background: transparent;
 }
 
 /* Кружки со счётчиками — слева от подписи, прижаты к низу */
 html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-tabSection {
   align-self: flex-end;
+  margin: 0 6px 0 0;
 }
 
-/* Разными цветами, как было. Синий из палитры вычищен, поэтому у
-   «открыто» тёмный нейтральный, у «решено» — зелёный. */
+/* Подпись не растягивается: иначе она центрируется сама по себе, а
+   кружок уезжает к краю панели. */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-tabLabel {
+  flex: none;
+}
+
+/* Голубой у «открыто», зелёный у «решено» — как было. Цвета заданы
+   прямо: наша палитра перекрашивает голубой в серый. */
 html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-tab:first-of-type .mantine-Badge-root {
-  background: var(--grist-decoration-secondary);
-  color: var(--grist-body);
+  background: #e7f0fd;
+  color: #1c7ed6;
 }
 
 html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-tab:last-of-type .mantine-Badge-root {
-  background: color-mix(in srgb, var(--grist-primary) 18%, #ffffff);
+  background: #e6f7ef;
   color: var(--grist-primary-muted);
 }
 
-/* Кнопка отправки круглая: у неё radius xl, а наше общее правило делало
-   из неё скруглённый квадрат. */
+/* Строка ввода выше: кнопка была крупнее её самой */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .ProseMirror {
+  min-height: 34px;
+  padding: 7px 36px 7px 10px;
+}
+
+/* Значок пользователя по середине строки ввода */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Group-root:has(.ProseMirror) {
+  align-items: center;
+}
+
+/* Кнопка отправки: квадратная, меньше строки, у самого края и по
+   середине по высоте. */
 html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-ActionIcon-root[aria-label] {
-  border-radius: 50% !important;
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
+  border-radius: 3px !important;
+  top: 50%;
+  bottom: auto !important;
+  right: 6px !important;
+  transform: translateY(-50%);
 }
 
 /* Значок отправки: у него своя ширина в rem, и общее правило значков
