@@ -37,13 +37,21 @@ export default function Spaces() {
 
   // Порядок как у Grist: по наименованию или по дате (свежие сверху).
   // Сортируется показанная страница: список приходит с сервера частями.
-  const sortedSpaces = [...shownSpaces].sort((a: any, b: any) =>
-    sort === "name"
-      ? (a.name || "").localeCompare(b.name || "", undefined, {
-          sensitivity: "base",
-        })
-      : new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-  );
+  const authorOf = (s: any) => s.creator?.name || s.creator?.email || "";
+
+  const sortedSpaces = [...shownSpaces].sort((a: any, b: any) => {
+    if (sort === "name") {
+      return (a.name || "").localeCompare(b.name || "", undefined, {
+        sensitivity: "base",
+      });
+    }
+    if (sort === "creator") {
+      return authorOf(a).localeCompare(authorOf(b), undefined, {
+        sensitivity: "base",
+      });
+    }
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
 
 
   return (
@@ -79,7 +87,7 @@ export default function Spaces() {
             spaces={sortedSpaces}
             sortControl={
               customUi ? (
-                <GristSortSelect value={sort} onChange={setSort} />
+                <GristSortSelect value={sort} onChange={setSort} withCreator />
               ) : undefined
             }
             onSearch={handleSearch}

@@ -55,11 +55,24 @@ export default function FavoritesPage() {
       )
     : loaded;
 
-  const favorites = [...shown].sort((a, b) =>
-    sort === "name"
-      ? nameOf(a).localeCompare(nameOf(b), undefined, { sensitivity: "base" })
-      : new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-  );
+  const authorOf = (f: any) => {
+    const c = f.page?.creator || f.space?.creator;
+    return c?.name || c?.email || "";
+  };
+
+  const favorites = [...shown].sort((a: any, b: any) => {
+    if (sort === "name") {
+      return nameOf(a).localeCompare(nameOf(b), undefined, {
+        sensitivity: "base",
+      });
+    }
+    if (sort === "creator") {
+      return authorOf(a).localeCompare(authorOf(b), undefined, {
+        sensitivity: "base",
+      });
+    }
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
 
   if (isLoading) {
     return (
@@ -124,7 +137,11 @@ export default function FavoritesPage() {
                       }}
                     >
                       <VisuallyHidden>{t("Sort")}</VisuallyHidden>
-                      <GristSortSelect value={sort} onChange={setSort} />
+                      <GristSortSelect
+                        value={sort}
+                        onChange={setSort}
+                        withCreator
+                      />
                     </Table.Th>
                   </Table.Tr>
                 </Table.Thead>

@@ -2,7 +2,7 @@ import { Menu, Box } from "@mantine/core";
 import { IconChevronDown } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 
-export type GristSort = "name" | "date";
+export type GristSort = "name" | "date" | "creator";
 
 // Выбор сортировки — как у Grist (DocList.js, cssSortSelect):
 //   без рамки и заливки, зелёный текст 14px начертанием 500,
@@ -11,15 +11,22 @@ export type GristSort = "name" | "date";
 export default function GristSortSelect({
   value,
   onChange,
+  withCreator = false,
 }: {
   value: GristSort;
   onChange: (v: GristSort) => void;
+  /** Показывать третий порядок — по создателю. Есть там, где в таблице
+   *  есть столбец «Кем создано». */
+  withCreator?: boolean;
 }) {
   const { t } = useTranslation();
 
   const options: { value: GristSort; label: string }[] = [
     { value: "name", label: t("Sort by name") },
     { value: "date", label: t("Sort by date") },
+    ...(withCreator
+      ? [{ value: "creator" as GristSort, label: t("Sort by author") }]
+      : []),
   ];
 
   const current = options.find((o) => o.value === value) ?? options[0];

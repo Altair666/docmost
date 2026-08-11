@@ -359,6 +359,9 @@ html[data-mantine-color-scheme="light"] table thead tr {
 html[data-mantine-color-scheme="light"] table thead th {
   /* 1px #d9d9d9 — как tableBodyBorder у cssTabs в Grist */
   border-bottom: 1px solid var(--grist-decoration) !important;
+  /* Подписи в одну строку: иначе длинные переносятся и шапка становится
+     двухэтажной. */
+  white-space: nowrap;
   background: transparent;
   padding: 0 8px 8px;
   font-size: 13px;
