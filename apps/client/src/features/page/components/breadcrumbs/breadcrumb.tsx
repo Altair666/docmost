@@ -48,17 +48,17 @@ export default function Breadcrumb() {
   // Первое звено — пространство: иначе по крошкам не видно, где лежит
   // страница. Ведёт в само пространство.
   const spaceAnchor = space && (
-    <Tooltip label={space.name} key="space">
-      <Anchor
-        component={Link}
-        to={getSpaceUrl(spaceSlug)}
-        underline="never"
-        fz="sm"
-        className={classes.truncatedText}
-      >
-        {space.name}
-      </Anchor>
-    </Tooltip>
+    <Anchor
+      component={Link}
+      to={getSpaceUrl(spaceSlug)}
+      underline="always"
+      fz="sm"
+      key="space"
+      data-space-crumb=""
+      className={classes.truncatedText}
+    >
+      {space.name}
+    </Anchor>
   );
 
   useEffect(() => {
@@ -104,19 +104,18 @@ export default function Breadcrumb() {
 
   const renderAnchor = useCallback(
     (node: SpaceTreeNode, isCurrent = false) => (
-      <Tooltip label={getPageTitle(node.name, node.isBase, t)} key={node.id}>
-        <Anchor
-          component={Link}
-          to={buildPageUrl(spaceSlug, node.slugId, node.name)}
-          underline="never"
-          fz="sm"
-          key={node.id}
-          className={classes.truncatedText}
-          aria-current={isCurrent ? "page" : undefined}
-        >
-          {getTitle(node, t)}
-        </Anchor>
-      </Tooltip>
+      // Всплывающей подсказки нет: она повторяла текст самой крошки
+      <Anchor
+        component={Link}
+        to={buildPageUrl(spaceSlug, node.slugId, node.name)}
+        underline="never"
+        fz="sm"
+        key={node.id}
+        className={classes.truncatedText}
+        aria-current={isCurrent ? "page" : undefined}
+      >
+        {getTitle(node, t)}
+      </Anchor>
     ),
     [spaceSlug, t],
   );

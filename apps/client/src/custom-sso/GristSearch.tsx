@@ -43,6 +43,8 @@ import { getPageIcon } from "@/lib";
 const COLLAPSED_WIDTH = 50;
 const EXPANDED_WIDTH = 453;
 const BAR_HEIGHT = 48;
+// Столько разъезжается сама строка поиска — см. её transition ниже
+const BAR_TRANSITION_MS = 400;
 
 function highlight(html: string) {
   return {
@@ -192,6 +194,10 @@ export default function GristSearch() {
   }>({ contentType: "page" });
 
   const findSpace = Boolean(filters.findSpace);
+
+  // Блок под строкой показываем не раньше, чем строка закончит
+  // раскрываться: её переход ширины — 0.4s (BAR_TRANSITION_MS).
+  const [panelReady, setPanelReady] = useState(false);
   const setListFilter = useSetAtom(listFilterAtom);
 
 
@@ -226,6 +232,15 @@ export default function GristSearch() {
     setListFilter(opened && findSpace ? debounced : "");
     return () => setListFilter("");
   }, [opened, findSpace, debounced, setListFilter]);
+
+  useEffect(() => {
+    if (!opened) {
+      setPanelReady(false);
+      return;
+    }
+    const id = window.setTimeout(() => setPanelReady(true), BAR_TRANSITION_MS);
+    return () => window.clearTimeout(id);
+  }, [opened]);
 
   // Фокус в поле сразу после раскрытия — иначе пришлось бы ещё раз щёлкать
   useEffect(() => {
@@ -279,7 +294,8 @@ export default function GristSearch() {
     <Popover
       // Панель показывается сразу по щелчку на лупе, как у Grist, а не
       // только вместе с результатами.
-      opened={opened}
+      // Не просто opened: блок ждёт, пока строка раскроется
+      opened={opened && panelReady}
       position="bottom-end"
       offset={0}
       shadow="md"

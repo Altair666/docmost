@@ -723,6 +723,19 @@ html[data-mantine-color-scheme="light"] .mantine-Popover-dropdown:has([data-sear
   border-top-right-radius: 0;
 }
 
+/* Крошки: зазор до косой черты вдвое меньше — по 4px вместо 8 */
+html[data-mantine-color-scheme="light"] .mantine-Breadcrumbs-separator {
+  margin-left: 4px;
+  margin-right: 4px;
+}
+
+/* Звено пространства — зелёное и подчёркнутое: оно ведёт не на страницу,
+   а в само пространство, и должно отличаться от звеньев страниц. */
+html[data-mantine-color-scheme="light"] [data-space-crumb] {
+  color: var(--grist-primary-muted);
+  text-decoration: underline;
+}
+
 /* Значки меню пространства — того же приглушённого тона, что и остальные */
 html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [class*="_menuItemIcon_"] {
   color: var(--grist-secondary);
