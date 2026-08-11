@@ -1,6 +1,5 @@
 import { useMemo } from "react";
-import { Box, Text, Tooltip, UnstyledButton } from "@mantine/core";
-import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
+import { Box, Text, UnstyledButton } from "@mantine/core";
 import { useAtom, useAtomValue } from "jotai";
 import { useTranslation } from "react-i18next";
 import { getSuggestionItems } from "@/features/editor/components/slash-menu/menu-items";
@@ -11,6 +10,8 @@ import {
 } from "@/features/editor/atoms/editor-atoms";
 import { PageEditMode } from "@/features/user/types/user.types";
 import { rightPanelOpenAtom } from "@/custom-sso/right-panel-atom";
+import { asideStateAtom } from "@/components/layouts/global/hooks/atoms/sidebar-atom";
+import Aside from "@/components/layouts/global/aside";
 import PageDetailsBlock from "@/custom-sso/PageDetailsBlock";
 
 // Команды меню «/» списком. Корпоративные выброшены: requiresBases —
@@ -26,7 +27,10 @@ function useCommands(): SlashMenuItemType[] {
 
 export default function GristRightPanel() {
   const { t } = useTranslation();
-  const [open, setOpen] = useAtom(rightPanelOpenAtom);
+  const [open] = useAtom(rightPanelOpenAtom);
+  // Вкладки Docmost — подробности, комментарии, оглавление — вызываются
+  // кнопками страницы. Пока вкладка вызвана, панель показывает её.
+  const [{ isAsideOpen }] = useAtom(asideStateAtom);
   const editor = useAtomValue(pageEditorAtom);
   const editMode = useAtomValue(currentPageEditModeAtom);
   const commands = useCommands();
@@ -56,26 +60,13 @@ export default function GristRightPanel() {
 
   return (
     <Box data-grist-right-panel="" data-open={open || undefined}>
-      <Tooltip
-        label={open ? t("Collapse") : t("Commands")}
-        position="left"
-        withArrow
-      >
-        <UnstyledButton
-          data-right-panel-toggle=""
-          aria-label={open ? t("Collapse") : t("Commands")}
-          aria-expanded={open}
-          onClick={() => setOpen(!open)}
-        >
-          {open ? (
-            <IconChevronRight size={16} stroke={2} />
-          ) : (
-            <IconChevronLeft size={16} stroke={2} />
-          )}
-        </UnstyledButton>
-      </Tooltip>
+      {isAsideOpen && (
+        <div data-right-panel-body="">
+          <Aside />
+        </div>
+      )}
 
-      {open && (
+      {open && !isAsideOpen && (
         <div data-right-panel-body="">
           <Text data-right-panel-title="">{t("Commands")}</Text>
 

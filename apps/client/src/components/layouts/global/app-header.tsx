@@ -22,6 +22,7 @@ import {
 import { useToggleSidebar } from "@/components/layouts/global/hooks/hooks/use-toggle-sidebar.ts";
 import SidebarToggle from "@/components/ui/sidebar-toggle-button.tsx";
 import Breadcrumb from "@/features/page/components/breadcrumbs/breadcrumb.tsx";
+import { rightPanelOpenAtom } from "@/custom-sso/right-panel-atom";
 import { useTranslation } from "react-i18next";
 import useTrial from "@/ee/hooks/use-trial.tsx";
 import { isCloud } from "@/lib/config.ts";
@@ -200,6 +201,9 @@ function StockHeader() {
 // Наша шапка: слева ячейка ровно по ширине сайдбара с плашкой фирмы,
 // сразу за вертикальной линией — кнопка сворачивания. Как в Grist.
 function CustomHeader() {
+  const location = useLocation();
+  const isPageRoute = location.pathname.includes("/p/");
+  const [rightOpen, setRightOpen] = useAtom(rightPanelOpenAtom);
   const { t } = useTranslation();
   const [mobileOpened] = useAtom(mobileSidebarAtom);
   const toggleMobile = useToggleSidebar(mobileSidebarAtom);
@@ -225,7 +229,9 @@ function CustomHeader() {
       <Group
         flex={1}
         pl={0}
-        pr="md"
+        // На странице кнопка правой панели стоит вплотную к её черте —
+        // так же, как левая к своей.
+        pr={isPageRoute ? 0 : "md"}
         justify="space-between"
         wrap={"nowrap"}
         style={{ minWidth: 0 }}
@@ -278,6 +284,24 @@ function CustomHeader() {
 
         <Group gap="xs" wrap="nowrap">
           <HeaderTools />
+
+          {/* Кнопка правой панели — такая же и на том же месте, что у
+              левой: значок Grist вплотную к черте панели. */}
+          {isPageRoute && (
+            <ActionIcon
+              aria-label={t("Commands")}
+              data-right-toggle=""
+              aria-expanded={rightOpen}
+              onClick={() => setRightOpen(!rightOpen)}
+              visibleFrom="sm"
+              variant="subtle"
+              color="gray"
+              c="var(--grist-primary, #16b378)"
+              size={32}
+            >
+              <IconGristPanel size={16} mirrored={rightOpen} />
+            </ActionIcon>
+          )}
         </Group>
       </Group>
     </Group>

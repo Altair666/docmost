@@ -80,7 +80,8 @@ export default function GlobalAppShell({
   const [rightHovered, setRightHovered] = useState(false);
   const [isRightResizing, setIsRightResizing] = useState(false);
   const rightRef = useRef<HTMLElement>(null);
-  const rightCollapsed = !rightOpen;
+  // Вызванная вкладка раскрывает панель наравне со своим признаком
+  const rightCollapsed = !rightOpen && !isAsideOpen;
   const [, setSidebarWidth] = useAtom(sidebarWidthAtom);
   const [, setSidebarWidthTouched] = useAtom(sidebarWidthTouchedAtom);
   const sidebarWidth = useSidebarWidth();
@@ -256,7 +257,7 @@ export default function GlobalAppShell({
           // В нашем виде панель не исчезает, а сжимается до полосы —
           // так же, как левая.
           width: customUi
-            ? rightOpen
+            ? rightOpen || isAsideOpen
               ? rightWidth
               : COMPACT_RAIL_WIDTH
             : 350,
@@ -399,7 +400,8 @@ export default function GlobalAppShell({
           }
         >
           {customUi ? (
-            /* Обёртка подрезает содержимое, пока панель едет, — как слева */
+            /* Обёртка подрезает содержимое, пока панель едет, — как слева.
+               Внутри либо вызванная вкладка, либо команды. */
             <div
               style={{
                 display: "flex",
@@ -429,6 +431,8 @@ export default function GlobalAppShell({
                     rightCollapsed && !rightHovered
                       ? COMPACT_RAIL_WIDTH
                       : rightWidth,
+                  // Вкладка занимает панель целиком
+                  height: "100%",
                   flex: "1 1 auto",
                   minHeight: 0,
                 }}
