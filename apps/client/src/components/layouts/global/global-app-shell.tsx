@@ -25,6 +25,8 @@ import { SpaceSidebar } from "@/features/space/components/sidebar/space-sidebar.
 import AiChatSidebar from "@/ee/ai-chat/components/ai-chat-sidebar.tsx";
 import { AppHeader } from "@/components/layouts/global/app-header.tsx";
 import Aside from "@/components/layouts/global/aside.tsx";
+import GristRightPanel from "@/custom-sso/GristRightPanel";
+import { rightPanelOpenAtom, rightPanelWidthAtom } from "@/custom-sso/right-panel-atom";
 import classes from "./app-shell.module.css";
 import { useTrialEndAction } from "@/ee/hooks/use-trial-end-action.tsx";
 import { useToggleSidebar } from "@/components/layouts/global/hooks/hooks/use-toggle-sidebar.ts";
@@ -66,6 +68,8 @@ export default function GlobalAppShell({
   const toggleMobile = useToggleSidebar(mobileSidebarAtom);
   const [desktopOpened] = useAtom(desktopSidebarAtom);
   const [{ isAsideOpen, tab: asideTab }] = useAtom(asideStateAtom);
+  const [rightOpen] = useAtom(rightPanelOpenAtom);
+  const [rightWidth] = useAtom(rightPanelWidthAtom);
   const [, setSidebarWidth] = useAtom(sidebarWidthAtom);
   const [, setSidebarWidthTouched] = useAtom(sidebarWidthTouchedAtom);
   const sidebarWidth = useSidebarWidth();
@@ -207,9 +211,13 @@ export default function GlobalAppShell({
       }}
       aside={
         isPageRoute && {
-          width: 350,
+          // В нашем виде панель не исчезает, а сжимается до полосы —
+          // так же, как левая.
+          width: customUi ? (rightOpen ? rightWidth : 48) : 350,
           breakpoint: "sm",
-          collapsed: { mobile: !isAsideOpen, desktop: !isAsideOpen },
+          collapsed: customUi
+            ? { mobile: !rightOpen, desktop: false }
+            : { mobile: !isAsideOpen, desktop: !isAsideOpen },
         }
       }
       padding="md"
@@ -325,7 +333,7 @@ export default function GlobalAppShell({
                     : undefined
           }
         >
-          <Aside />
+          {customUi ? <GristRightPanel /> : <Aside />}
         </AppShell.Aside>
       )}
     </AppShell>

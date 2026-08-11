@@ -739,6 +739,102 @@ html[data-mantine-color-scheme="light"] [data-page-byline] {
   padding-left: 10px;
 }
 
+/* Поле редактора считало свою наименьшую высоту без учёта нижнего поля
+   в 48px и отступа основной части в 16px: страница выходила на 32px выше
+   окна, и на пустой странице появлялась полоса прокрутки. */
+html[data-mantine-color-scheme="light"] [class*="_editor_"] {
+  min-height: calc(100vh - 177px);
+}
+
+/* ============================================================
+   Правая панель страницы
+   ============================================================ */
+
+html[data-mantine-color-scheme="light"] .mantine-AppShell-aside {
+  background: var(--grist-bg);
+  border-left: 1px solid var(--grist-decoration-secondary);
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Кнопка сворачивания — на полосе сверху, ровно как значки слева */
+html[data-mantine-color-scheme="light"] [data-right-panel-toggle] {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin: 8px;
+  border-radius: 3px;
+  color: var(--grist-primary);
+}
+
+html[data-mantine-color-scheme="light"] [data-right-panel-toggle]:hover {
+  background: var(--grist-hover-row);
+}
+
+html[data-mantine-color-scheme="light"] [data-right-panel-body] {
+  height: calc(100vh - 48px);
+  overflow-y: auto;
+  padding-bottom: 24px;
+}
+
+html[data-mantine-color-scheme="light"] [data-right-panel-title] {
+  padding: 4px 16px;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--grist-secondary);
+}
+
+/* Строка команды — те же размеры, что у пунктов меню слева */
+html[data-mantine-color-scheme="light"] [data-command] {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 32px;
+  padding: 0 16px;
+  font-size: 13px;
+  line-height: 32px;
+  color: var(--grist-body);
+  cursor: grab;
+}
+
+html[data-mantine-color-scheme="light"] [data-command]:hover {
+  background: var(--grist-hover-row);
+}
+
+html[data-mantine-color-scheme="light"] [data-command]:active {
+  cursor: grabbing;
+}
+
+/* Свои значки колонок нарисованы без размера — задаём его здесь */
+html[data-mantine-color-scheme="light"] [data-command] svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+}
+
+html[data-mantine-color-scheme="light"] [data-command] span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* В режиме чтения вставлять некуда: команды серые и не нажимаются */
+html[data-mantine-color-scheme="light"] [data-right-panel-commands][data-disabled] [data-command] {
+  color: var(--grist-decoration);
+  cursor: default;
+  pointer-events: none;
+}
+
+html[data-mantine-color-scheme="light"] [data-right-panel-details] {
+  margin-top: 16px;
+  padding: 0 16px;
+  border-top: 1px solid var(--grist-decoration-secondary);
+}
+
 /* Крошки: зазор до косой черты вдвое меньше — по 4px вместо 8 */
 html[data-mantine-color-scheme="light"] .mantine-Breadcrumbs-separator {
   margin-left: 4px;
