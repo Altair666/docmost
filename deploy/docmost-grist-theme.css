@@ -841,55 +841,62 @@ html[data-mantine-color-scheme="light"] [data-right-panel-toggle]:hover {
   background: var(--grist-hover-row);
 }
 
-/* Вкладки панели — ярлычками, выбранная подчёркнута зелёным */
-html[data-mantine-color-scheme="light"] [data-panel-tabs] {
+/* Вкладки — как в правой панели Grist (RightPanel.js):
+   полоса 48px с чертой снизу, вкладки делят ширину поровну, содержимое
+   прижато к низу, подчёркивание 2px. */
+html[data-mantine-color-scheme="light"] [data-panel-tabs],
+html[data-mantine-color-scheme="light"] [data-panel-subtabs] {
   display: flex;
-  border-bottom: 1px solid var(--grist-decoration);
-  padding: 0 8px;
+  align-items: center;
+  justify-content: space-between;
+  height: 48px;
   flex: none;
+  border-bottom: 1px solid var(--grist-decoration-secondary);
 }
 
-html[data-mantine-color-scheme="light"] [data-panel-tab] {
-  padding: 8px 12px;
+html[data-mantine-color-scheme="light"] [data-panel-tab],
+html[data-mantine-color-scheme="light"] [data-panel-subtab] {
+  flex: auto;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  text-align: center;
+  padding-bottom: 8px;
   font-size: 13px;
-  font-weight: 500;
   color: var(--grist-secondary);
   border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
+  cursor: default;
 }
 
-html[data-mantine-color-scheme="light"] [data-panel-tab]:hover {
+html[data-mantine-color-scheme="light"] [data-panel-tab][data-active],
+html[data-mantine-color-scheme="light"] [data-panel-subtab][data-active] {
+  font-weight: 600;
   color: var(--grist-body);
-}
-
-html[data-mantine-color-scheme="light"] [data-panel-tab][data-active] {
-  color: var(--grist-body);
-  font-weight: 700;
   border-bottom-color: var(--grist-primary);
 }
 
-/* Подвкладки — строкой под ярлычками */
-html[data-mantine-color-scheme="light"] [data-panel-subtabs] {
-  display: flex;
-  gap: 4px;
-  padding: 8px 16px 4px;
-  flex: none;
+html[data-mantine-color-scheme="light"] [data-panel-tab]:not([data-active]):hover,
+html[data-mantine-color-scheme="light"] [data-panel-subtab]:not([data-active]):hover {
+  color: var(--grist-body);
 }
 
-html[data-mantine-color-scheme="light"] [data-panel-subtab] {
-  padding: 2px 10px;
-  border-radius: 3px;
-  font-size: 12px;
-  color: var(--grist-secondary);
-}
-
+html[data-mantine-color-scheme="light"] [data-panel-tab]:hover,
 html[data-mantine-color-scheme="light"] [data-panel-subtab]:hover {
-  background: var(--grist-hover-row);
+  font-weight: 600;
 }
 
-html[data-mantine-color-scheme="light"] [data-panel-subtab][data-active] {
-  background: var(--grist-bg-emphasis);
-  color: #ffffff;
+/* Приём Grist: невидимый жирный дубль держит ширину, и текст не дёргается,
+   когда начертание утолщается. */
+html[data-mantine-color-scheme="light"] [data-panel-tab]::after,
+html[data-mantine-color-scheme="light"] [data-panel-subtab]::after {
+  content: attr(data-text);
+  font-weight: 600;
+  opacity: 0;
+  pointer-events: none;
+  height: 0;
+  overflow: hidden;
 }
 
 html[data-mantine-color-scheme="light"] [data-panel-section] {
@@ -903,12 +910,6 @@ html[data-mantine-color-scheme="light"] [data-right-panel-content] {
 
 html[data-mantine-color-scheme="light"] .mantine-AppShell-aside[data-dragging] [data-right-panel-content] {
   transition: none;
-}
-
-/* Полоса сверху вровень с шапкой левой панели */
-html[data-mantine-color-scheme="light"] [data-right-panel-head] {
-  height: 49px;
-  flex: none;
 }
 
 html[data-mantine-color-scheme="light"] [data-grist-right-panel] {
@@ -936,7 +937,7 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-aside[data-collapsed] 
   align-items: center;
   gap: 4px;
   /* Команд много: полоса прокручивается сама */
-  height: calc(100% - 49px);
+  height: 100%;
   overflow-y: auto;
   padding-bottom: 16px;
 }

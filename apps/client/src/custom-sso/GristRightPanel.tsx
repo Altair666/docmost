@@ -11,7 +11,7 @@ import {
 } from "@/features/editor/atoms/editor-atoms";
 import { PageEditMode } from "@/features/user/types/user.types";
 import { rightPanelOpenAtom } from "@/custom-sso/right-panel-atom";
-import PageDetailsBlock from "@/custom-sso/PageDetailsBlock";
+import { PageDetailsAside } from "@/features/page-details/components/page-details-aside";
 import CommentListWithTabs from "@/features/comment/components/comment-list-with-tabs";
 
 // Интеграции — пункты, вставляющие внешнее встраивание. Список тот же,
@@ -89,9 +89,7 @@ export default function GristRightPanel() {
 
   return (
     <Box data-grist-right-panel="" data-open={open || undefined}>
-      {/* Полоса сверху вровень с шапкой левой панели */}
-      <div data-right-panel-head="" />
-
+      {/* Вкладки начинаются от самого верха панели — как у Grist */}
       {/* Свёрнутая полоса: сверху команды в два столбца, вкладки внизу */}
       <div data-right-rail="">
         <div data-rail-commands="" data-disabled={!canInsert || undefined}>
@@ -154,6 +152,7 @@ export default function GristRightPanel() {
               <UnstyledButton
                 key={item.key}
                 data-panel-tab=""
+                data-text={item.label}
                 data-active={tab === item.key || undefined}
                 onClick={() => setTab(item.key as any)}
               >
@@ -173,6 +172,7 @@ export default function GristRightPanel() {
                   <UnstyledButton
                     key={item.key}
                     data-panel-subtab=""
+                    data-text={item.label}
                     data-active={group === item.key || undefined}
                     onClick={() => setGroup(item.key as any)}
                   >
@@ -208,7 +208,7 @@ export default function GristRightPanel() {
 
           {tab === "details" && (
             <div data-panel-section="">
-              <PageDetailsBlock />
+              <PageDetailsAside />
             </div>
           )}
 
