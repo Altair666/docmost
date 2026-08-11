@@ -856,6 +856,7 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-li
 
 html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-tab {
   flex: auto;
+  font-weight: 400;
   height: 100%;
   justify-content: center;
   align-items: flex-end;
@@ -878,32 +879,10 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-ta
   background: transparent;
 }
 
-/* Подпись по центру, как у подвкладок; счётчик — после неё */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-tabLabel {
-  order: 1;
-}
-
+/* Кружки со счётчиками остаются как были — слева от подписи и со своими
+   цветами. Только прижимаем их к низу, чтобы стояли вровень с подписью. */
 html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-tabSection {
-  order: 2;
-  margin: 0 0 0 4px;
   align-self: flex-end;
-}
-
-/* Счётчик — просто число после подписи, без цветного кружка */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-tab .mantine-Badge-root {
-  order: 2;
-  background: transparent;
-  color: var(--grist-secondary);
-  font-size: 12px;
-  font-weight: 400;
-  padding: 0;
-  min-width: 0;
-  height: auto;
-  margin-left: 4px;
-}
-
-html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-tab[data-active] .mantine-Badge-root {
-  color: var(--grist-body);
 }
 
 /* Значок отправки: у него своя ширина в rem, и общее правило значков
@@ -1015,6 +994,12 @@ html[data-mantine-color-scheme="light"] [data-panel-subtab]::after {
 
 html[data-mantine-color-scheme="light"] [data-panel-section] {
   padding: 8px 16px;
+}
+
+/* До краёв панели тянется только полоса вкладок: отступ раздела нужен
+   самому содержимому — без него поле ввода вылезало за край. */
+html[data-mantine-color-scheme="light"] [data-panel-section] .mantine-Tabs-list {
+  margin: -8px -16px 0;
 }
 
 /* Переход ширины у содержимого убран: оно ехало само по себе, слева
