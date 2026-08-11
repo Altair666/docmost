@@ -19,6 +19,7 @@ import {
 } from "@tabler/icons-react";
 import React, { useEffect, useRef, useState } from "react";
 import { useAsideTriggerProps } from "@/hooks/use-toggle-aside.tsx";
+import { useUiFlags } from "@/custom-sso/ui-flags";
 import { useAtom, useAtomValue } from "jotai";
 import { historyAtoms } from "@/features/page-history/atoms/history-atoms.ts";
 import { useDisclosure, useHotkeys } from "@mantine/hooks";
@@ -64,6 +65,7 @@ interface PageHeaderMenuProps {
 }
 export default function PageHeaderMenu({ readOnly }: PageHeaderMenuProps) {
   const { t } = useTranslation();
+  const { customUi } = useUiFlags();
   const commentsTriggerProps = useAsideTriggerProps("comments");
   const tocTriggerProps = useAsideTriggerProps("toc");
   const { pageSlug } = useParams();
@@ -105,16 +107,19 @@ export default function PageHeaderMenu({ readOnly }: PageHeaderMenuProps) {
 
       <PageShareModal readOnly={readOnly} />
 
-      <Tooltip label={t("Comments")} openDelay={250} withArrow>
-        <ActionIcon
-          variant="subtle"
-          color="dark"
-          aria-label={t("Comments")}
-          {...commentsTriggerProps}
-        >
-          <IconMessage size={20} stroke={2} />
-        </ActionIcon>
-      </Tooltip>
+      {/* Комментарии переехали во вкладку правой панели */}
+      {!customUi && (
+        <Tooltip label={t("Comments")} openDelay={250} withArrow>
+          <ActionIcon
+            variant="subtle"
+            color="dark"
+            aria-label={t("Comments")}
+            {...commentsTriggerProps}
+          >
+            <IconMessage size={20} stroke={2} />
+          </ActionIcon>
+        </Tooltip>
+      )}
 
       {!page?.isBase && (
         <Tooltip label={t("Table of contents")} openDelay={250} withArrow>

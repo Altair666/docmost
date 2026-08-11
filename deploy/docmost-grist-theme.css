@@ -841,6 +841,70 @@ html[data-mantine-color-scheme="light"] [data-right-panel-toggle]:hover {
   background: var(--grist-hover-row);
 }
 
+/* Вкладки панели — ярлычками, выбранная подчёркнута зелёным */
+html[data-mantine-color-scheme="light"] [data-panel-tabs] {
+  display: flex;
+  border-bottom: 1px solid var(--grist-decoration);
+  padding: 0 8px;
+  flex: none;
+}
+
+html[data-mantine-color-scheme="light"] [data-panel-tab] {
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--grist-secondary);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+html[data-mantine-color-scheme="light"] [data-panel-tab]:hover {
+  color: var(--grist-body);
+}
+
+html[data-mantine-color-scheme="light"] [data-panel-tab][data-active] {
+  color: var(--grist-body);
+  font-weight: 700;
+  border-bottom-color: var(--grist-primary);
+}
+
+/* Подвкладки — строкой под ярлычками */
+html[data-mantine-color-scheme="light"] [data-panel-subtabs] {
+  display: flex;
+  gap: 4px;
+  padding: 8px 16px 4px;
+  flex: none;
+}
+
+html[data-mantine-color-scheme="light"] [data-panel-subtab] {
+  padding: 2px 10px;
+  border-radius: 3px;
+  font-size: 12px;
+  color: var(--grist-secondary);
+}
+
+html[data-mantine-color-scheme="light"] [data-panel-subtab]:hover {
+  background: var(--grist-hover-row);
+}
+
+html[data-mantine-color-scheme="light"] [data-panel-subtab][data-active] {
+  background: var(--grist-bg-emphasis);
+  color: #ffffff;
+}
+
+html[data-mantine-color-scheme="light"] [data-panel-section] {
+  padding: 8px 16px;
+}
+
+/* Содержимое едет вместе с панелью, а не рывком после неё */
+html[data-mantine-color-scheme="light"] [data-right-panel-content] {
+  transition: width 400ms ease;
+}
+
+html[data-mantine-color-scheme="light"] .mantine-AppShell-aside[data-dragging] [data-right-panel-content] {
+  transition: none;
+}
+
 /* Полоса сверху вровень с шапкой левой панели */
 html[data-mantine-color-scheme="light"] [data-right-panel-head] {
   height: 49px;
@@ -877,24 +941,30 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-aside[data-collapsed] 
   padding-bottom: 16px;
 }
 
-/* Вкладки — в тот же столбец, что и команды */
+/* Вкладки — в самом низу полосы, под чертой */
 html[data-mantine-color-scheme="light"] [data-rail-tabs] {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  padding-bottom: 4px;
-  margin-bottom: 4px;
-  border-bottom: 1px solid var(--grist-decoration-secondary);
+  margin-top: auto;
+  padding-top: 4px;
+  border-top: 1px solid var(--grist-decoration-secondary);
   width: 40px;
 }
 
-/* Все значки команд — в два столбца по 20px */
+/* Все значки команд — в два столбца сверху вниз. Сетка заполняется по
+   строкам и даёт зигзаг, поэтому здесь разбивка на колонки. */
 html[data-mantine-color-scheme="light"] [data-rail-commands] {
-  display: grid;
-  grid-template-columns: repeat(2, 20px);
-  gap: 2px;
-  justify-content: center;
+  column-count: 2;
+  column-gap: 2px;
+  width: 42px;
+  margin: 0 auto;
+}
+
+html[data-mantine-color-scheme="light"] [data-rail-commands] [data-rail-item] {
+  break-inside: avoid;
+  margin-bottom: 2px;
 }
 
 html[data-mantine-color-scheme="light"] [data-rail-commands] [data-rail-item] {

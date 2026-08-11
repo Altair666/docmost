@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Box, Text, Tooltip, UnstyledButton } from "@mantine/core";
 import { IconInfoCircle, IconMessage } from "@tabler/icons-react";
 import { useAtom, useAtomValue } from "jotai";
@@ -11,39 +11,51 @@ import {
 } from "@/features/editor/atoms/editor-atoms";
 import { PageEditMode } from "@/features/user/types/user.types";
 import { rightPanelOpenAtom } from "@/custom-sso/right-panel-atom";
-import { asideStateAtom } from "@/components/layouts/global/hooks/atoms/sidebar-atom";
-import Aside from "@/components/layouts/global/aside";
-import useToggleAside from "@/hooks/use-toggle-aside";
 import PageDetailsBlock from "@/custom-sso/PageDetailsBlock";
+import CommentListWithTabs from "@/features/comment/components/comment-list-with-tabs";
 
-// Команды меню «/» списком. Корпоративные выброшены: requiresBases —
-// это Bases, без лицензии они не работают.
-function useCommands(): SlashMenuItemType[] {
+// Интеграции — пункты, вставляющие внешнее встраивание. Список тот же,
+// что в меню «/» зовёт setEmbed.
+const EMBEDS = new Set([
+  "Iframe embed",
+  "Airtable",
+  "Loom",
+  "Figma",
+  "Typeform",
+  "Miro",
+  "YouTube",
+  "Vimeo",
+  "Framer",
+  "Google Drive",
+  "Google Sheets",
+]);
+
+// Команды меню «/». Корпоративные выброшены: requiresBases — это Bases,
+// без лицензии они не работают.
+function useCommands() {
   return useMemo(() => {
-    const groups = getSuggestionItems({ query: "" });
-    return Object.values(groups)
+    const all = Object.values(getSuggestionItems({ query: "" }))
       .flat()
-      .filter((item) => !item.requiresBases);
+      .filter((item: SlashMenuItemType) => !item.requiresBases);
+    return {
+      basic: all.filter((i: SlashMenuItemType) => !EMBEDS.has(i.title)),
+      embeds: all.filter((i: SlashMenuItemType) => EMBEDS.has(i.title)),
+      all,
+    };
   }, []);
 }
 
 export default function GristRightPanel() {
   const { t } = useTranslation();
-  const [open] = useAtom(rightPanelOpenAtom);
-  // Вкладки Docmost — подробности, комментарии, оглавление — вызываются
-  // кнопками страницы. Пока вкладка вызвана, панель показывает её.
-  const [{ isAsideOpen }, setAsideState] = useAtom(asideStateAtom);
-  const [, setOpen] = useAtom(rightPanelOpenAtom);
-  const toggleAside = useToggleAside();
-
-  // Вкладки на полосе. «Оглавление» убрано — оно не нужно.
-  const tabs = [
-    { key: "comments", icon: IconMessage, label: t("Comments") },
-    { key: "details", icon: IconInfoCircle, label: t("Details") },
-  ];
+  const [open, setOpen] = useAtom(rightPanelOpenAtom);
   const editor = useAtomValue(pageEditorAtom);
   const editMode = useAtomValue(currentPageEditModeAtom);
   const commands = useCommands();
+
+  const [tab, setTab] = useState<"commands" | "details" | "comments">(
+    "commands",
+  );
+  const [group, setGroup] = useState<"basic" | "embeds">("basic");
 
   // Команды доступны только в режиме правки: в чтении вставлять некуда
   const canInsert = editMode === PageEditMode.Edit && Boolean(editor);
@@ -68,39 +80,22 @@ export default function GristRightPanel() {
     runAt(item, coords.pos);
   };
 
+  const openOn = (which: "details" | "comments") => {
+    setTab(which);
+    setOpen(true);
+  };
+
+  const shown = group === "basic" ? commands.basic : commands.embeds;
+
   return (
     <Box data-grist-right-panel="" data-open={open || undefined}>
-      {/* Полоса сверху той же высоты, что шапка левой панели: строки
-          начинаются под чертой шапки, а не поверх неё. */}
+      {/* Полоса сверху вровень с шапкой левой панели */}
       <div data-right-panel-head="" />
 
-      {/* Свёрнутая полоса: вкладки, а под ними все команды в два
-          столбца — щелчок вставляет ту же команду, что и в списке. */}
+      {/* Свёрнутая полоса: сверху команды в два столбца, вкладки внизу */}
       <div data-right-rail="">
-        <div data-rail-tabs="">
-          {tabs.map((item) => {
-            const Icon = item.icon;
-            return (
-              <Tooltip
-                key={item.key}
-                label={item.label}
-                position="left"
-                withArrow
-              >
-                <UnstyledButton
-                  data-rail-item=""
-                  aria-label={item.label}
-                  onClick={() => toggleAside(item.key as any)}
-                >
-                  <Icon size={18} stroke={2} />
-                </UnstyledButton>
-              </Tooltip>
-            );
-          })}
-        </div>
-
         <div data-rail-commands="" data-disabled={!canInsert || undefined}>
-          {commands.map((item) => {
+          {commands.all.map((item: SlashMenuItemType) => {
             const Icon = item.icon;
             return (
               <Tooltip
@@ -123,43 +118,105 @@ export default function GristRightPanel() {
             );
           })}
         </div>
+
+        {/* Вкладки — в самом низу полосы */}
+        <div data-rail-tabs="">
+          <Tooltip label={t("Comments")} position="left" withArrow>
+            <UnstyledButton
+              data-rail-item=""
+              aria-label={t("Comments")}
+              onClick={() => openOn("comments")}
+            >
+              <IconMessage size={18} stroke={2} />
+            </UnstyledButton>
+          </Tooltip>
+          <Tooltip label={t("Details")} position="left" withArrow>
+            <UnstyledButton
+              data-rail-item=""
+              aria-label={t("Details")}
+              onClick={() => openOn("details")}
+            >
+              <IconInfoCircle size={18} stroke={2} />
+            </UnstyledButton>
+          </Tooltip>
+        </div>
       </div>
 
-      {isAsideOpen && (
+      {open && (
         <div data-right-panel-body="">
-          <Aside />
-        </div>
-      )}
-
-      {open && !isAsideOpen && (
-        <div data-right-panel-body="">
-          <Text data-right-panel-title="">{t("Commands")}</Text>
-
-          <div data-right-panel-commands="" data-disabled={!canInsert || undefined}>
-            {commands.map((item) => {
-              const Icon = item.icon;
-              return (
-                <UnstyledButton
-                  key={item.title}
-                  data-command=""
-                  draggable={canInsert}
-                  disabled={!canInsert}
-                  onClick={() => runAt(item)}
-                  onDragEnd={(e) => onDragEnd(item, e)}
-                  title={t(item.description)}
-                >
-                  {Icon && <Icon size={16} stroke={2} />}
-                  <span>{t(item.title)}</span>
-                </UnstyledButton>
-              );
-            })}
+          {/* Ярлычки вкладок */}
+          <div data-panel-tabs="">
+            {[
+              { key: "commands", label: t("Commands") },
+              { key: "details", label: t("Details") },
+              { key: "comments", label: t("Comments") },
+            ].map((item) => (
+              <UnstyledButton
+                key={item.key}
+                data-panel-tab=""
+                data-active={tab === item.key || undefined}
+                onClick={() => setTab(item.key as any)}
+              >
+                {item.label}
+              </UnstyledButton>
+            ))}
           </div>
 
-          {/* Подробности — под командами, как просили */}
-          <div data-right-panel-details="">
-            <Text data-right-panel-title="">{t("Details")}</Text>
-            <PageDetailsBlock />
-          </div>
+          {tab === "commands" && (
+            <>
+              {/* Подвкладки: основные и интеграции */}
+              <div data-panel-subtabs="">
+                {[
+                  { key: "basic", label: t("Basic") },
+                  { key: "embeds", label: t("Integrations") },
+                ].map((item) => (
+                  <UnstyledButton
+                    key={item.key}
+                    data-panel-subtab=""
+                    data-active={group === item.key || undefined}
+                    onClick={() => setGroup(item.key as any)}
+                  >
+                    {item.label}
+                  </UnstyledButton>
+                ))}
+              </div>
+
+              <div
+                data-right-panel-commands=""
+                data-disabled={!canInsert || undefined}
+              >
+                {shown.map((item: SlashMenuItemType) => {
+                  const Icon = item.icon;
+                  return (
+                    <UnstyledButton
+                      key={item.title}
+                      data-command=""
+                      draggable={canInsert}
+                      disabled={!canInsert}
+                      onClick={() => runAt(item)}
+                      onDragEnd={(e) => onDragEnd(item, e)}
+                      title={t(item.description)}
+                    >
+                      {Icon && <Icon size={16} stroke={2} />}
+                      <span>{t(item.title)}</span>
+                    </UnstyledButton>
+                  );
+                })}
+              </div>
+            </>
+          )}
+
+          {tab === "details" && (
+            <div data-panel-section="">
+              <PageDetailsBlock />
+            </div>
+          )}
+
+          {tab === "comments" && (
+            <div data-panel-section="">
+              <CommentListWithTabs />
+            </div>
+          )}
         </div>
       )}
     </Box>

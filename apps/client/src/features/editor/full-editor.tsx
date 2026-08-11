@@ -134,6 +134,7 @@ type PageBylineProps = {
 
 export function PageByline({ creator, contributors, readOnly }: PageBylineProps) {
   const { t } = useTranslation();
+  const { customUi } = useUiFlags();
   const detailsTriggerProps = useAsideTriggerProps("details");
 
   const otherContributors = (contributors ?? []).filter(
@@ -209,18 +210,23 @@ export function PageByline({ creator, contributors, readOnly }: PageBylineProps)
           </Popover.Dropdown>
         </Popover>
       )}
-      <Tooltip label={t("Details")} withArrow openDelay={250}>
-        <ActionIcon
-          variant="subtle"
-          color="gray"
-          aria-label={t("Details")}
-          {...detailsTriggerProps}
-        >
-          <IconInfoCircle size={20} stroke={1.5} />
-        </ActionIcon>
-      </Tooltip>
+      {/* Подробности и значок проверки переехали в правую панель */}
+      {!customUi && (
+        <>
+          <Tooltip label={t("Details")} withArrow openDelay={250}>
+            <ActionIcon
+              variant="subtle"
+              color="gray"
+              aria-label={t("Details")}
+              {...detailsTriggerProps}
+            >
+              <IconInfoCircle size={20} stroke={1.5} />
+            </ActionIcon>
+          </Tooltip>
 
-      <PageVerificationBadge readOnly={readOnly} />
+          <PageVerificationBadge readOnly={readOnly} />
+        </>
+      )}
     </Group>
   );
 }
