@@ -913,7 +913,9 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-ActionI
 /* Верхние ярлычки: заливкой, как cssTopBarItem в Grist */
 html[data-mantine-color-scheme="light"] [data-panel-tabs] {
   display: flex;
-  height: 48px;
+  /* 49px, а не 48: столько у шапки приложения, и низ ярлычков должен
+     совпадать с её нижним краем — иначе видна ступенька. */
+  height: 49px;
   flex: none;
 }
 
