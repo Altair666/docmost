@@ -77,7 +77,6 @@ export default function GlobalAppShell({
   const [rightWidth, setRightWidth] = useAtom(rightPanelWidthAtom);
   // Правая панель повторяет левую: свёрнута — полоса, наведение —
   // временный выезд, черта у левого края — растягивание.
-  const [rightHovered, setRightHovered] = useState(false);
   const [isRightResizing, setIsRightResizing] = useState(false);
   const rightRef = useRef<HTMLElement>(null);
   // Вызванная вкладка раскрывает панель наравне со своим признаком
@@ -369,22 +368,10 @@ export default function GlobalAppShell({
           ref={customUi ? (rightRef as any) : undefined}
           data-dragging={isRightResizing || undefined}
           data-collapsed={
-            customUi && rightCollapsed && !rightHovered ? "" : undefined
+            customUi && rightCollapsed ? "" : undefined
           }
-          data-hover-open={
-            customUi && rightCollapsed && rightHovered ? "" : undefined
-          }
-          style={
-            customUi && rightCollapsed && rightHovered
-              ? ({ "--right-panel-open-width": rightWidth + "px" } as any)
-              : undefined
-          }
-          onMouseEnter={
-            customUi && rightCollapsed ? () => setRightHovered(true) : undefined
-          }
-          onMouseLeave={
-            customUi && rightCollapsed ? () => setRightHovered(false) : undefined
-          }
+          /* Выезда по наведению у правой панели нет: она открывается
+             только кнопкой или значком на полосе. */
           p={customUi ? 0 : "md"}
           withBorder={false}
           aria-label={
@@ -427,10 +414,7 @@ export default function GlobalAppShell({
               <div
                 data-right-panel-content=""
                 style={{
-                  width:
-                    rightCollapsed && !rightHovered
-                      ? COMPACT_RAIL_WIDTH
-                      : rightWidth,
+                  width: rightCollapsed ? COMPACT_RAIL_WIDTH : rightWidth,
                   // Вкладка занимает панель целиком
                   height: "100%",
                   flex: "1 1 auto",

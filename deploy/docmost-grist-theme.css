@@ -841,10 +841,50 @@ html[data-mantine-color-scheme="light"] [data-right-panel-toggle]:hover {
   background: var(--grist-hover-row);
 }
 
+/* Полоса сверху вровень с шапкой левой панели */
+html[data-mantine-color-scheme="light"] [data-right-panel-head] {
+  height: 49px;
+  flex: none;
+}
+
+html[data-mantine-color-scheme="light"] [data-grist-right-panel] {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
 html[data-mantine-color-scheme="light"] [data-right-panel-body] {
-  height: calc(100vh - 48px);
+  /* Занимает панель целиком: кнопка ушла в шапку, вычитать нечего */
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
   padding-bottom: 24px;
+}
+
+/* Значки свёрнутой полосы — по центру, как слева */
+html[data-mantine-color-scheme="light"] [data-right-rail] {
+  display: none;
+}
+
+html[data-mantine-color-scheme="light"] .mantine-AppShell-aside[data-collapsed] [data-right-rail] {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+html[data-mantine-color-scheme="light"] [data-rail-item] {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 3px;
+  color: var(--grist-secondary);
+}
+
+html[data-mantine-color-scheme="light"] [data-rail-item]:hover {
+  background: var(--grist-hover-row);
+  color: var(--grist-body);
 }
 
 html[data-mantine-color-scheme="light"] [data-right-panel-title] {

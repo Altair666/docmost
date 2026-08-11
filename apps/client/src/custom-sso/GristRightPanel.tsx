@@ -1,5 +1,11 @@
 import { useMemo } from "react";
-import { Box, Text, UnstyledButton } from "@mantine/core";
+import { Box, Text, Tooltip, UnstyledButton } from "@mantine/core";
+import {
+  IconInfoCircle,
+  IconList,
+  IconMessage,
+  IconSlash,
+} from "@tabler/icons-react";
 import { useAtom, useAtomValue } from "jotai";
 import { useTranslation } from "react-i18next";
 import { getSuggestionItems } from "@/features/editor/components/slash-menu/menu-items";
@@ -12,6 +18,7 @@ import { PageEditMode } from "@/features/user/types/user.types";
 import { rightPanelOpenAtom } from "@/custom-sso/right-panel-atom";
 import { asideStateAtom } from "@/components/layouts/global/hooks/atoms/sidebar-atom";
 import Aside from "@/components/layouts/global/aside";
+import useToggleAside from "@/hooks/use-toggle-aside";
 import PageDetailsBlock from "@/custom-sso/PageDetailsBlock";
 
 // Команды меню «/» списком. Корпоративные выброшены: requiresBases —
@@ -30,7 +37,26 @@ export default function GristRightPanel() {
   const [open] = useAtom(rightPanelOpenAtom);
   // Вкладки Docmost — подробности, комментарии, оглавление — вызываются
   // кнопками страницы. Пока вкладка вызвана, панель показывает её.
-  const [{ isAsideOpen }] = useAtom(asideStateAtom);
+  const [{ isAsideOpen }, setAsideState] = useAtom(asideStateAtom);
+  const [, setOpen] = useAtom(rightPanelOpenAtom);
+  const toggleAside = useToggleAside();
+
+  // Значки свёрнутой полосы: щелчок раскрывает панель на нужном.
+  const rail = [
+    { key: "commands", icon: IconSlash, label: t("Commands") },
+    { key: "comments", icon: IconMessage, label: t("Comments") },
+    { key: "toc", icon: IconList, label: t("Table of contents") },
+    { key: "details", icon: IconInfoCircle, label: t("Details") },
+  ];
+
+  const openRail = (key: string) => {
+    if (key === "commands") {
+      setAsideState((st) => ({ ...st, isAsideOpen: false }));
+      setOpen(true);
+      return;
+    }
+    toggleAside(key as any);
+  };
   const editor = useAtomValue(pageEditorAtom);
   const editMode = useAtomValue(currentPageEditModeAtom);
   const commands = useCommands();
@@ -60,6 +86,28 @@ export default function GristRightPanel() {
 
   return (
     <Box data-grist-right-panel="" data-open={open || undefined}>
+      {/* Полоса сверху той же высоты, что шапка левой панели: строки
+          начинаются под чертой шапки, а не поверх неё. */}
+      <div data-right-panel-head="" />
+
+      {/* Свёрнутая полоса: одни значки, как слева */}
+      <div data-right-rail="">
+        {rail.map((item) => {
+          const Icon = item.icon;
+          return (
+            <Tooltip key={item.key} label={item.label} position="left" withArrow>
+              <UnstyledButton
+                data-rail-item=""
+                aria-label={item.label}
+                onClick={() => openRail(item.key)}
+              >
+                <Icon size={18} stroke={2} />
+              </UnstyledButton>
+            </Tooltip>
+          );
+        })}
+      </div>
+
       {isAsideOpen && (
         <div data-right-panel-body="">
           <Aside />
