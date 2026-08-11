@@ -121,7 +121,8 @@ export default function PageHeaderMenu({ readOnly }: PageHeaderMenuProps) {
         </Tooltip>
       )}
 
-      {!page?.isBase && (
+      {/* Оглавления в правой панели нет — кнопке нечего открывать */}
+      {!customUi && !page?.isBase && (
         <Tooltip label={t("Table of contents")} openDelay={250} withArrow>
           <ActionIcon
             variant="subtle"

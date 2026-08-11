@@ -989,14 +989,9 @@ html[data-mantine-color-scheme="light"] [data-panel-section] {
   padding: 8px 16px;
 }
 
-/* Содержимое едет вместе с панелью, а не рывком после неё */
-html[data-mantine-color-scheme="light"] [data-right-panel-content] {
-  transition: width 400ms ease;
-}
-
-html[data-mantine-color-scheme="light"] .mantine-AppShell-aside[data-dragging] [data-right-panel-content] {
-  transition: none;
-}
+/* Переход ширины у содержимого убран: оно ехало само по себе, слева
+   направо, а панель раскрывается справа налево — движения расходились.
+   Едет сама панель, содержимое меняет ширину разом. */
 
 html[data-mantine-color-scheme="light"] [data-grist-right-panel] {
   display: flex;
