@@ -25,6 +25,7 @@ import rowClasses from "@/components/ui/clickable-table-row.module.css";
 import { CustomAvatar } from "@/components/ui/custom-avatar";
 import { AvatarIconType } from "@/features/attachments/types/attachment.types";
 import { useUiFlags } from "@/custom-sso/ui-flags";
+import CreatorCell from "@/custom-sso/CreatorCell";
 import { IconGristPin } from "@/custom-sso/GristIcons";
 import GristSortSelect, { GristSort } from "@/custom-sso/GristSortSelect";
 import { useState } from "react";
@@ -102,11 +103,14 @@ export default function FavoritesPage() {
               {customUi && (
                 <Table.Thead>
                   <Table.Tr>
-                    <Table.Th style={{ width: "50%" }}>{t("Name")}</Table.Th>
+                    <Table.Th style={{ width: "40%" }}>{t("Name")}</Table.Th>
                     <Table.Th style={{ width: "20%", maxWidth: 200 }}>
                       {t("Space")}
                     </Table.Th>
-                    <Table.Th style={{ width: "30%", maxWidth: 250 }}>
+                    <Table.Th style={{ width: "20%", maxWidth: 240 }}>
+                      {t("Author")}
+                    </Table.Th>
+                    <Table.Th style={{ width: "20%", maxWidth: 250 }}>
                       {t("Added")}
                     </Table.Th>
                     <Table.Th
@@ -167,6 +171,9 @@ export default function FavoritesPage() {
                         )}
                       </Table.Td>
                       <Table.Td>
+                        <CreatorCell creator={fav.page?.creator} />
+                      </Table.Td>
+                      <Table.Td>
                         <Text
                           c="dimmed"
                           style={{ whiteSpace: "nowrap" }}
@@ -204,6 +211,9 @@ export default function FavoritesPage() {
                         </UnstyledButton>
                       </Table.Td>
                       <Table.Td />
+                      <Table.Td>
+                        <CreatorCell creator={fav.space?.creator} />
+                      </Table.Td>
                       <Table.Td>
                         <Text
                           c="dimmed"

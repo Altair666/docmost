@@ -18,8 +18,7 @@ import { getSpaceUrl } from "@/lib/config.ts";
 import { useTranslation } from "react-i18next";
 import { getInitialsColor } from "@/lib/get-initials-color.ts";
 import rowClasses from "@/components/ui/clickable-table-row.module.css";
-import { CustomAvatar } from "@/components/ui/custom-avatar";
-import { AvatarIconType } from "@/features/attachments/types/attachment.types";
+import CreatorCell from "@/custom-sso/CreatorCell";
 import { useUiFlags } from "@/custom-sso/ui-flags";
 import type { GristSort } from "@/custom-sso/GristSortSelect";
 
@@ -114,30 +113,7 @@ export default function RecentChanges({ spaceId, sort }: Props) {
 
                 {withCreator && (
                   <Table.Td>
-                    {(page as any).creator ? (
-                      <Group wrap="nowrap" gap="xs">
-                        <CustomAvatar
-                          avatarUrl={(page as any).creator.avatarUrl}
-                          name={(page as any).creator.name}
-                          type={AvatarIconType.AVATAR}
-                          size={24}
-                        />
-                        <div style={{ minWidth: 0 }}>
-                          <Text size="sm" lineClamp={1}>
-                            {(page as any).creator.name}
-                          </Text>
-                          {(page as any).creator.email && (
-                            <Text size="xs" c="dimmed" lineClamp={1}>
-                              {(page as any).creator.email}
-                            </Text>
-                          )}
-                        </div>
-                      </Group>
-                    ) : (
-                      <Text size="sm" c="dimmed">
-                        —
-                      </Text>
-                    )}
+                    <CreatorCell creator={(page as any).creator} />
                   </Table.Td>
                 )}
 

@@ -19,6 +19,7 @@ import {
 } from "@/features/space/queries/space-watcher-query";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import CreatorCell from "@/custom-sso/CreatorCell";
 import React, { useState } from "react";
 import { useDisclosure } from "@mantine/hooks";
 import { formatMemberCount } from "@/lib";
@@ -123,11 +124,14 @@ export default function AllSpacesList({
             <Table.Tr>
               {/* Доли колонок — из списка документов Grist: имя 50%,
                   второе поле 20% с потолком 200, дата 30% с потолком 250. */}
-              <Table.Th style={{ width: "50%" }}>{t("Space")}</Table.Th>
+              <Table.Th style={{ width: "40%" }}>{t("Space")}</Table.Th>
               <Table.Th style={{ width: "20%", maxWidth: 200 }}>
                 {t("Members")}
               </Table.Th>
-              <Table.Th style={{ width: "30%", maxWidth: 250 }}>
+              <Table.Th style={{ width: "20%", maxWidth: 240 }}>
+                {t("Author")}
+              </Table.Th>
+              <Table.Th style={{ width: "20%", maxWidth: 250 }}>
                 {t("Last edited")}
               </Table.Th>
               {/* Ширина по содержимому: полоса слева обрывается ровно за
@@ -195,6 +199,10 @@ export default function AllSpacesList({
                     <Text size="sm" style={{ whiteSpace: "nowrap" }}>
                       {formatMemberCount(space.memberCount, t)}
                     </Text>
+                  </Table.Td>
+
+                  <Table.Td>
+                    <CreatorCell creator={(space as any).creator} />
                   </Table.Td>
 
                   {/* Когда в пространстве последний раз меняли страницу —

@@ -1,5 +1,13 @@
 export type FavoriteType = "page" | "space" | "template";
 
+// Кто завёл страницу или пространство — столбцу «Кем создано»
+export type IFavoriteCreator = {
+  id: string;
+  name: string;
+  email: string;
+  avatarUrl: string | null;
+};
+
 export type IFavorite = {
   id: string;
   userId: string;
@@ -16,12 +24,14 @@ export type IFavorite = {
     icon: string | null;
     isBase: boolean;
     spaceId: string;
+    creator?: IFavoriteCreator;
   };
   space?: {
     id: string;
     name: string;
     slug: string;
     logo: string | null;
+    creator?: IFavoriteCreator;
   };
   template?: {
     id: string;

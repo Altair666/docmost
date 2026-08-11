@@ -360,7 +360,8 @@ export class PageRepo {
     let query = this.db
       .selectFrom('pages')
       .select(this.baseFields)
-      .select((eb) => this.withSpace(eb))
+      // Автор — столбцу «Кем создано»
+      .select((eb) => [this.withSpace(eb), this.withCreator(eb)])
       .where('creatorId', '=', creatorId)
       .where('deletedAt', 'is', null);
 

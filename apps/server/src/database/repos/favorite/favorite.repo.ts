@@ -239,6 +239,20 @@ export class FavoriteRepo {
           'pages.isBase',
           'pages.spaceId',
         ])
+        // Автор — столбцу «Кем создано» в списке закреплённого
+        .select((eb2) =>
+          jsonObjectFrom(
+            eb2
+              .selectFrom('users')
+              .select([
+                'users.id',
+                'users.name',
+                'users.email',
+                'users.avatarUrl',
+              ])
+              .whereRef('users.id', '=', 'pages.creatorId'),
+          ).as('creator'),
+        )
         .whereRef('pages.id', '=', 'favorites.pageId'),
     ).as('page');
   }
@@ -248,6 +262,19 @@ export class FavoriteRepo {
       eb
         .selectFrom('spaces')
         .select(['spaces.id', 'spaces.name', 'spaces.slug', 'spaces.logo'])
+        .select((eb2) =>
+          jsonObjectFrom(
+            eb2
+              .selectFrom('users')
+              .select([
+                'users.id',
+                'users.name',
+                'users.email',
+                'users.avatarUrl',
+              ])
+              .whereRef('users.id', '=', 'spaces.creatorId'),
+          ).as('creator'),
+        )
         .whereRef('spaces.id', '=', 'favorites.spaceId'),
     ).as('space');
   }
@@ -267,6 +294,19 @@ export class FavoriteRepo {
       eb
         .selectFrom('spaces')
         .select(['spaces.id', 'spaces.name', 'spaces.slug', 'spaces.logo'])
+        .select((eb2) =>
+          jsonObjectFrom(
+            eb2
+              .selectFrom('users')
+              .select([
+                'users.id',
+                'users.name',
+                'users.email',
+                'users.avatarUrl',
+              ])
+              .whereRef('users.id', '=', 'spaces.creatorId'),
+          ).as('creator'),
+        )
         .where(({ or, ref }) =>
           or([
             sql<boolean>`${ref('spaces.id')} = ${ref('favorites.spaceId')}`,

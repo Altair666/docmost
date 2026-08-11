@@ -8,6 +8,7 @@ import {
   UpdatableSpace,
 } from '@docmost/db/types/entity.types';
 import { ExpressionBuilder, sql } from 'kysely';
+import { jsonObjectFrom } from 'kysely/helpers/postgres';
 import { PaginationOptions } from '../../pagination/pagination-options';
 import { executeWithCursorPagination } from '@docmost/db/pagination/cursor-pagination';
 import { DB } from '@docmost/db/types/db';
@@ -234,6 +235,16 @@ export class SpaceRepo {
       .whereRef('pages.spaceId', '=', 'spaces.id')
       .where('pages.deletedAt', 'is', null)
       .as('lastEditedAt');
+  }
+
+  // Кто завёл пространство — столбцу «Кем создано» в списке пространств
+  withCreator(eb: ExpressionBuilder<DB, 'spaces'>) {
+    return jsonObjectFrom(
+      eb
+        .selectFrom('users')
+        .select(['users.id', 'users.name', 'users.email', 'users.avatarUrl'])
+        .whereRef('users.id', '=', 'spaces.creatorId'),
+    ).as('creator');
   }
 
   async deleteSpace(spaceId: string, workspaceId: string): Promise<void> {

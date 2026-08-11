@@ -18,6 +18,8 @@ import { getSpaceUrl } from "@/lib/config";
 import { useTranslation } from "react-i18next";
 import { getInitialsColor } from "@/lib/get-initials-color";
 import rowClasses from "@/components/ui/clickable-table-row.module.css";
+import CreatorCell from "@/custom-sso/CreatorCell";
+import { useUiFlags } from "@/custom-sso/ui-flags";
 
 type Props = {
   spaceId?: string;
@@ -25,6 +27,7 @@ type Props = {
 
 export default function CreatedByMe({ spaceId }: Props) {
   const { t } = useTranslation();
+  const { customUi } = useUiFlags();
   const {
     data,
     isLoading,
@@ -80,6 +83,11 @@ export default function CreatedByMe({ spaceId }: Props) {
                     >
                       {page?.space.name}
                     </Badge>
+                  </Table.Td>
+                )}
+                {customUi && (
+                  <Table.Td>
+                    <CreatorCell creator={(page as any).creator} />
                   </Table.Td>
                 )}
                 <Table.Td>

@@ -21,6 +21,7 @@ import rowClasses from "@/components/ui/clickable-table-row.module.css";
 import { CustomAvatar } from "@/components/ui/custom-avatar";
 import { AvatarIconType } from "@/features/attachments/types/attachment.types";
 import { useUiFlags } from "@/custom-sso/ui-flags";
+import CreatorCell from "@/custom-sso/CreatorCell";
 
 interface Props {
   spaceId?: string;
@@ -94,6 +95,11 @@ export default function FavoritesPages({ spaceId }: Props) {
                       )}
                     </Table.Td>
                   )}
+                  {customUi && (
+                    <Table.Td>
+                      <CreatorCell creator={fav.page?.creator} />
+                    </Table.Td>
+                  )}
                   <Table.Td>
                     <Text
                       c="dimmed"
@@ -130,6 +136,11 @@ export default function FavoritesPages({ spaceId }: Props) {
                     </UnstyledButton>
                   </Table.Td>
                   {!spaceId && <Table.Td />}
+                  {customUi && (
+                    <Table.Td>
+                      <CreatorCell creator={fav.space?.creator} />
+                    </Table.Td>
+                  )}
                   <Table.Td>
                     <Text
                       c="dimmed"

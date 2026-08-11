@@ -343,6 +343,7 @@ export class SpaceMemberRepo {
       .select((eb) => [
         this.spaceRepo.withMemberCount(eb),
         this.spaceRepo.withLastEditedAt(eb),
+        this.spaceRepo.withCreator(eb),
       ])
       .where('id', 'in', this.getUserSpaceIdsQuery(userId));
 
