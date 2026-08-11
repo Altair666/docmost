@@ -21,6 +21,8 @@ import { usePageQuery } from "@/features/page/queries/page-query.ts";
 import { extractPageSlugId } from "@/lib";
 import { useMediaQuery } from "@mantine/hooks";
 import { useTranslation } from "react-i18next";
+import { useGetSpaceBySlugQuery } from "@/features/space/queries/space-query";
+import { getSpaceUrl } from "@/lib/config";
 
 function getTitle(node: SpaceTreeNode, t: TFunction) {
   const name = getPageTitle(node.name, node.isBase, t);
@@ -41,6 +43,23 @@ export default function Breadcrumb() {
     pageId: extractPageSlugId(pageSlug),
   });
   const isMobile = useMediaQuery("(max-width: 48em)");
+  const { data: space } = useGetSpaceBySlugQuery(spaceSlug);
+
+  // Первое звено — пространство: иначе по крошкам не видно, где лежит
+  // страница. Ведёт в само пространство.
+  const spaceAnchor = space && (
+    <Tooltip label={space.name} key="space">
+      <Anchor
+        component={Link}
+        to={getSpaceUrl(spaceSlug)}
+        underline="never"
+        fz="sm"
+        className={classes.truncatedText}
+      >
+        {space.name}
+      </Anchor>
+    </Tooltip>
+  );
 
   useEffect(() => {
     if (treeData?.length > 0 && currentPage) {
@@ -105,12 +124,15 @@ export default function Breadcrumb() {
   const getBreadcrumbItems = () => {
     if (!breadcrumbNodes) return [];
 
+    const withSpace = (items: React.ReactNode[]) =>
+      spaceAnchor ? [spaceAnchor, ...items] : items;
+
     if (breadcrumbNodes.length > 3) {
       const firstNode = breadcrumbNodes[0];
       //const secondLastNode = breadcrumbNodes[breadcrumbNodes.length - 2];
       const lastNode = breadcrumbNodes[breadcrumbNodes.length - 1];
 
-      return [
+      return withSpace([
         renderAnchor(firstNode),
         <Popover
           width={250}
@@ -134,11 +156,13 @@ export default function Breadcrumb() {
         </Popover>,
         //renderAnchor(secondLastNode),
         renderAnchor(lastNode, true),
-      ];
+      ]);
     }
 
-    return breadcrumbNodes.map((node, i) =>
-      renderAnchor(node, i === breadcrumbNodes.length - 1),
+    return withSpace(
+      breadcrumbNodes.map((node, i) =>
+        renderAnchor(node, i === breadcrumbNodes.length - 1),
+      ),
     );
   };
 

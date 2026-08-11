@@ -21,6 +21,7 @@ import {
 } from "@/components/layouts/global/hooks/atoms/sidebar-atom.ts";
 import { useToggleSidebar } from "@/components/layouts/global/hooks/hooks/use-toggle-sidebar.ts";
 import SidebarToggle from "@/components/ui/sidebar-toggle-button.tsx";
+import Breadcrumb from "@/features/page/components/breadcrumbs/breadcrumb.tsx";
 import { useTranslation } from "react-i18next";
 import useTrial from "@/ee/hooks/use-trial.tsx";
 import { isCloud } from "@/lib/config.ts";
@@ -268,6 +269,11 @@ function CustomHeader() {
             >
               <IconGristPanel size={16} mirrored={!desktopOpened} />
             </ActionIcon>
+
+          {/* Крошки стоят здесь, сразу за стрелкой сворачивания. В шапке
+              страницы их больше нет — иначе они дублировались бы.
+              Вне страницы узел пустой и места не занимает. */}
+          <Breadcrumb />
         </Group>
 
         <Group gap="xs" wrap="nowrap">
