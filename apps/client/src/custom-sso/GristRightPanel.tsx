@@ -41,9 +41,15 @@ function useCommands() {
     const all = Object.values(getSuggestionItems({ query: "" }))
       .flat()
       .filter((item: SlashMenuItemType) => !item.requiresBases);
+    const embeds = all.filter((i: SlashMenuItemType) => EMBEDS.has(i.title));
+    // Доска уходит в конец: она тяжелее прочих и открывается отдельным
+    // полотном, а не встраиванием в строку.
+    const board = embeds.filter((i) => i.title === "Excalidraw (Whiteboard)");
+    const rest = embeds.filter((i) => i.title !== "Excalidraw (Whiteboard)");
+
     return {
       basic: all.filter((i: SlashMenuItemType) => !EMBEDS.has(i.title)),
-      embeds: all.filter((i: SlashMenuItemType) => EMBEDS.has(i.title)),
+      embeds: [...rest, ...board],
       all,
     };
   }, []);
@@ -96,30 +102,37 @@ export default function GristRightPanel() {
       {/* Вкладки начинаются от самого верха панели — как у Grist */}
       {/* Свёрнутая полоса: сверху команды в два столбца, вкладки внизу */}
       <div data-right-rail="">
-        <div data-rail-commands="" data-disabled={!canInsert || undefined}>
-          {commands.all.map((item: SlashMenuItemType) => {
-            const Icon = item.icon;
-            return (
-              <Tooltip
-                key={item.title}
-                label={t(item.title)}
-                position="left"
-                withArrow
-              >
-                <UnstyledButton
-                  data-rail-item=""
-                  aria-label={t(item.title)}
-                  draggable={canInsert}
-                  disabled={!canInsert}
-                  onClick={() => runAt(item)}
-                  onDragEnd={(e) => onDragEnd(item, e)}
+        {/* Те же два раздела, что и в списке, разделённые чертой */}
+        {[commands.basic, commands.embeds].map((group, i) => (
+          <div
+            key={i}
+            data-rail-commands=""
+            data-disabled={!canInsert || undefined}
+          >
+            {group.map((item: SlashMenuItemType) => {
+              const Icon = item.icon;
+              return (
+                <Tooltip
+                  key={item.title}
+                  label={t(item.title)}
+                  position="left"
+                  withArrow
                 >
-                  {Icon && <Icon size={16} stroke={2} />}
-                </UnstyledButton>
-              </Tooltip>
-            );
-          })}
-        </div>
+                  <UnstyledButton
+                    data-rail-item=""
+                    aria-label={t(item.title)}
+                    draggable={canInsert}
+                    disabled={!canInsert}
+                    onClick={() => runAt(item)}
+                    onDragEnd={(e) => onDragEnd(item, e)}
+                  >
+                    {Icon && <Icon size={16} stroke={2} />}
+                  </UnstyledButton>
+                </Tooltip>
+              );
+            })}
+          </div>
+        ))}
 
         {/* Вкладки — в самом низу полосы */}
         <div data-rail-tabs="">

@@ -983,10 +983,19 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-aside[data-collapsed] 
   flex-direction: column;
   align-items: center;
   gap: 4px;
+  /* Значки начинаются под шапкой, как раньше */
+  padding-top: 49px;
   /* Команд много: полоса прокручивается сама */
   height: 100%;
   overflow-y: auto;
   padding-bottom: 16px;
+}
+
+/* Раздел от раздела отделяется чертой */
+html[data-mantine-color-scheme="light"] [data-rail-commands] + [data-rail-commands] {
+  padding-top: 6px;
+  margin-top: 4px;
+  border-top: 1px solid var(--grist-decoration-secondary);
 }
 
 /* Вкладки — в самом низу полосы, под чертой */
