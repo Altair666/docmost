@@ -766,6 +766,66 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-aside {
   overflow: hidden;
 }
 
+/* Выезд по наведению на свёрнутую полосу: панель едет поверх страницы,
+   страница при этом не двигается — как слева. */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-aside[data-hover-open] {
+  width: var(--right-panel-open-width, 300px) !important;
+  z-index: 200;
+}
+
+/* Пока тянут, перехода нет: иначе панель ползёт с задержкой */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-aside[data-dragging] {
+  transition: none !important;
+}
+
+/* Черта растягивания — у левого края, всё остальное как слева */
+html[data-mantine-color-scheme="light"] [data-right-resize-handle] {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -3px;
+  width: 7px;
+  z-index: 10;
+  background: transparent;
+  cursor: ew-resize;
+}
+
+html[data-mantine-color-scheme="light"] [data-right-resize-handle]::before,
+html[data-mantine-color-scheme="light"] [data-right-resize-handle]::after {
+  content: "";
+  position: absolute;
+  height: 100%;
+  width: 1px;
+  left: 3px;
+  top: 0;
+}
+
+html[data-mantine-color-scheme="light"] [data-right-resize-handle]::before {
+  background: var(--grist-decoration-secondary);
+}
+
+html[data-mantine-color-scheme="light"] [data-right-resize-handle]::after {
+  background: var(--grist-primary);
+  opacity: 0;
+  transition: opacity linear 0.2s;
+}
+
+/* Загорается с задержкой 0.2s, гаснет без задержки — тайминги Grist */
+html[data-mantine-color-scheme="light"] [data-right-resize-handle]:hover::after {
+  opacity: 1;
+  transition: opacity linear 0.2s 0.2s;
+}
+
+html[data-mantine-color-scheme="light"] .mantine-AppShell-aside[data-dragging] [data-right-resize-handle]::after {
+  opacity: 1;
+  transition: none;
+}
+
+/* В свёрнутой полосе остаётся только значок разворота */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-aside[data-collapsed] [data-right-panel-body] {
+  display: none;
+}
+
 /* Кнопка сворачивания — на полосе сверху, ровно как значки слева */
 html[data-mantine-color-scheme="light"] [data-right-panel-toggle] {
   display: grid;

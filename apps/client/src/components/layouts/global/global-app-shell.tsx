@@ -26,7 +26,12 @@ import AiChatSidebar from "@/ee/ai-chat/components/ai-chat-sidebar.tsx";
 import { AppHeader } from "@/components/layouts/global/app-header.tsx";
 import Aside from "@/components/layouts/global/aside.tsx";
 import GristRightPanel from "@/custom-sso/GristRightPanel";
-import { rightPanelOpenAtom, rightPanelWidthAtom } from "@/custom-sso/right-panel-atom";
+import {
+  rightPanelOpenAtom,
+  rightPanelWidthAtom,
+  RIGHT_PANEL_MIN,
+  RIGHT_PANEL_MAX,
+} from "@/custom-sso/right-panel-atom";
 import classes from "./app-shell.module.css";
 import { useTrialEndAction } from "@/ee/hooks/use-trial-end-action.tsx";
 import { useToggleSidebar } from "@/components/layouts/global/hooks/hooks/use-toggle-sidebar.ts";
@@ -69,7 +74,13 @@ export default function GlobalAppShell({
   const [desktopOpened] = useAtom(desktopSidebarAtom);
   const [{ isAsideOpen, tab: asideTab }] = useAtom(asideStateAtom);
   const [rightOpen] = useAtom(rightPanelOpenAtom);
-  const [rightWidth] = useAtom(rightPanelWidthAtom);
+  const [rightWidth, setRightWidth] = useAtom(rightPanelWidthAtom);
+  // Правая панель повторяет левую: свёрнута — полоса, наведение —
+  // временный выезд, черта у левого края — растягивание.
+  const [rightHovered, setRightHovered] = useState(false);
+  const [isRightResizing, setIsRightResizing] = useState(false);
+  const rightRef = useRef<HTMLElement>(null);
+  const rightCollapsed = !rightOpen;
   const [, setSidebarWidth] = useAtom(sidebarWidthAtom);
   const [, setSidebarWidthTouched] = useAtom(sidebarWidthTouchedAtom);
   const sidebarWidth = useSidebarWidth();
@@ -127,6 +138,37 @@ export default function GlobalAppShell({
     },
     [isResizing],
   );
+
+  // Растягивание правой панели: ширина считается от правого края окна,
+  // потому что черта у неё слева, а не справа.
+  const startRightResizing = React.useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsRightResizing(true);
+  }, []);
+
+  const stopRightResizing = React.useCallback(() => {
+    setIsRightResizing(false);
+  }, []);
+
+  const resizeRight = React.useCallback(
+    (e: MouseEvent) => {
+      if (!isRightResizing) return;
+      const w = window.innerWidth - e.clientX;
+      if (w < RIGHT_PANEL_MIN) return setRightWidth(RIGHT_PANEL_MIN);
+      if (w > RIGHT_PANEL_MAX) return setRightWidth(RIGHT_PANEL_MAX);
+      setRightWidth(w);
+    },
+    [isRightResizing],
+  );
+
+  useEffect(() => {
+    window.addEventListener("mousemove", resizeRight);
+    window.addEventListener("mouseup", stopRightResizing);
+    return () => {
+      window.removeEventListener("mousemove", resizeRight);
+      window.removeEventListener("mouseup", stopRightResizing);
+    };
+  }, [resizeRight, stopRightResizing]);
 
   useEffect(() => {
     //https://codesandbox.io/p/sandbox/kz9de
@@ -213,7 +255,11 @@ export default function GlobalAppShell({
         isPageRoute && {
           // В нашем виде панель не исчезает, а сжимается до полосы —
           // так же, как левая.
-          width: customUi ? (rightOpen ? rightWidth : 48) : 350,
+          width: customUi
+            ? rightOpen
+              ? rightWidth
+              : COMPACT_RAIL_WIDTH
+            : 350,
           breakpoint: "sm",
           collapsed: customUi
             ? { mobile: !rightOpen, desktop: false }
@@ -319,7 +365,26 @@ export default function GlobalAppShell({
           id={ASIDE_PANEL_ID}
           tabIndex={-1}
           className={classes.aside}
-          p="md"
+          ref={customUi ? (rightRef as any) : undefined}
+          data-dragging={isRightResizing || undefined}
+          data-collapsed={
+            customUi && rightCollapsed && !rightHovered ? "" : undefined
+          }
+          data-hover-open={
+            customUi && rightCollapsed && rightHovered ? "" : undefined
+          }
+          style={
+            customUi && rightCollapsed && rightHovered
+              ? ({ "--right-panel-open-width": rightWidth + "px" } as any)
+              : undefined
+          }
+          onMouseEnter={
+            customUi && rightCollapsed ? () => setRightHovered(true) : undefined
+          }
+          onMouseLeave={
+            customUi && rightCollapsed ? () => setRightHovered(false) : undefined
+          }
+          p={customUi ? 0 : "md"}
           withBorder={false}
           aria-label={
             asideTab === "comments"
@@ -333,7 +398,47 @@ export default function GlobalAppShell({
                     : undefined
           }
         >
-          {customUi ? <GristRightPanel /> : <Aside />}
+          {customUi ? (
+            /* Обёртка подрезает содержимое, пока панель едет, — как слева */
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                overflow: "hidden",
+                height: "100%",
+                minHeight: 0,
+                // Опора для черты растягивания: у самой панели position
+                // трогать нельзя — Mantine держит её у правого края
+                position: "relative",
+              }}
+            >
+              {/* Тянуть можно только развёрнутую: в полосе менять нечего */}
+              {!rightCollapsed && (
+                <div
+                  data-right-resize-handle=""
+                  onMouseDown={startRightResizing}
+                />
+              )}
+
+              {/* Ширина содержимого — целевая, иначе в свёрнутом виде
+                  строки шире панели и лезут за край */}
+              <div
+                data-right-panel-content=""
+                style={{
+                  width:
+                    rightCollapsed && !rightHovered
+                      ? COMPACT_RAIL_WIDTH
+                      : rightWidth,
+                  flex: "1 1 auto",
+                  minHeight: 0,
+                }}
+              >
+                <GristRightPanel />
+              </div>
+            </div>
+          ) : (
+            <Aside />
+          )}
         </AppShell.Aside>
       )}
     </AppShell>

@@ -12,3 +12,8 @@ export const rightPanelWidthAtom = atomWithWebStorage<number>(
   "grist-right-panel-width",
   300,
 );
+
+// Пределы растягивания. Уже 240 команды не читаются, шире 480 панель
+// отъедает у текста больше, чем даёт.
+export const RIGHT_PANEL_MIN = 240;
+export const RIGHT_PANEL_MAX = 480;
