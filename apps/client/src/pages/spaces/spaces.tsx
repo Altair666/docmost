@@ -63,11 +63,11 @@ export default function Spaces() {
       </Helmet>
 
       {/* 16px от верха поля — так заголовок стоит у Grist */}
-      <Container size={1340} px={24} pt={16}>
+      <Container size={1340} px={24} pt={customUi ? 16 : "xl"}>
         <Group justify="space-between" mb="xl" align="flex-end">
           {/* Значок тот же, что у пункта меню «Все документы» */}
           <Group gap={11} align="center">
-            <IconGristStack size={24} stroke={2} />
+            {customUi && <IconGristStack size={24} stroke={2} />}
             <Title order={1} size="h3">
               {t("Spaces")}
             </Title>

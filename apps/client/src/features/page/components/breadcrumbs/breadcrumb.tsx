@@ -23,6 +23,7 @@ import { useMediaQuery } from "@mantine/hooks";
 import { useTranslation } from "react-i18next";
 import { useGetSpaceBySlugQuery } from "@/features/space/queries/space-query";
 import { getSpaceUrl } from "@/lib/config";
+import { useUiFlags } from "@/custom-sso/ui-flags";
 
 function getTitle(node: SpaceTreeNode, t: TFunction) {
   const name = getPageTitle(node.name, node.isBase, t);
@@ -44,10 +45,12 @@ export default function Breadcrumb() {
   });
   const isMobile = useMediaQuery("(max-width: 48em)");
   const { data: space } = useGetSpaceBySlugQuery(spaceSlug);
+  const { customUi } = useUiFlags();
 
   // Первое звено — пространство: иначе по крошкам не видно, где лежит
   // страница. Ведёт в само пространство.
-  const spaceAnchor = space && (
+  // Пространство в крошках — только в нашем оформлении
+  const spaceAnchor = customUi && space && (
     <Anchor
       component={Link}
       to={getSpaceUrl(spaceSlug)}

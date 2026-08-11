@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import { Text, Tabs, Space } from "@mantine/core";
+import { useUiFlags } from "@/custom-sso/ui-flags";
 import { IconClockHour3, IconStar, IconUser } from "@tabler/icons-react";
 import RecentChanges from "@/components/common/recent-changes";
 import FavoritesPages from "./favorites-pages";
@@ -16,6 +17,7 @@ export default function HomeTabs({
   rightSection?: ReactNode;
 }) {
   const { t } = useTranslation();
+  const { customUi } = useUiFlags();
   const [activeTab, setActiveTab] = useAtom(homeTabAtom);
 
   return (
@@ -27,17 +29,27 @@ export default function HomeTabs({
       }}
     >
       <div
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          columnGap: 24,
-          rowGap: 8,
-          alignItems: "flex-end",
-        }}
+        style={
+          customUi
+            ? {
+                display: "flex",
+                flexWrap: "wrap",
+                columnGap: 24,
+                rowGap: 8,
+                alignItems: "flex-end",
+              }
+            : undefined
+        }
       >
         {/* Вкладки не сжимаются: иначе на узком окне они прокручиваются
             внутри себя и последняя обрезается. */}
-        <Tabs.List style={{ flex: "1 0 auto", flexWrap: "nowrap" }}>
+        <Tabs.List
+          style={
+            customUi
+              ? { flex: "1 0 auto", flexWrap: "nowrap" }
+              : { flexWrap: "nowrap", overflowX: "auto" }
+          }
+        >
           <Tabs.Tab value="recent" leftSection={<IconClockHour3 size={18} />}>
             <Text size="sm" fw={500}>
               {t("Recently updated")}

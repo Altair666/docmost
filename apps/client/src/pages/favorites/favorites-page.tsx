@@ -187,9 +187,11 @@ export default function FavoritesPage() {
                           </Badge>
                         )}
                       </Table.Td>
-                      <Table.Td>
-                        <CreatorCell creator={fav.page?.creator} />
-                      </Table.Td>
+                      {customUi && (
+                        <Table.Td>
+                          <CreatorCell creator={fav.page?.creator} />
+                        </Table.Td>
+                      )}
                       <Table.Td>
                         <Text
                           c="dimmed"
@@ -228,9 +230,11 @@ export default function FavoritesPage() {
                         </UnstyledButton>
                       </Table.Td>
                       <Table.Td />
-                      <Table.Td>
-                        <CreatorCell creator={fav.space?.creator} />
-                      </Table.Td>
+                      {customUi && (
+                        <Table.Td>
+                          <CreatorCell creator={fav.space?.creator} />
+                        </Table.Td>
+                      )}
                       <Table.Td>
                         <Text
                           c="dimmed"

@@ -7,9 +7,11 @@ import SpaceCarousel from "@/features/space/components/space-carousel.tsx";
 import { getAppName } from "@/lib/config.ts";
 import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
+import { useUiFlags } from "@/custom-sso/ui-flags";
 
 export default function Home() {
   const { t } = useTranslation();
+  const { customUi } = useUiFlags();
 
   return (
     <>
@@ -23,14 +25,16 @@ export default function Home() {
           Прежний узкий контейнер в 900 оставлял список висеть посреди
           пустоты, а «во всю ширину» без потолка растягивало его. */}
       {/* Поле и отступ сверху те же, что на «Все документы» */}
-      <Container size={1340} px={24} pt={16}>
+      <Container size={1340} px={24} pt={customUi ? 16 : "xl"}>
         {/* Ярлычок раздела — как на «Все документы» */}
-        <Group gap={11} align="center" mb="xl">
-          <IconHome size={24} stroke={2} />
-          <Title order={1} size="h3">
-            {t("Home")}
-          </Title>
-        </Group>
+        {customUi && (
+          <Group gap={11} align="center" mb="xl">
+            <IconHome size={24} stroke={2} />
+            <Title order={1} size="h3">
+              {t("Home")}
+            </Title>
+          </Group>
+        )}
 
         <HomeAiPrompt />
 
@@ -40,7 +44,7 @@ export default function Home() {
 
         {/* Ссылка встаёт на черту вкладок справа — там же, где у Grist
             выбор сортировки. */}
-        <HomeTabs rightSection={<ViewAllSpacesLink />} />
+        <HomeTabs rightSection={customUi ? <ViewAllSpacesLink /> : undefined} />
       </Container>
     </>
   );

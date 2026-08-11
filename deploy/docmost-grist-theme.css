@@ -745,18 +745,14 @@ html[data-mantine-color-scheme="light"] [data-page-byline] {
    отступа основной части — под текст оставалось 643px, то есть 21 строка.
    Снимаем оба: остаётся 707px, это 23–24 строки. */
 html[data-mantine-color-scheme="light"] [class*="_editor_"] {
-  min-height: 0;
-  height: calc(100vh - 113px);
-  overflow-y: auto;
+  /* Прокрутка остаётся у страницы, а не у поля: внутренняя мешала.
+     Нижние отступы сняты — они съедали строки впустую. */
+  min-height: calc(100vh - 113px);
   margin-bottom: 0;
 }
 
-/* Страница не растёт: основная часть ровно в окно, прокручивается
-   только поле редактора. 113px — это 65px шапки и 48px строки страницы. */
 html[data-mantine-color-scheme="light"] .mantine-AppShell-main:has([class*="_editor_"]) {
-  height: 100vh;
   padding-bottom: 0;
-  overflow: hidden;
 }
 
 /* ============================================================

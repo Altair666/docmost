@@ -57,10 +57,13 @@ import { useHasFeature } from "@/ee/hooks/use-feature";
 import { useUpgradeLabel } from "@/ee/hooks/use-upgrade-label";
 import { Feature } from "@/ee/features";
 import { ErrorBoundary } from "react-error-boundary";
-import { hideLockedEeItems } from "@/custom-sso/ui-flags";
+import { hideLockedEeItems, useUiFlags } from "@/custom-sso/ui-flags";
+import { IconSearch } from "@tabler/icons-react";
+import { searchSpotlight } from "@/features/search/constants";
 
 export function SpaceSidebar() {
   const { t } = useTranslation();
+  const { customUi } = useUiFlags();
   const location = useLocation();
   const [opened, { open: openSettings, close: closeSettings }] =
     useDisclosure(false);
@@ -129,8 +132,23 @@ export function SpaceSidebar() {
               </div>
             </UnstyledButton>
 
-            {/* Отдельного «Поиска» здесь нет: та же лупа стоит в шапке
-                и ищет по всем пространствам сразу. */}
+            {/* Отдельного «Поиска» нет только в нашем оформлении: там та
+                же лупа стоит в шапке и ищет по всем пространствам. */}
+            {!customUi && (
+              <UnstyledButton
+                className={classes.menu}
+                onClick={searchSpotlight.open}
+              >
+                <div className={classes.menuItemInner}>
+                  <IconSearch
+                    size={18}
+                    className={classes.menuItemIcon}
+                    stroke={2}
+                  />
+                  <span>{t("Search")}</span>
+                </div>
+              </UnstyledButton>
+            )}
 
             <UnstyledButton className={classes.menu} onClick={openSettings}>
               <div className={classes.menuItemInner}>
@@ -151,7 +169,7 @@ export function SpaceSidebar() {
               // плюс в кружке справа. Размеры — строк меню над ней.
               <UnstyledButton
                 className={classes.menu}
-                data-new-page=""
+                data-new-page={customUi ? "" : undefined}
                 aria-label={t("New page")}
                 onClick={() => {
                   handleCreatePage();
@@ -161,12 +179,25 @@ export function SpaceSidebar() {
                 }}
               >
                 {/* Кружок стоит в том же столбце, что значки соседних
-                    строк, — подпись тогда начинается вровень с ними. */}
-                <span data-new-page-circle="">
-                  <IconPlus size={16} stroke={2} />
-                </span>
-
-                <span>{t("New page")}</span>
+                    строк, — подпись тогда начинается вровень с ними.
+                    В стоковом виде кнопка прежняя. */}
+                {customUi ? (
+                  <>
+                    <span data-new-page-circle="">
+                      <IconPlus size={16} stroke={2} />
+                    </span>
+                    <span>{t("New page")}</span>
+                  </>
+                ) : (
+                  <div className={classes.menuItemInner}>
+                    <IconPlus
+                      size={18}
+                      className={classes.menuItemIcon}
+                      stroke={2}
+                    />
+                    <span>{t("New page")}</span>
+                  </div>
+                )}
               </UnstyledButton>
             )}
           </div>

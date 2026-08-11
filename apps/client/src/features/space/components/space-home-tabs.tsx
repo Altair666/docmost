@@ -31,16 +31,26 @@ export default function SpaceHomeTabs() {
       {/* Вкладки растянуты, выбор сортировки стоит за ними через 24px —
           так же, как на «Все документы» (column-gap у cssHeader в Grist). */}
       <div
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          columnGap: 24,
-          rowGap: 8,
-          alignItems: "flex-end",
-        }}
+        style={
+          customUi
+            ? {
+                display: "flex",
+                flexWrap: "wrap",
+                columnGap: 24,
+                rowGap: 8,
+                alignItems: "flex-end",
+              }
+            : undefined
+        }
       >
         {/* Вкладки не сжимаются — см. такую же полосу на главной */}
-        <Tabs.List style={{ flex: "1 0 auto", flexWrap: "nowrap" }}>
+        <Tabs.List
+          style={
+            customUi
+              ? { flex: "1 0 auto", flexWrap: "nowrap" }
+              : { flexWrap: "nowrap", overflowX: "auto" }
+          }
+        >
           <Tabs.Tab value="recent" leftSection={<IconClockHour3 size={18} />}>
             <Text size="sm" fw={500}>
               {t("Recently updated")}

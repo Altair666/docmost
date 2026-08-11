@@ -201,9 +201,11 @@ export default function AllSpacesList({
                     </Text>
                   </Table.Td>
 
-                  <Table.Td>
-                    <CreatorCell creator={(space as any).creator} />
-                  </Table.Td>
+                  {sortControl && (
+                    <Table.Td>
+                      <CreatorCell creator={(space as any).creator} />
+                    </Table.Td>
+                  )}
 
                   {/* Когда в пространстве последний раз меняли страницу —
                       колонка Last edited из списка документов Grist */}
