@@ -35,9 +35,8 @@ export default function RecentChanges({ spaceId, sort }: Props) {
 
   // Столбец «Кем создано» — в обоих списках.
   const withCreator = customUi;
-  // Подписи столбцов — только на «Обзоре» пространства: на главной их
-  // не просили.
-  const withColumns = Boolean(customUi && spaceId);
+  // Подписей столбцов нет нигде: ни на главной, ни на «Обзоре».
+  const withColumns = false;
 
   // Порядок как у Grist: по наименованию или по дате (свежие сверху).
   // Переставляется загруженная часть: список приходит с сервера кусками.

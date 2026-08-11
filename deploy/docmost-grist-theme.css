@@ -852,6 +852,15 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-li
   height: 48px;
   flex: none;
   border-bottom: 1px solid var(--grist-decoration-secondary);
+  /* Во всю ширину панели и без центрирования: замер показал, что строка
+     была ýже на 16px и подчёркивание начиналось не от края. */
+  width: auto;
+  justify-content: stretch;
+  padding: 0;
+}
+
+html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-tab {
+  flex: 1 1 0;
 }
 
 html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-tab {
@@ -1049,12 +1058,15 @@ html[data-mantine-color-scheme="light"] [data-panel-section] {
   padding: 8px 16px;
 }
 
-/* До краёв панели тянется только полоса вкладок: отступ раздела нужен
-   самому содержимому — без него поле ввода вылезало за край. */
-html[data-mantine-color-scheme="light"] [data-panel-section] .mantine-Tabs-list {
-  /* -8px сверху: столько отступа у раздела, и без этого строка
-     начинается на 8px ниже, чем у подвкладок. */
-  margin: -8px -16px 0;
+/* Раздел с вкладками без боковых отступов: строка идёт от края до края.
+   Отрицательные поля не годились — блок с прокруткой их обрезал. */
+html[data-mantine-color-scheme="light"] [data-panel-section]:has(.mantine-Tabs-root) {
+  padding: 0;
+}
+
+/* Отступы возвращаются содержимому под вкладками */
+html[data-mantine-color-scheme="light"] [data-panel-section] .mantine-Tabs-panel {
+  padding: 8px 16px;
 }
 
 /* Переход ширины у содержимого убран: оно ехало само по себе, слева
