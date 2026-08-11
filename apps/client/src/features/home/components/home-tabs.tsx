@@ -27,11 +27,17 @@ export default function HomeTabs({
       }}
     >
       <div
-        style={{ display: "flex", columnGap: 24, alignItems: "flex-end" }}
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          columnGap: 24,
+          rowGap: 8,
+          alignItems: "flex-end",
+        }}
       >
-        <Tabs.List
-          style={{ flex: 1, minWidth: 0, flexWrap: "nowrap", overflowX: "auto" }}
-        >
+        {/* Вкладки не сжимаются: иначе на узком окне они прокручиваются
+            внутри себя и последняя обрезается. */}
+        <Tabs.List style={{ flex: "1 0 auto", flexWrap: "nowrap" }}>
           <Tabs.Tab value="recent" leftSection={<IconClockHour3 size={18} />}>
             <Text size="sm" fw={500}>
               {t("Recently updated")}
@@ -49,7 +55,8 @@ export default function HomeTabs({
           </Tabs.Tab>
         </Tabs.List>
 
-        {rightSection}
+        {/* Прижат вправо и на своей строке, если перенёсся */}
+        <div style={{ marginLeft: "auto", minWidth: 0 }}>{rightSection}</div>
       </div>
 
       <Space my="md" />
