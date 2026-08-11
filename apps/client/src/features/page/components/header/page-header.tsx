@@ -16,10 +16,17 @@ export default function PageHeader({ readOnly }: Props) {
   return (
     <div className={classes.header} data-page-header="true">
       <Group justify="space-between" h="100%" px="md" wrap="nowrap" className={classes.group}>
-        {customUi ? <div /> : <Breadcrumb />}
+        {/* Слева — кто создал страницу, подробности и значок проверки.
+            Крошки живут выше, в шапке приложения. */}
+        {customUi ? (
+          <div data-page-byline="">
+            <PageBylineTop readOnly={readOnly} />
+          </div>
+        ) : (
+          <Breadcrumb />
+        )}
 
         <Group justify="flex-end" h="100%" px="md" wrap="nowrap" gap="var(--mantine-spacing-xs)">
-          {customUi && <PageBylineTop readOnly={readOnly} />}
           <PageHeaderMenu readOnly={readOnly} />
         </Group>
       </Group>

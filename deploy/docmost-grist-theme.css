@@ -723,6 +723,22 @@ html[data-mantine-color-scheme="light"] .mantine-Popover-dropdown:has([data-sear
   border-top-right-radius: 0;
 }
 
+/* Блок автора стоит в строке страницы слева. Отступы, оставшиеся от
+   прежнего места под заголовком, снимаем — из-за них он висел выше
+   строки кнопок. */
+html[data-mantine-color-scheme="light"] [data-page-byline] > div {
+  margin: 0 !important;
+  /* 3rem отступа тащились от прежнего места под заголовком */
+  padding-left: 0 !important;
+  align-items: center;
+}
+
+/* Ровно под крошкой пространства: обёртка начинается на 272, крошка —
+   на 282. */
+html[data-mantine-color-scheme="light"] [data-page-byline] {
+  padding-left: 10px;
+}
+
 /* Крошки: зазор до косой черты вдвое меньше — по 4px вместо 8 */
 html[data-mantine-color-scheme="light"] .mantine-Breadcrumbs-separator {
   margin-left: 4px;
@@ -743,9 +759,21 @@ html[data-mantine-color-scheme="light"] [data-space-crumb]:hover {
   text-decoration: underline;
 }
 
-/* Остальные звенья под курсором просто темнеют */
-html[data-mantine-color-scheme="light"] .mantine-Breadcrumbs-root a:not([data-space-crumb]):hover {
+/* Звенья страниц серые, как у Grist (cssBreadcrumbs: theme.lightText),
+   под курсором — почти чёрные. */
+html[data-mantine-color-scheme="light"] .mantine-Breadcrumbs-root a:not([data-space-crumb]),
+html[data-mantine-color-scheme="light"] .mantine-Breadcrumbs-breadcrumb:not([data-space-crumb]) {
+  color: var(--grist-secondary);
+}
+
+html[data-mantine-color-scheme="light"] .mantine-Breadcrumbs-root a:not([data-space-crumb]):hover,
+html[data-mantine-color-scheme="light"] .mantine-Breadcrumbs-breadcrumb:not([data-space-crumb]):hover {
   color: var(--grist-body);
+}
+
+/* Косая черта между звеньями — тем же серым */
+html[data-mantine-color-scheme="light"] .mantine-Breadcrumbs-separator {
+  color: var(--grist-secondary);
 }
 
 /* Значки меню пространства — того же приглушённого тона, что и остальные */
