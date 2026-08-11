@@ -366,6 +366,10 @@ const PageCommentInput = ({ onSave, isLoading }) => {
         borderTop: "1px solid var(--mantine-color-default-border)",
         paddingTop: "var(--mantine-spacing-sm)",
         paddingBottom: 25,
+        // Боковые отступы здесь, а не у раздела: строка вкладок должна
+        // идти от края до края, а поле ввода — нет.
+        paddingLeft: 16,
+        paddingRight: 16,
         position: "relative",
       }}
     >

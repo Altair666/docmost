@@ -864,12 +864,16 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-ta
 }
 
 html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-tab {
-  flex: auto;
+  /* Поровну: с flex: auto выходило 153 против 148 */
+  flex: 1 1 0;
   font-weight: 400;
   /* Та же высота, что у подвкладок; по бокам 8px — без них кружок
      счётчика уезжает за край панели. */
   padding: 0 8px 8px;
   margin: 0;
+  /* Высота строки как у подвкладок: у них 20.15px, у вкладки была 13px,
+     и подпись стояла выше. */
+  line-height: 20.15px;
   height: 100%;
   justify-content: center;
   align-items: flex-end;
@@ -914,11 +918,14 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-ta
 html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-tab:first-of-type .mantine-Badge-root {
   background: #e7f0fd;
   color: #1c7ed6;
+  /* Тонкая рамка: без неё кружок сливается с фоном панели */
+  border: 1px solid #b6d3f7;
 }
 
 html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-tab:last-of-type .mantine-Badge-root {
   background: #e6f7ef;
   color: var(--grist-primary-muted);
+  border: 1px solid #b3e3ce;
 }
 
 /* Строка ввода выше: кнопка была крупнее её самой */
@@ -1015,7 +1022,9 @@ html[data-mantine-color-scheme="light"] [data-panel-subtabs] {
 }
 
 html[data-mantine-color-scheme="light"] [data-panel-subtab] {
-  flex: auto;
+  /* Поровну, а не по содержимому: иначе «Основные» и «Интеграции»
+     получались разной длины. */
+  flex: 1 1 0;
   height: 100%;
   display: flex;
   flex-direction: column;
