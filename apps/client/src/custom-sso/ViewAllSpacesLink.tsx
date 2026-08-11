@@ -30,7 +30,7 @@ export default function ViewAllSpacesLink() {
         whiteSpace: "nowrap",
       }}
     >
-      {t("View all spaces")}
+      {t("All spaces")}
       <IconArrowRight size={14} stroke={2} />
     </Anchor>
   );

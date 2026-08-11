@@ -336,7 +336,8 @@ export class PageRepo {
     const query = this.db
       .selectFrom('pages')
       .select(this.baseFields)
-      .select((eb) => this.withSpace(eb))
+      // Автор нужен и списку на главной: столбец «Кем создано» там тот же
+      .select((eb) => [this.withSpace(eb), this.withCreator(eb)])
       .where('spaceId', 'in', this.spaceMemberRepo.getUserSpaceIdsQuery(userId))
       .where('deletedAt', 'is', null);
 
@@ -438,7 +439,8 @@ export class PageRepo {
     return jsonObjectFrom(
       eb
         .selectFrom('users')
-        .select(['users.id', 'users.name', 'users.avatarUrl'])
+        // Почта показывается в столбце «Кем создано» под именем
+        .select(['users.id', 'users.name', 'users.email', 'users.avatarUrl'])
         .whereRef('users.id', '=', 'pages.creatorId'),
     ).as('creator');
   }

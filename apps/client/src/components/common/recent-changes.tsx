@@ -34,8 +34,10 @@ export default function RecentChanges({ spaceId, sort }: Props) {
   const { data, isLoading, isError, hasNextPage, fetchNextPage, isFetchingNextPage } = useRecentChangesQuery(spaceId);
   const loaded = data?.pages.flatMap((p) => p.items) ?? [];
 
-  // Подписи столбцов и «Кем создано» — только на странице пространства:
-  // на главной у этого же списка свой набор столбцов.
+  // Столбец «Кем создано» — в обоих списках.
+  const withCreator = customUi;
+  // Подписи столбцов — только на «Обзоре» пространства: на главной их
+  // не просили.
   const withColumns = Boolean(customUi && spaceId);
 
   // Порядок как у Grist: по наименованию или по дате (свежие сверху).
@@ -96,28 +98,6 @@ export default function RecentChanges({ spaceId, sort }: Props) {
                     </Group>
                   </UnstyledButton>
                 </Table.Td>
-                {withColumns && (
-                  <Table.Td>
-                    {(page as any).creator ? (
-                      <Group wrap="nowrap" gap="xs">
-                        <CustomAvatar
-                          avatarUrl={(page as any).creator.avatarUrl}
-                          name={(page as any).creator.name}
-                          type={AvatarIconType.AVATAR}
-                          size={24}
-                        />
-                        <Text size="sm" lineClamp={1}>
-                          {(page as any).creator.name}
-                        </Text>
-                      </Group>
-                    ) : (
-                      <Text size="sm" c="dimmed">
-                        —
-                      </Text>
-                    )}
-                  </Table.Td>
-                )}
-
                 {!spaceId && (
                   <Table.Td>
                     <Badge
@@ -131,6 +111,36 @@ export default function RecentChanges({ spaceId, sort }: Props) {
                     </Badge>
                   </Table.Td>
                 )}
+
+                {withCreator && (
+                  <Table.Td>
+                    {(page as any).creator ? (
+                      <Group wrap="nowrap" gap="xs">
+                        <CustomAvatar
+                          avatarUrl={(page as any).creator.avatarUrl}
+                          name={(page as any).creator.name}
+                          type={AvatarIconType.AVATAR}
+                          size={24}
+                        />
+                        <div style={{ minWidth: 0 }}>
+                          <Text size="sm" lineClamp={1}>
+                            {(page as any).creator.name}
+                          </Text>
+                          {(page as any).creator.email && (
+                            <Text size="xs" c="dimmed" lineClamp={1}>
+                              {(page as any).creator.email}
+                            </Text>
+                          )}
+                        </div>
+                      </Group>
+                    ) : (
+                      <Text size="sm" c="dimmed">
+                        —
+                      </Text>
+                    )}
+                  </Table.Td>
+                )}
+
                 <Table.Td>
                   <Text
                     c="dimmed"
