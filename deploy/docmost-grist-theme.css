@@ -23,6 +23,26 @@
    1. Основа: цвета, шрифт, скругления
    ============================================================ */
 
+/* Тёмная схема: те же токены, значения из GristDark.js.
+   Правила ниже к схеме не привязаны и берут цвета отсюда. */
+html[data-mantine-color-scheme="dark"] {
+  --grist-body: #efefef;
+  --grist-bg: #32323f;
+  --grist-bg-secondary: #262633;
+  --grist-bg-emphasis: #646473;
+  --grist-decoration: #70707d;
+  --grist-decoration-secondary: #60606d;
+  --grist-line-soft: #555563;
+  --grist-primary: #17b378;
+  --grist-primary-muted: #1da270;
+  --grist-primary-dim: #157a54;
+  --grist-secondary: #a4a4b1;
+  --grist-selection: rgba(22, 179, 120, 0.15);
+  --grist-medium-text: #d5d5d5;
+  --grist-hover: #3d3d4d;
+  --grist-hover-row: #3d3d4d;
+}
+
 html {
   --grist-body: #262633;
   --grist-bg: #ffffff;
@@ -54,7 +74,7 @@ html {
     Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 }
 
-html[data-mantine-color-scheme="light"] {
+html[data-mantine-color-scheme] {
   --mantine-font-family: var(--grist-font);
   --mantine-font-family-headings: var(--grist-font);
 
@@ -135,9 +155,9 @@ html[data-mantine-color-scheme="light"] {
    2. Шапка и сайдбар
    ============================================================ */
 
-html[data-mantine-color-scheme="light"] .mantine-AppShell-header {
-  /* rgba(217,217,217,.6) — ровно та граница, что у Grist под шапкой. */
-  border-bottom: 1px solid rgba(217, 217, 217, 0.6);
+html[data-mantine-color-scheme] .mantine-AppShell-header {
+  /* var(--grist-decoration-secondary) — ровно та граница, что у Grist под шапкой. */
+  border-bottom: 1px solid var(--grist-decoration-secondary);
   box-shadow: none;
   background: var(--grist-bg);
 }
@@ -147,33 +167,33 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-header {
    шапку в один тон на всю ширину — из-за этого угол читался иначе, чем в
    оригинале. Ячейка с плашкой берёт цвет сайдбара и перекрывает нижнюю
    границу шапки (сдвиг на 1px задан в app-header.tsx). */
-html[data-mantine-color-scheme="light"] [data-brand-cell] {
+html[data-mantine-color-scheme] [data-brand-cell] {
   background: var(--grist-bg-secondary);
 }
 
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar {
+html[data-mantine-color-scheme] .mantine-AppShell-navbar {
   background: var(--grist-bg-secondary);
   border-right: 1px solid var(--grist-decoration-secondary);
 }
 
 /* Пункты навигации: плотнее, квадратнее */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar a,
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar button {
+html[data-mantine-color-scheme] .mantine-AppShell-navbar a,
+html[data-mantine-color-scheme] .mantine-AppShell-navbar button {
   border-radius: var(--grist-radius);
 }
 
 /* Выбранный пункт — тёмная плашка с белым текстом.
    Это самое заметное отличие от стокового Docmost, где подсветка мягкая. */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar a[data-active],
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar a[aria-current="page"] {
+html[data-mantine-color-scheme] .mantine-AppShell-navbar a[data-active],
+html[data-mantine-color-scheme] .mantine-AppShell-navbar a[aria-current="page"] {
   background: var(--grist-bg-emphasis);
   color: #ffffff;
 }
 
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar a[data-active] svg,
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar a[aria-current="page"] svg,
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar a[data-active] span,
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar a[aria-current="page"] span {
+html[data-mantine-color-scheme] .mantine-AppShell-navbar a[data-active] svg,
+html[data-mantine-color-scheme] .mantine-AppShell-navbar a[aria-current="page"] svg,
+html[data-mantine-color-scheme] .mantine-AppShell-navbar a[data-active] span,
+html[data-mantine-color-scheme] .mantine-AppShell-navbar a[aria-current="page"] span {
   color: #ffffff;
 }
 
@@ -185,7 +205,7 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar a[aria-current=
    людей» — кнопка, вложенная глубже соседей, и прежний селектор до неё не
    доставал (ширина 153 против 223, отступ слева 10 против 24). Хеш в имени
    класса меняется от сборки к сборке, а часть «_link_» — нет. */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [class*="_link_"]:not([data-rail]) {
+html[data-mantine-color-scheme] .mantine-AppShell-navbar [class*="_link_"]:not([data-rail]) {
   min-height: 32px;
   margin-left: 0;
   margin-right: 16px;
@@ -201,7 +221,7 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [class*="_link_
    (проверено по пикселю: внутри поля 255,255,255, рядом 247,247,247).
    В свёрнутом виде поля нет, остаётся только тёмная плитка логотипа,
    поэтому фон там не нужен. */
-html[data-mantine-color-scheme="light"] [data-workspace-badge] {
+html[data-mantine-color-scheme] [data-workspace-badge] {
   background: var(--grist-bg);
 }
 
@@ -211,7 +231,7 @@ html[data-mantine-color-scheme="light"] [data-workspace-badge] {
    нижний воздух панели.
    Цепляемся за имя класса, а не за место в разметке: в выехавшей по
    наведению панели между ними появляется ещё один слой. */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [class*="_navbar_"] {
+html[data-mantine-color-scheme] .mantine-AppShell-navbar [class*="_navbar_"] {
   padding-left: 0;
   padding-right: 0;
   /* Верхний отступ даёт обёртка кнопки; лишний сдвигал всё меню на 16px
@@ -222,45 +242,45 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [class*="_navba
 /* Кнопки в меню (например «Пригласить людей») берут ширину от текста, а
    ссылки — от блока: 167 против 224. Выравниваем явно, иначе нижний ряд
    выбивается и подсветка под курсором обрывается на полуслове. */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar button[class*="_link_"] {
+html[data-mantine-color-scheme] .mantine-AppShell-navbar button[class*="_link_"] {
   width: calc(100% - 16px);
 }
 
 /* Содержимое панели не сжимается ниже своей естественной ширины:
    браузер считает её сам, а мы упираем в неё перетаскивание. */
-html[data-mantine-color-scheme="light"] [data-sidebar-content] {
+html[data-mantine-color-scheme] [data-sidebar-content] {
   min-width: min-content;
 }
 
 /* Значки не сжимаются вместе с панелью */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar svg,
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [class*="_linkIcon_"],
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [class*="_menuItemIcon_"] {
+html[data-mantine-color-scheme] .mantine-AppShell-navbar svg,
+html[data-mantine-color-scheme] .mantine-AppShell-navbar [class*="_linkIcon_"],
+html[data-mantine-color-scheme] .mantine-AppShell-navbar [class*="_menuItemIcon_"] {
   flex: none;
 }
 
 /* Подписи в меню в одну строку: перенос ломает высоту пунктов при
    сужении панели. */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [class*="_link_"] {
+html[data-mantine-color-scheme] .mantine-AppShell-navbar [class*="_link_"] {
   white-space: nowrap;
 }
 
 /* Подписи пунктов не обрезаются: минимальная ширина панели считается по
    ним, поэтому места им хватает всегда. */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [class*="_link_"] span {
+html[data-mantine-color-scheme] .mantine-AppShell-navbar [class*="_link_"] span {
   overflow: visible;
   text-overflow: clip;
 }
 
-/* Цвет текста пунктов — основной #262633, как в Grist. Docmost брал
+/* Цвет текста пунктов — основной var(--grist-body), как в Grist. Docmost брал
    приглушённый серый Mantine (#495057), отчего меню читалось бледнее. */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar a:not([data-rail]):not([data-active]):not([aria-current="page"]) {
+html[data-mantine-color-scheme] .mantine-AppShell-navbar a:not([data-rail]):not([data-active]):not([aria-current="page"]) {
   color: var(--grist-body);
 }
 
 /* Пункт свёрнутой полосы: 48x32, значок по центру. Отступ слева 16px
    у Grist ровно центрирует значок 16px в полосе 48px. */
-html[data-mantine-color-scheme="light"] [data-rail] {
+html[data-mantine-color-scheme] [data-rail] {
   height: 32px;
   font-size: 13px;
   font-weight: 400;
@@ -269,7 +289,7 @@ html[data-mantine-color-scheme="light"] [data-rail] {
 /* Полоса для растягивания шириной 7px, как у Grist, и заходит за край
    панели: попасть в 3px мышью тяжело. Своей подсветки у неё нет — вместо
    серой заливки зеленеет граница панели (правило ниже). */
-html[data-mantine-color-scheme="light"] [data-resize-handle] {
+html[data-mantine-color-scheme] [data-resize-handle] {
   width: 7px;
   right: -3px;
   /* Поверх всего: иначе нажатие уходит в список пунктов, а разделитель
@@ -280,8 +300,8 @@ html[data-mantine-color-scheme="light"] [data-resize-handle] {
 }
 
 /* Линию рисует сама полоса двумя слоями: обычный и подсвеченный. */
-html[data-mantine-color-scheme="light"] [data-resize-handle]::before,
-html[data-mantine-color-scheme="light"] [data-resize-handle]::after {
+html[data-mantine-color-scheme] [data-resize-handle]::before,
+html[data-mantine-color-scheme] [data-resize-handle]::after {
   content: "";
   position: absolute;
   height: 100%;
@@ -290,36 +310,36 @@ html[data-mantine-color-scheme="light"] [data-resize-handle]::after {
   top: 0;
 }
 
-html[data-mantine-color-scheme="light"] [data-resize-handle]::before {
+html[data-mantine-color-scheme] [data-resize-handle]::before {
   background: var(--grist-decoration-secondary);
 }
 
-html[data-mantine-color-scheme="light"] [data-resize-handle]::after {
+html[data-mantine-color-scheme] [data-resize-handle]::after {
   background: var(--grist-primary);
   opacity: 0;
   transition: opacity linear 0.2s;
 }
 
 /* Загорается с задержкой 0.2s, гаснет без задержки — тайминги Grist */
-html[data-mantine-color-scheme="light"] [data-resize-handle]:hover::after {
+html[data-mantine-color-scheme] [data-resize-handle]:hover::after {
   opacity: 1;
   transition: opacity linear 0.2s 0.2s;
 }
 
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar[data-dragging] [data-resize-handle]::after {
+html[data-mantine-color-scheme] .mantine-AppShell-navbar[data-dragging] [data-resize-handle]::after {
   opacity: 1;
   transition: none;
 }
 
-html[data-mantine-color-scheme="light"] [data-resize-handle]:hover,
-html[data-mantine-color-scheme="light"] [data-resize-handle]:active {
+html[data-mantine-color-scheme] [data-resize-handle]:hover,
+html[data-mantine-color-scheme] [data-resize-handle]:active {
   width: 7px;
   background: transparent;
 }
 
 /* Заголовок страницы: 24px, начертание 600 — размеры Grist
    (test-welcome-title: 24px/36px 600). */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-main .mantine-Title-root {
+html[data-mantine-color-scheme] .mantine-AppShell-main .mantine-Title-root {
   font-size: 24px;
   line-height: 36px;
   /* Приоритет: у заголовков Mantine своё начертание по уровню */
@@ -332,7 +352,7 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-main .mantine-Title-ro
 
 /* Размеры сняты из исходника Grist (DocList.js): название 14px полужирным,
    строка со скруглением 3px, зазор от значка до названия 11px. */
-html[data-mantine-color-scheme="light"] table tbody tr td:first-child .mantine-Text-root:first-of-type {
+html[data-mantine-color-scheme] table tbody tr td:first-child .mantine-Text-root:first-of-type {
   font-size: 14px;
   /* Приоритет: начертание задано прямо в разметке компонента */
   font-weight: 600 !important;
@@ -340,26 +360,26 @@ html[data-mantine-color-scheme="light"] table tbody tr td:first-child .mantine-T
 
 /* Выбор сортировки: зелёный текст без рамки и заливки, темнеет под
    курсором — cssSortSelect из DocList.js. */
-html[data-mantine-color-scheme="light"] [data-grist-sort] {
+html[data-mantine-color-scheme] [data-grist-sort] {
   color: var(--grist-primary);
   white-space: nowrap;
 }
 
-html[data-mantine-color-scheme="light"] [data-grist-sort]:hover {
+html[data-mantine-color-scheme] [data-grist-sort]:hover {
   color: var(--grist-primary-muted);
 }
 
 /* Шапка таблицы у Grist без линии и без фона: только приглушённые
    подписи колонок (cssDocHeaderRow: padding 0 8px, цвет lightText). */
-html[data-mantine-color-scheme="light"] table thead,
-html[data-mantine-color-scheme="light"] table thead tr {
+html[data-mantine-color-scheme] table thead,
+html[data-mantine-color-scheme] table thead tr {
   border-bottom: none;
 }
 
 /* Черта под шапкой обрывается перед выбором сортировки: она есть у всех
    ячеек шапки, кроме последней, где стоит сам выбор. */
-html[data-mantine-color-scheme="light"] table thead th {
-  /* 1px #d9d9d9 — как tableBodyBorder у cssTabs в Grist */
+html[data-mantine-color-scheme] table thead th {
+  /* 1px var(--grist-decoration) — как tableBodyBorder у cssTabs в Grist */
   border-bottom: 1px solid var(--grist-decoration) !important;
   /* Подписи в одну строку: иначе длинные переносятся и шапка становится
      двухэтажной. */
@@ -374,99 +394,99 @@ html[data-mantine-color-scheme="light"] table thead th {
 /* Ячейка с выбором сортировки: черта до неё не доходит. Там, где
    сортировка стоит выше (на черте вкладок), последний столбец обычный
    и черта идёт до конца. */
-html[data-mantine-color-scheme="light"] table thead th[data-sort-cell] {
+html[data-mantine-color-scheme] table thead th[data-sort-cell] {
   border-bottom: none !important;
 }
 
 
 /* Кегль строки списка — 14px (cssDocRow) */
-html[data-mantine-color-scheme="light"] table tbody tr td {
+html[data-mantine-color-scheme] table tbody tr td {
   font-size: 14px;
 }
 
 /* Значок документа у Grist — квадрат 48x48 со скруглением 4, а не кружок;
    инициалы внутри 18px начертанием 600 (DocIcon.js). */
-html[data-mantine-color-scheme="light"] table tbody tr td:first-child .mantine-Avatar-root {
+html[data-mantine-color-scheme] table tbody tr td:first-child .mantine-Avatar-root {
   width: 48px;
   height: 48px;
   min-width: 48px;
   border-radius: 4px;
 }
 
-html[data-mantine-color-scheme="light"] table tbody tr td:first-child .mantine-Avatar-root .mantine-Avatar-placeholder,
-html[data-mantine-color-scheme="light"] table tbody tr td:first-child .mantine-Avatar-root .mantine-Avatar-image {
+html[data-mantine-color-scheme] table tbody tr td:first-child .mantine-Avatar-root .mantine-Avatar-placeholder,
+html[data-mantine-color-scheme] table tbody tr td:first-child .mantine-Avatar-root .mantine-Avatar-image {
   font-size: 18px;
   font-weight: 600;
   border-radius: 4px;
 }
 
 /* Скругление строки: у таблицы его вешают на крайние ячейки */
-html[data-mantine-color-scheme="light"] table tbody tr td:first-child {
+html[data-mantine-color-scheme] table tbody tr td:first-child {
   border-radius: 3px 0 0 3px;
 }
 
-html[data-mantine-color-scheme="light"] table tbody tr td:last-child {
+html[data-mantine-color-scheme] table tbody tr td:last-child {
   border-radius: 0 3px 3px 0;
 }
 
 /* Зазор между значком и названием — 11px, как у cssDocIconAndName */
-html[data-mantine-color-scheme="light"] table tbody tr td:first-child .mantine-Group-root {
+html[data-mantine-color-scheme] table tbody tr td:first-child .mantine-Group-root {
   gap: 11px;
 }
 
 /* Разделители в списке уведомлений — те же лишние линии */
-html[data-mantine-color-scheme="light"] [class*="_divider_"] {
+html[data-mantine-color-scheme] [class*="_divider_"] {
   display: none;
 }
 
 /* Разделители строк в списках убраны: строка и так подсвечивается серым
    при наведении, а линия спорит с этой подсветкой. */
-html[data-mantine-color-scheme="light"] table tbody tr td,
-html[data-mantine-color-scheme="light"] table tbody tr th,
-html[data-mantine-color-scheme="light"] table tbody tr {
+html[data-mantine-color-scheme] table tbody tr td,
+html[data-mantine-color-scheme] table tbody tr th,
+html[data-mantine-color-scheme] table tbody tr {
   /* Шапка сюда не входит: под ней черта нужна, она обрывается перед
      выбором сортировки (правило выше). */
   border-bottom: none;
 }
 
 /* Разделители Mantine берут свой холодный серый — переводим на наш тон */
-html[data-mantine-color-scheme="light"] .mantine-Divider-root {
+html[data-mantine-color-scheme] .mantine-Divider-root {
   border-color: var(--grist-line-soft);
 }
 
 /* Кнопки внутри панелей: серая заливка под курсором и никакой обводки
    после нажатия — зелёное кольцо фокуса читалось как лишняя подсветка. */
-html[data-mantine-color-scheme="light"] .mantine-Popover-dropdown .mantine-ActionIcon-root:hover,
-html[data-mantine-color-scheme="light"] .mantine-Menu-dropdown .mantine-ActionIcon-root:hover {
+html[data-mantine-color-scheme] .mantine-Popover-dropdown .mantine-ActionIcon-root:hover,
+html[data-mantine-color-scheme] .mantine-Menu-dropdown .mantine-ActionIcon-root:hover {
   background: var(--grist-hover-row);
 }
 
-html[data-mantine-color-scheme="light"] .mantine-Popover-dropdown .mantine-ActionIcon-root:focus,
-html[data-mantine-color-scheme="light"] .mantine-Popover-dropdown .mantine-ActionIcon-root:focus-visible,
-html[data-mantine-color-scheme="light"] .mantine-Menu-dropdown .mantine-ActionIcon-root:focus {
+html[data-mantine-color-scheme] .mantine-Popover-dropdown .mantine-ActionIcon-root:focus,
+html[data-mantine-color-scheme] .mantine-Popover-dropdown .mantine-ActionIcon-root:focus-visible,
+html[data-mantine-color-scheme] .mantine-Menu-dropdown .mantine-ActionIcon-root:focus {
   outline: none;
   box-shadow: none;
 }
 
 /* Вкладки: подсветка под курсором такая же серая, как у строк списков */
-html[data-mantine-color-scheme="light"] .mantine-Tabs-tab:hover:not([data-active]) {
+html[data-mantine-color-scheme] .mantine-Tabs-tab:hover:not([data-active]) {
   /* Приоритет: у вкладок Mantine своё правило наведения, и без него
      подсветка не появлялась вовсе. */
   background: var(--grist-hover-row) !important;
 }
 
 /* Подложки под значками в выпадающих панелях — круглые, как в шапке */
-html[data-mantine-color-scheme="light"] .mantine-Popover-dropdown .mantine-ActionIcon-root,
-html[data-mantine-color-scheme="light"] .mantine-Menu-dropdown .mantine-ActionIcon-root {
+html[data-mantine-color-scheme] .mantine-Popover-dropdown .mantine-ActionIcon-root,
+html[data-mantine-color-scheme] .mantine-Menu-dropdown .mantine-ActionIcon-root {
   border-radius: 50%;
 }
 
 /* Затемнение строки под курсором — одно и то же по всему сайту, а не
    только в боковом меню: списки документов, закреплённых, участников,
    пункты выпадающих меню. */
-html[data-mantine-color-scheme="light"] table tbody tr:hover,
-html[data-mantine-color-scheme="light"] .mantine-Menu-item:hover,
-html[data-mantine-color-scheme="light"] .mantine-NavLink-root:hover {
+html[data-mantine-color-scheme] table tbody tr:hover,
+html[data-mantine-color-scheme] .mantine-Menu-item:hover,
+html[data-mantine-color-scheme] .mantine-NavLink-root:hover {
   background: var(--grist-hover-row);
 }
 
@@ -476,15 +496,15 @@ html[data-mantine-color-scheme="light"] .mantine-NavLink-root:hover {
 /* Ширина меняется плавно — 0.4s ease, как у Grist. Двигать надо всё
    разом: саму панель, отступ содержимого и левую ячейку шапки, иначе
    перекрестье разъезжается на время перехода. */
-html[data-app-ready][data-mantine-color-scheme="light"] .mantine-AppShell-navbar {
+html[data-app-ready][data-mantine-color-scheme] .mantine-AppShell-navbar {
   transition: width 0.4s ease;
 }
 
 /* Пока тянут мышью — никакой анимации. У Grist на это время стоит
    transition: unset, иначе каждое движение мыши запускает новый переход
    и панель тащится за курсором с задержкой. */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar[data-dragging],
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar[data-dragging] [data-rail-overlay] {
+html[data-mantine-color-scheme] .mantine-AppShell-navbar[data-dragging],
+html[data-mantine-color-scheme] .mantine-AppShell-navbar[data-dragging] [data-rail-overlay] {
   transition: none;
 }
 
@@ -496,11 +516,11 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar[data-dragging] 
    обрезать её, поэтому у панели убираем обрезку и поднимаем наложение над
    содержимым страницы. Фон непрозрачный — иначе сквозь панель просвечивал
    бы текст. */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar:has([data-rail-overlay]) {
+html[data-mantine-color-scheme] .mantine-AppShell-navbar:has([data-rail-overlay]) {
   overflow: visible;
 }
 
-html[data-mantine-color-scheme="light"] [data-rail-overlay] {
+html[data-mantine-color-scheme] [data-rail-overlay] {
   /* Содержимое ровно по ширине панели: горизонтальной прокрутки быть
      не должно. */
   overflow-x: hidden;
@@ -517,8 +537,8 @@ html[data-mantine-color-scheme="light"] [data-rail-overlay] {
 /* Перекрестье: под строкой с логотипом идёт та же черта, что отделяет
    шапку приложения. Пока плашка жила в шапке, её давала граница шапки;
    теперь плашка внутри панели, и черту рисует она сама — как у Grist. */
-html[data-mantine-color-scheme="light"] [data-sidebar-header] {
-  border-bottom: 1px solid rgba(217, 217, 217, 0.6);
+html[data-mantine-color-scheme] [data-sidebar-header] {
+  border-bottom: 1px solid var(--grist-decoration-secondary);
 }
 
 /* ============================================================
@@ -529,19 +549,19 @@ html[data-mantine-color-scheme="light"] [data-sidebar-header] {
    добавлены свои — из-за них пункты уезжали за левый край панели.
    Обнуляем, чтобы работали общие размеры. Черта между секциями убрана:
    она холоднее нашего тона и спорит с серой подсветкой строк. */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [class*="_section_"] {
+html[data-mantine-color-scheme] .mantine-AppShell-navbar [class*="_section_"] {
   margin-left: 0;
   margin-right: 0;
   border-bottom: none;
 }
 
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [class*="_menuItems_"] {
+html[data-mantine-color-scheme] .mantine-AppShell-navbar [class*="_menuItems_"] {
   padding-left: 0;
   padding-right: 0;
 }
 
 /* Те же размеры, что у пунктов на главной и в настройках */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [class*="_menu_"] {
+html[data-mantine-color-scheme] .mantine-AppShell-navbar [class*="_menu_"] {
   width: calc(100% - 16px);
   min-height: 32px;
   margin: 0;
@@ -554,31 +574,31 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [class*="_menu_
   color: var(--grist-body);
 }
 
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [class*="_menu_"]:hover {
+html[data-mantine-color-scheme] .mantine-AppShell-navbar [class*="_menu_"]:hover {
   background: var(--grist-hover-row);
 }
 
 /* Выбранный пункт — тёмная плашка с белым текстом, как везде */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [class*="_activeButton_"] {
+html[data-mantine-color-scheme] .mantine-AppShell-navbar [class*="_activeButton_"] {
   background: var(--grist-bg-emphasis);
   color: #ffffff;
 }
 
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [class*="_activeButton_"] svg,
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [class*="_activeButton_"] span {
+html[data-mantine-color-scheme] .mantine-AppShell-navbar [class*="_activeButton_"] svg,
+html[data-mantine-color-scheme] .mantine-AppShell-navbar [class*="_activeButton_"] span {
   color: #ffffff;
 }
 
 /* Выбранный пункт не светлеет под курсором: правило наведения выше
    перебивало тёмную плашку, и «Обзор» становился белым. */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [class*="_activeButton_"]:hover {
+html[data-mantine-color-scheme] .mantine-AppShell-navbar [class*="_activeButton_"]:hover {
   background: var(--grist-bg-emphasis);
   color: #ffffff;
 }
 
 /* Выбор пространства — такая же строка, как пункты меню под ним:
    высота 32, тот же левый отступ, та же подсветка. */
-html[data-mantine-color-scheme="light"] [data-space-switch] {
+html[data-mantine-color-scheme] [data-space-switch] {
   width: calc(100% - 16px);
   height: 32px;
   min-height: 32px;
@@ -592,13 +612,13 @@ html[data-mantine-color-scheme="light"] [data-space-switch] {
   color: var(--grist-body);
 }
 
-html[data-mantine-color-scheme="light"] [data-space-switch]:hover {
+html[data-mantine-color-scheme] [data-space-switch]:hover {
   background: var(--grist-hover-row);
 }
 
 /* Значок пространства — того же размера, что плюс «Новой страницы»,
    и в том же столбце: 24px серединой на 33. */
-html[data-mantine-color-scheme="light"] [data-space-switch] .mantine-Avatar-root {
+html[data-mantine-color-scheme] [data-space-switch] .mantine-Avatar-root {
   width: 24px;
   height: 24px;
   min-width: 24px;
@@ -606,7 +626,7 @@ html[data-mantine-color-scheme="light"] [data-space-switch] .mantine-Avatar-root
 
 /* Подпись пространства шла с отступом в 12px со всех сторон и роняла
    строку вниз — зазор до значка задаём сами. */
-html[data-mantine-color-scheme="light"] [data-space-switch] [class*="_spaceName_"] {
+html[data-mantine-color-scheme] [data-space-switch] [class*="_spaceName_"] {
   padding: 0 0 0 9px;
   font-size: 13px;
   font-weight: 400;
@@ -616,7 +636,7 @@ html[data-mantine-color-scheme="light"] [data-space-switch] [class*="_spaceName_
 /* «Новая страница» — зелёная строка с плюсом в кружке справа, как кнопка
    создания на главной. Поле светлее самой кнопки: просили лёгкую
    подсветку, а не сплошную заливку. */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [data-new-page] {
+html[data-mantine-color-scheme] .mantine-AppShell-navbar [data-new-page] {
   display: flex;
   align-items: center;
   padding-right: 8px;
@@ -628,16 +648,16 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [data-new-page]
   transition: background 0.1s ease;
 }
 
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [data-new-page]:hover {
+html[data-mantine-color-scheme] .mantine-AppShell-navbar [data-new-page]:hover {
   background: color-mix(in srgb, var(--grist-primary) 20%, #ffffff);
 }
 
 /* Подпись зелёная: цвет строк меню задан длинным правилом и перебивал */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [data-new-page] span:not([data-new-page-circle]) {
+html[data-mantine-color-scheme] .mantine-AppShell-navbar [data-new-page] span:not([data-new-page-circle]) {
   color: var(--grist-primary-muted);
 }
 
-html[data-mantine-color-scheme="light"] [data-new-page-circle] {
+html[data-mantine-color-scheme] [data-new-page-circle] {
   flex: none;
   display: grid;
   place-items: center;
@@ -653,42 +673,42 @@ html[data-mantine-color-scheme="light"] [data-new-page-circle] {
   transition: background 0.1s ease;
 }
 
-html[data-mantine-color-scheme="light"] [data-new-page]:hover [data-new-page-circle] {
+html[data-mantine-color-scheme] [data-new-page]:hover [data-new-page-circle] {
   background: var(--grist-primary-muted);
 }
 
 /* Свёрнутая полоса: у выбора пространства остаётся один значок,
    у «Новой страницы» — один кружок. Раньше обе строки не сжимались и
    вылезали за полосу. */
-html[data-mantine-color-scheme="light"] [data-collapsed] [data-space-switch] {
+html[data-mantine-color-scheme] [data-collapsed] [data-space-switch] {
   width: 48px !important;
   min-width: 48px;
   padding: 0 !important;
   justify-content: center;
 }
 
-html[data-mantine-color-scheme="light"] [data-collapsed] [data-space-switch] [class*="_spaceName_"],
-html[data-mantine-color-scheme="light"] [data-collapsed] [data-space-switch] .mantine-Button-section {
+html[data-mantine-color-scheme] [data-collapsed] [data-space-switch] [class*="_spaceName_"],
+html[data-mantine-color-scheme] [data-collapsed] [data-space-switch] .mantine-Button-section {
   display: none;
 }
 
 /* Подпись растянута на всю ширину кнопки, поэтому значок надо центрировать
    внутри неё, а не в самой кнопке. */
-html[data-mantine-color-scheme="light"] [data-collapsed] [data-space-switch] .mantine-Button-label {
+html[data-mantine-color-scheme] [data-collapsed] [data-space-switch] .mantine-Button-label {
   width: 100%;
   justify-content: center;
 }
 
 /* В свёрнутой полосе — 28px, как кружок с плюсом. Сдвиг влево здесь не
    нужен: значок и так по центру полосы. */
-html[data-mantine-color-scheme="light"] [data-collapsed] [data-space-switch] .mantine-Avatar-root {
+html[data-mantine-color-scheme] [data-collapsed] [data-space-switch] .mantine-Avatar-root {
   width: 28px;
   height: 28px;
   min-width: 28px;
   margin-left: 0;
 }
 
-html[data-mantine-color-scheme="light"] [data-collapsed] [data-new-page][data-new-page] {
+html[data-mantine-color-scheme] [data-collapsed] [data-new-page][data-new-page] {
   width: 48px !important;
   min-width: 48px !important;
   max-width: 48px !important;
@@ -699,15 +719,15 @@ html[data-mantine-color-scheme="light"] [data-collapsed] [data-new-page][data-ne
   background: transparent !important;
 }
 
-html[data-mantine-color-scheme="light"] [data-collapsed] [data-new-page]:hover {
+html[data-mantine-color-scheme] [data-collapsed] [data-new-page]:hover {
   background: transparent;
 }
 
-html[data-mantine-color-scheme="light"] [data-collapsed] [data-new-page] span:not([data-new-page-circle]) {
+html[data-mantine-color-scheme] [data-collapsed] [data-new-page] span:not([data-new-page-circle]) {
   display: none !important;
 }
 
-html[data-mantine-color-scheme="light"] [data-collapsed] [data-new-page] [data-new-page-circle] {
+html[data-mantine-color-scheme] [data-collapsed] [data-new-page] [data-new-page-circle] {
   /* Правило выше гасит подписи внутри строк меню — кружок это не подпись.
      По центру полосы его ставят собственные поля: так положение не
      зависит от того, что ещё лежит в строке. */
@@ -720,7 +740,7 @@ html[data-mantine-color-scheme="light"] [data-collapsed] [data-new-page] [data-n
 
 /* Строка поиска и блок под ней — одно целое: одинаковая ширина, сверху
    без скруглений. */
-html[data-mantine-color-scheme="light"] .mantine-Popover-dropdown:has([data-search-filters]) {
+html[data-mantine-color-scheme] .mantine-Popover-dropdown:has([data-search-filters]) {
   border-top-left-radius: 0;
   border-top-right-radius: 0;
 }
@@ -728,7 +748,7 @@ html[data-mantine-color-scheme="light"] .mantine-Popover-dropdown:has([data-sear
 /* Блок автора стоит в строке страницы слева. Отступы, оставшиеся от
    прежнего места под заголовком, снимаем — из-за них он висел выше
    строки кнопок. */
-html[data-mantine-color-scheme="light"] [data-page-byline] > div {
+html[data-mantine-color-scheme] [data-page-byline] > div {
   margin: 0 !important;
   /* 3rem отступа тащились от прежнего места под заголовком */
   padding-left: 0 !important;
@@ -737,7 +757,7 @@ html[data-mantine-color-scheme="light"] [data-page-byline] > div {
 
 /* Ровно под крошкой пространства: обёртка начинается на 272, крошка —
    на 282. */
-html[data-mantine-color-scheme="light"] [data-page-byline] {
+html[data-mantine-color-scheme] [data-page-byline] {
   padding-left: 10px;
 }
 
@@ -746,14 +766,14 @@ html[data-mantine-color-scheme="light"] [data-page-byline] {
    48 строка страницы). Под ним лежали 48px собственного поля и 16px
    отступа основной части — под текст оставалось 643px, то есть 21 строка.
    Снимаем оба: остаётся 707px, это 23–24 строки. */
-html[data-mantine-color-scheme="light"] [class*="_editor_"] {
+html[data-mantine-color-scheme] [class*="_editor_"] {
   /* Прокрутка остаётся у страницы, а не у поля: внутренняя мешала.
      Нижние отступы сняты — они съедали строки впустую. */
   min-height: calc(100vh - 113px);
   margin-bottom: 0;
 }
 
-html[data-mantine-color-scheme="light"] .mantine-AppShell-main:has([class*="_editor_"]) {
+html[data-mantine-color-scheme] .mantine-AppShell-main:has([class*="_editor_"]) {
   padding-bottom: 0;
 }
 
@@ -761,9 +781,9 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-main:has([class*="_edi
    Правая панель страницы
    ============================================================ */
 
-html[data-mantine-color-scheme="light"] .mantine-AppShell-aside {
+html[data-mantine-color-scheme] .mantine-AppShell-aside {
   /* rightPanelBg = bgSecondary у Grist, а не белый */
-  background: var(--grist-bg-secondary, #f7f7f7);
+  background: var(--grist-bg-secondary);
   border-left: 1px solid var(--grist-decoration-secondary);
   padding: 0;
   overflow: hidden;
@@ -771,23 +791,23 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-aside {
 
 /* Выезд по наведению на свёрнутую полосу: панель едет поверх страницы,
    страница при этом не двигается — как слева. */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-aside[data-hover-open] {
+html[data-mantine-color-scheme] .mantine-AppShell-aside[data-hover-open] {
   width: var(--right-panel-open-width, 300px) !important;
   z-index: 200;
 }
 
 /* Ширина едет 0.4s ease — то же свойство и то же время, что у левой */
-html[data-app-ready][data-mantine-color-scheme="light"] .mantine-AppShell-aside {
+html[data-app-ready][data-mantine-color-scheme] .mantine-AppShell-aside {
   transition: width 0.4s ease;
 }
 
 /* Пока тянут, перехода нет: иначе панель ползёт с задержкой */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-aside[data-dragging] {
+html[data-mantine-color-scheme] .mantine-AppShell-aside[data-dragging] {
   transition: none !important;
 }
 
 /* Черта растягивания — у левого края, всё остальное как слева */
-html[data-mantine-color-scheme="light"] [data-right-resize-handle] {
+html[data-mantine-color-scheme] [data-right-resize-handle] {
   position: absolute;
   top: 0;
   bottom: 0;
@@ -798,8 +818,8 @@ html[data-mantine-color-scheme="light"] [data-right-resize-handle] {
   cursor: ew-resize;
 }
 
-html[data-mantine-color-scheme="light"] [data-right-resize-handle]::before,
-html[data-mantine-color-scheme="light"] [data-right-resize-handle]::after {
+html[data-mantine-color-scheme] [data-right-resize-handle]::before,
+html[data-mantine-color-scheme] [data-right-resize-handle]::after {
   content: "";
   position: absolute;
   height: 100%;
@@ -808,34 +828,34 @@ html[data-mantine-color-scheme="light"] [data-right-resize-handle]::after {
   top: 0;
 }
 
-html[data-mantine-color-scheme="light"] [data-right-resize-handle]::before {
+html[data-mantine-color-scheme] [data-right-resize-handle]::before {
   background: var(--grist-decoration-secondary);
 }
 
-html[data-mantine-color-scheme="light"] [data-right-resize-handle]::after {
+html[data-mantine-color-scheme] [data-right-resize-handle]::after {
   background: var(--grist-primary);
   opacity: 0;
   transition: opacity linear 0.2s;
 }
 
 /* Загорается с задержкой 0.2s, гаснет без задержки — тайминги Grist */
-html[data-mantine-color-scheme="light"] [data-right-resize-handle]:hover::after {
+html[data-mantine-color-scheme] [data-right-resize-handle]:hover::after {
   opacity: 1;
   transition: opacity linear 0.2s 0.2s;
 }
 
-html[data-mantine-color-scheme="light"] .mantine-AppShell-aside[data-dragging] [data-right-resize-handle]::after {
+html[data-mantine-color-scheme] .mantine-AppShell-aside[data-dragging] [data-right-resize-handle]::after {
   opacity: 1;
   transition: none;
 }
 
 /* В свёрнутой полосе остаётся только значок разворота */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-aside[data-collapsed] [data-right-panel-body] {
+html[data-mantine-color-scheme] .mantine-AppShell-aside[data-collapsed] [data-right-panel-body] {
   display: none;
 }
 
 /* Кнопка сворачивания — на полосе сверху, ровно как значки слева */
-html[data-mantine-color-scheme="light"] [data-right-panel-toggle] {
+html[data-mantine-color-scheme] [data-right-panel-toggle] {
   display: grid;
   place-items: center;
   width: 32px;
@@ -845,7 +865,7 @@ html[data-mantine-color-scheme="light"] [data-right-panel-toggle] {
   color: var(--grist-primary);
 }
 
-html[data-mantine-color-scheme="light"] [data-right-panel-toggle]:hover {
+html[data-mantine-color-scheme] [data-right-panel-toggle]:hover {
   background: var(--grist-hover-row);
 }
 
@@ -853,7 +873,7 @@ html[data-mantine-color-scheme="light"] [data-right-panel-toggle]:hover {
    полоса 48px с чертой снизу, вкладки делят ширину поровну, содержимое
    прижато к низу, подчёркивание 2px. */
 /* «Открыто» и «Решено» в комментариях — тем же видом, что подвкладки */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-list {
+html[data-mantine-color-scheme] .mantine-AppShell-aside .mantine-Tabs-list {
   height: 48px;
   flex: none;
   border-bottom: 1px solid var(--grist-decoration-secondary);
@@ -864,11 +884,11 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-li
   padding: 0;
 }
 
-html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-tab {
+html[data-mantine-color-scheme] .mantine-AppShell-aside .mantine-Tabs-tab {
   flex: 1 1 0;
 }
 
-html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-tab {
+html[data-mantine-color-scheme] .mantine-AppShell-aside .mantine-Tabs-tab {
   /* Поровну: с flex: auto выходило 153 против 148 */
   flex: 1 1 0;
   font-weight: 400;
@@ -889,7 +909,7 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-ta
   background: transparent;
 }
 
-html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-tab[data-active] {
+html[data-mantine-color-scheme] .mantine-AppShell-aside .mantine-Tabs-tab[data-active] {
   font-weight: 600;
   color: var(--grist-body);
   border-bottom-color: var(--grist-primary);
@@ -897,50 +917,50 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-ta
 }
 
 /* Под курсором темнеет подпись, а не загорается весь блок */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-tab:hover {
+html[data-mantine-color-scheme] .mantine-AppShell-aside .mantine-Tabs-tab:hover {
   background: transparent !important;
   font-weight: 600;
 }
 
-html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-tab:not([data-active]):hover {
+html[data-mantine-color-scheme] .mantine-AppShell-aside .mantine-Tabs-tab:not([data-active]):hover {
   color: var(--grist-body);
 }
 
 /* Кружки со счётчиками — слева от подписи, прижаты к низу */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-tabSection {
+html[data-mantine-color-scheme] .mantine-AppShell-aside .mantine-Tabs-tabSection {
   align-self: flex-end;
   margin: 0 6px 0 0;
 }
 
 /* Подпись не растягивается: иначе она центрируется сама по себе, а
    кружок уезжает к краю панели. */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-tabLabel {
+html[data-mantine-color-scheme] .mantine-AppShell-aside .mantine-Tabs-tabLabel {
   flex: none;
 }
 
 /* Голубой у «открыто», зелёный у «решено» — как было. Цвета заданы
    прямо: наша палитра перекрашивает голубой в серый. */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-tab:first-of-type .mantine-Badge-root {
+html[data-mantine-color-scheme] .mantine-AppShell-aside .mantine-Tabs-tab:first-of-type .mantine-Badge-root {
   background: #e7f0fd;
   color: #1c7ed6;
   /* Тонкая рамка: без неё кружок сливается с фоном панели */
   border: 1px solid #b6d3f7;
 }
 
-html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-tab:last-of-type .mantine-Badge-root {
+html[data-mantine-color-scheme] .mantine-AppShell-aside .mantine-Tabs-tab:last-of-type .mantine-Badge-root {
   background: #e6f7ef;
   color: var(--grist-primary-muted);
   border: 1px solid #b3e3ce;
 }
 
 /* Строка ввода выше: кнопка была крупнее её самой */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .ProseMirror {
+html[data-mantine-color-scheme] .mantine-AppShell-aside .ProseMirror {
   min-height: 34px;
   padding: 7px 36px 7px 10px;
 }
 
 /* Значок пользователя по середине строки ввода */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Group-root:has(.ProseMirror) {
+html[data-mantine-color-scheme] .mantine-AppShell-aside .mantine-Group-root:has(.ProseMirror) {
   align-items: center;
 }
 
@@ -948,7 +968,7 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Group-r
    середине по высоте. */
 /* Кнопка отправки во всю высоту поля: ширина равна высоте, скруглены
    только правые углы — по рамке поля. */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-ActionIcon-root[aria-label] {
+html[data-mantine-color-scheme] .mantine-AppShell-aside .mantine-ActionIcon-root[aria-label] {
   width: auto !important;
   height: auto !important;
   min-width: 0;
@@ -959,14 +979,14 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-ActionI
 
 /* Значок отправки: у него своя ширина в rem, и общее правило значков
    его сплющивало. Задаём размер явно и держим по центру кнопки. */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-ActionIcon-root[aria-label] svg {
+html[data-mantine-color-scheme] .mantine-AppShell-aside .mantine-ActionIcon-root[aria-label] svg {
   width: 16px;
   height: 16px;
   flex: none;
 }
 
 /* Верхние ярлычки: заливкой, как cssTopBarItem в Grist */
-html[data-mantine-color-scheme="light"] [data-panel-tabs] {
+html[data-mantine-color-scheme] [data-panel-tabs] {
   display: flex;
   /* 49px, а не 48: столько у шапки приложения, и низ ярлычков должен
      совпадать с её нижним краем — иначе видна ступенька. */
@@ -974,7 +994,7 @@ html[data-mantine-color-scheme="light"] [data-panel-tabs] {
   flex: none;
 }
 
-html[data-mantine-color-scheme="light"] [data-panel-tab] {
+html[data-mantine-color-scheme] [data-panel-tab] {
   flex: 1 1 0px;
   height: 100%;
   display: flex;
@@ -983,41 +1003,41 @@ html[data-mantine-color-scheme="light"] [data-panel-tab] {
   font-size: 13px;
   font-weight: 400;
   color: var(--grist-secondary);
-  background: #ffffff;
-  border-right: 1px solid #ffffff;
-  border-left: 1px solid #ffffff;
-  border-bottom: 1px solid rgba(217, 217, 217, 0.6);
+  background: var(--grist-bg);
+  border-right: 1px solid var(--grist-bg);
+  border-left: 1px solid var(--grist-bg);
+  border-bottom: 1px solid var(--grist-decoration-secondary);
   cursor: default;
 }
 
-html[data-mantine-color-scheme="light"] [data-panel-tab]:first-child {
+html[data-mantine-color-scheme] [data-panel-tab]:first-child {
   border-left: 0;
 }
 
-html[data-mantine-color-scheme="light"] [data-panel-tab]:last-child {
+html[data-mantine-color-scheme] [data-panel-tab]:last-child {
   border-right: 0;
 }
 
 /* Выбранный ярлычок сливается с содержимым: черта снизу становится его
    же цветом, а по бокам появляются черты. */
-html[data-mantine-color-scheme="light"] [data-panel-tab][data-active] {
-  background: var(--grist-bg-secondary, #f7f7f7);
+html[data-mantine-color-scheme] [data-panel-tab][data-active] {
+  background: var(--grist-bg-secondary);
   color: var(--grist-body);
   font-weight: 600;
-  border-bottom-color: var(--grist-bg-secondary, #f7f7f7);
-  border-left-color: rgba(217, 217, 217, 0.6);
-  border-right-color: rgba(217, 217, 217, 0.6);
+  border-bottom-color: var(--grist-bg-secondary);
+  border-left-color: var(--grist-decoration-secondary);
+  border-right-color: var(--grist-decoration-secondary);
 }
 
-html[data-mantine-color-scheme="light"] [data-panel-tab]:not([data-active]):hover {
-  background: #ffffff;
-  border-left-color: #ffffff;
-  border-right-color: #ffffff;
+html[data-mantine-color-scheme] [data-panel-tab]:not([data-active]):hover {
+  background: var(--grist-bg);
+  border-left-color: var(--grist-bg);
+  border-right-color: var(--grist-bg);
   color: var(--grist-body);
 }
 
 /* Подвкладки — подчёркиванием (cssSubTab) */
-html[data-mantine-color-scheme="light"] [data-panel-subtabs] {
+html[data-mantine-color-scheme] [data-panel-subtabs] {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1026,7 +1046,7 @@ html[data-mantine-color-scheme="light"] [data-panel-subtabs] {
   border-bottom: 1px solid var(--grist-decoration-secondary);
 }
 
-html[data-mantine-color-scheme="light"] [data-panel-subtab] {
+html[data-mantine-color-scheme] [data-panel-subtab] {
   /* Поровну, а не по содержимому: иначе «Основные» и «Интеграции»
      получались разной длины. */
   flex: 1 1 0;
@@ -1043,23 +1063,23 @@ html[data-mantine-color-scheme="light"] [data-panel-subtab] {
   cursor: default;
 }
 
-html[data-mantine-color-scheme="light"] [data-panel-subtab][data-active] {
+html[data-mantine-color-scheme] [data-panel-subtab][data-active] {
   font-weight: 600;
   color: var(--grist-body);
   border-bottom-color: var(--grist-primary);
 }
 
-html[data-mantine-color-scheme="light"] [data-panel-subtab]:not([data-active]):hover {
+html[data-mantine-color-scheme] [data-panel-subtab]:not([data-active]):hover {
   color: var(--grist-body);
 }
 
-html[data-mantine-color-scheme="light"] [data-panel-subtab]:hover {
+html[data-mantine-color-scheme] [data-panel-subtab]:hover {
   font-weight: 600;
 }
 
 /* Приём Grist: невидимый жирный дубль держит ширину, и текст не дёргается,
    когда начертание утолщается. */
-html[data-mantine-color-scheme="light"] [data-panel-subtab]::after {
+html[data-mantine-color-scheme] [data-panel-subtab]::after {
   content: attr(data-text);
   font-weight: 600;
   opacity: 0;
@@ -1068,18 +1088,18 @@ html[data-mantine-color-scheme="light"] [data-panel-subtab]::after {
   overflow: hidden;
 }
 
-html[data-mantine-color-scheme="light"] [data-panel-section] {
+html[data-mantine-color-scheme] [data-panel-section] {
   padding: 8px 16px;
 }
 
 /* Раздел с вкладками без боковых отступов: строка идёт от края до края.
    Отрицательные поля не годились — блок с прокруткой их обрезал. */
-html[data-mantine-color-scheme="light"] [data-panel-section]:has(.mantine-Tabs-root) {
+html[data-mantine-color-scheme] [data-panel-section]:has(.mantine-Tabs-root) {
   padding: 0;
 }
 
 /* Отступы возвращаются содержимому под вкладками */
-html[data-mantine-color-scheme="light"] [data-panel-section] .mantine-Tabs-panel {
+html[data-mantine-color-scheme] [data-panel-section] .mantine-Tabs-panel {
   padding: 8px 16px;
 }
 
@@ -1087,13 +1107,13 @@ html[data-mantine-color-scheme="light"] [data-panel-section] .mantine-Tabs-panel
    направо, а панель раскрывается справа налево — движения расходились.
    Едет сама панель, содержимое меняет ширину разом. */
 
-html[data-mantine-color-scheme="light"] [data-grist-right-panel] {
+html[data-mantine-color-scheme] [data-grist-right-panel] {
   display: flex;
   flex-direction: column;
   height: 100%;
 }
 
-html[data-mantine-color-scheme="light"] [data-right-panel-body] {
+html[data-mantine-color-scheme] [data-right-panel-body] {
   /* Занимает панель целиком: кнопка ушла в шапку, вычитать нечего */
   flex: 1 1 auto;
   min-height: 0;
@@ -1102,11 +1122,11 @@ html[data-mantine-color-scheme="light"] [data-right-panel-body] {
 }
 
 /* Значки свёрнутой полосы — по центру, как слева */
-html[data-mantine-color-scheme="light"] [data-right-rail] {
+html[data-mantine-color-scheme] [data-right-rail] {
   display: none;
 }
 
-html[data-mantine-color-scheme="light"] .mantine-AppShell-aside[data-collapsed] [data-right-rail] {
+html[data-mantine-color-scheme] .mantine-AppShell-aside[data-collapsed] [data-right-rail] {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1120,14 +1140,14 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-aside[data-collapsed] 
 }
 
 /* Раздел от раздела отделяется чертой */
-html[data-mantine-color-scheme="light"] [data-rail-commands] + [data-rail-commands] {
+html[data-mantine-color-scheme] [data-rail-commands] + [data-rail-commands] {
   padding-top: 6px;
   margin-top: 4px;
   border-top: 1px solid var(--grist-decoration-secondary);
 }
 
 /* Вкладки — в самом низу полосы, под чертой */
-html[data-mantine-color-scheme="light"] [data-rail-tabs] {
+html[data-mantine-color-scheme] [data-rail-tabs] {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1140,35 +1160,35 @@ html[data-mantine-color-scheme="light"] [data-rail-tabs] {
 
 /* Все значки команд — в два столбца сверху вниз. Сетка заполняется по
    строкам и даёт зигзаг, поэтому здесь разбивка на колонки. */
-html[data-mantine-color-scheme="light"] [data-rail-commands] {
+html[data-mantine-color-scheme] [data-rail-commands] {
   column-count: 2;
   column-gap: 2px;
   width: 42px;
   margin: 0 auto;
 }
 
-html[data-mantine-color-scheme="light"] [data-rail-commands] [data-rail-item] {
+html[data-mantine-color-scheme] [data-rail-commands] [data-rail-item] {
   break-inside: avoid;
   margin-bottom: 2px;
 }
 
-html[data-mantine-color-scheme="light"] [data-rail-commands] [data-rail-item] {
+html[data-mantine-color-scheme] [data-rail-commands] [data-rail-item] {
   width: 20px;
   height: 20px;
 }
 
-html[data-mantine-color-scheme="light"] [data-rail-commands] svg {
+html[data-mantine-color-scheme] [data-rail-commands] svg {
   width: 16px;
   height: 16px;
 }
 
 /* В режиме чтения команды на полосе тоже недоступны */
-html[data-mantine-color-scheme="light"] [data-rail-commands][data-disabled] [data-rail-item] {
+html[data-mantine-color-scheme] [data-rail-commands][data-disabled] [data-rail-item] {
   color: var(--grist-decoration);
   pointer-events: none;
 }
 
-html[data-mantine-color-scheme="light"] [data-rail-item] {
+html[data-mantine-color-scheme] [data-rail-item] {
   display: grid;
   place-items: center;
   width: 32px;
@@ -1177,12 +1197,12 @@ html[data-mantine-color-scheme="light"] [data-rail-item] {
   color: var(--grist-secondary);
 }
 
-html[data-mantine-color-scheme="light"] [data-rail-item]:hover {
+html[data-mantine-color-scheme] [data-rail-item]:hover {
   background: var(--grist-hover-row);
   color: var(--grist-body);
 }
 
-html[data-mantine-color-scheme="light"] [data-right-panel-title] {
+html[data-mantine-color-scheme] [data-right-panel-title] {
   padding: 4px 16px;
   font-size: 11px;
   font-weight: 500;
@@ -1192,7 +1212,7 @@ html[data-mantine-color-scheme="light"] [data-right-panel-title] {
 }
 
 /* Строка команды — те же размеры, что у пунктов меню слева */
-html[data-mantine-color-scheme="light"] [data-command] {
+html[data-mantine-color-scheme] [data-command] {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1205,35 +1225,35 @@ html[data-mantine-color-scheme="light"] [data-command] {
   cursor: grab;
 }
 
-html[data-mantine-color-scheme="light"] [data-command]:hover {
+html[data-mantine-color-scheme] [data-command]:hover {
   background: var(--grist-hover-row);
 }
 
-html[data-mantine-color-scheme="light"] [data-command]:active {
+html[data-mantine-color-scheme] [data-command]:active {
   cursor: grabbing;
 }
 
 /* Свои значки колонок нарисованы без размера — задаём его здесь */
-html[data-mantine-color-scheme="light"] [data-command] svg {
+html[data-mantine-color-scheme] [data-command] svg {
   flex: none;
   width: 16px;
   height: 16px;
 }
 
-html[data-mantine-color-scheme="light"] [data-command] span {
+html[data-mantine-color-scheme] [data-command] span {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 /* В режиме чтения вставлять некуда: команды серые и не нажимаются */
-html[data-mantine-color-scheme="light"] [data-right-panel-commands][data-disabled] [data-command] {
+html[data-mantine-color-scheme] [data-right-panel-commands][data-disabled] [data-command] {
   color: var(--grist-decoration);
   cursor: default;
   pointer-events: none;
 }
 
-html[data-mantine-color-scheme="light"] [data-right-panel-details] {
+html[data-mantine-color-scheme] [data-right-panel-details] {
   margin-top: 16px;
   padding: 0 16px;
   border-top: 1px solid var(--grist-decoration-secondary);
@@ -1241,7 +1261,7 @@ html[data-mantine-color-scheme="light"] [data-right-panel-details] {
 
 /* Меню у заголовка «Страницы» — тот же квадрат со скруглением, что и
    у остальных кнопок панели. */
-html[data-mantine-color-scheme="light"] [data-space-menu] {
+html[data-mantine-color-scheme] [data-space-menu] {
   width: 24px;
   height: 24px;
   border: 1px solid var(--grist-decoration-secondary);
@@ -1250,13 +1270,13 @@ html[data-mantine-color-scheme="light"] [data-space-menu] {
   background: transparent;
 }
 
-html[data-mantine-color-scheme="light"] [data-space-menu]:hover {
+html[data-mantine-color-scheme] [data-space-menu]:hover {
   background: var(--grist-hover-row);
   color: var(--grist-body);
 }
 
 /* Крошки: зазор до косой черты вдвое меньше — по 4px вместо 8 */
-html[data-mantine-color-scheme="light"] .mantine-Breadcrumbs-separator {
+html[data-mantine-color-scheme] .mantine-Breadcrumbs-separator {
   margin-left: 4px;
   margin-right: 4px;
 }
@@ -1265,40 +1285,40 @@ html[data-mantine-color-scheme="light"] .mantine-Breadcrumbs-separator {
    пространство. Под курсором темнеет и подчёркивается — так у Grist
    устроена ссылка (ui2018/links.js: цвет tokens.primary, при наведении
    добавляется подчёркивание). */
-html[data-mantine-color-scheme="light"] [data-space-crumb] {
+html[data-mantine-color-scheme] [data-space-crumb] {
   color: var(--grist-primary);
   text-decoration: none;
 }
 
-html[data-mantine-color-scheme="light"] [data-space-crumb]:hover {
+html[data-mantine-color-scheme] [data-space-crumb]:hover {
   color: var(--grist-primary-muted);
   text-decoration: underline;
 }
 
 /* Звенья страниц серые, как у Grist (cssBreadcrumbs: theme.lightText),
    под курсором — почти чёрные. */
-html[data-mantine-color-scheme="light"] .mantine-Breadcrumbs-root a:not([data-space-crumb]),
-html[data-mantine-color-scheme="light"] .mantine-Breadcrumbs-breadcrumb:not([data-space-crumb]) {
+html[data-mantine-color-scheme] .mantine-Breadcrumbs-root a:not([data-space-crumb]),
+html[data-mantine-color-scheme] .mantine-Breadcrumbs-breadcrumb:not([data-space-crumb]) {
   color: var(--grist-secondary);
 }
 
-html[data-mantine-color-scheme="light"] .mantine-Breadcrumbs-root a:not([data-space-crumb]):hover,
-html[data-mantine-color-scheme="light"] .mantine-Breadcrumbs-breadcrumb:not([data-space-crumb]):hover {
+html[data-mantine-color-scheme] .mantine-Breadcrumbs-root a:not([data-space-crumb]):hover,
+html[data-mantine-color-scheme] .mantine-Breadcrumbs-breadcrumb:not([data-space-crumb]):hover {
   color: var(--grist-body);
 }
 
 /* Косая черта между звеньями — тем же серым */
-html[data-mantine-color-scheme="light"] .mantine-Breadcrumbs-separator {
+html[data-mantine-color-scheme] .mantine-Breadcrumbs-separator {
   color: var(--grist-secondary);
 }
 
 /* Значки меню пространства — того же приглушённого тона, что и остальные */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [class*="_menuItemIcon_"] {
+html[data-mantine-color-scheme] .mantine-AppShell-navbar [class*="_menuItemIcon_"] {
   color: var(--grist-secondary);
 }
 
 /* В свёрнутом виде: полоса 48px, подписи скрыты, значок по центру */
-html[data-mantine-color-scheme="light"] [data-collapsed] [class*="_menu_"] {
+html[data-mantine-color-scheme] [data-collapsed] [class*="_menu_"] {
   width: 48px !important;
   min-width: 48px !important;
   max-width: 48px !important;
@@ -1306,9 +1326,9 @@ html[data-mantine-color-scheme="light"] [data-collapsed] [class*="_menu_"] {
   margin: 0 !important;
 }
 
-html[data-mantine-color-scheme="light"] [data-collapsed] [class*="_menu_"] span,
-html[data-mantine-color-scheme="light"] [data-collapsed] [class*="_pagesHeader_"],
-html[data-mantine-color-scheme="light"] [data-collapsed] [class*="_sectionPages_"] {
+html[data-mantine-color-scheme] [data-collapsed] [class*="_menu_"] span,
+html[data-mantine-color-scheme] [data-collapsed] [class*="_pagesHeader_"],
+html[data-mantine-color-scheme] [data-collapsed] [class*="_sectionPages_"] {
   display: none;
 }
 
@@ -1318,7 +1338,7 @@ html[data-mantine-color-scheme="light"] [data-collapsed] [class*="_sectionPages_
 
 /* Выезд по наведению: меняется только ширина самой панели. Страница при
    этом не едет — панель лежит поверх неё, как «-overlap» у Grist. */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar[data-hover-open] {
+html[data-mantine-color-scheme] .mantine-AppShell-navbar[data-hover-open] {
   /* Ширина берётся из выставленной чертой, а не прописана заранее */
   width: var(--sidebar-open-width, 240px) !important;
   z-index: 200;
@@ -1327,18 +1347,18 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar[data-hover-open
 /* Подписи прячутся, значок остаётся на месте — ровно так это сделано в
    LeftPanelCommon.js. Элементы не подменяются, поэтому нет ни мерцания,
    ни сползания. */
-html[data-mantine-color-scheme="light"] [data-collapsed] [class*="_link_"] span,
-html[data-mantine-color-scheme="light"] [data-collapsed] [class*="_link_"] > div > span,
-html[data-mantine-color-scheme="light"] [data-collapsed] [class*="_sectionHeader_"],
-html[data-mantine-color-scheme="light"] [data-collapsed] [data-workspace-badge] p {
+html[data-mantine-color-scheme] [data-collapsed] [class*="_link_"] span,
+html[data-mantine-color-scheme] [data-collapsed] [class*="_link_"] > div > span,
+html[data-mantine-color-scheme] [data-collapsed] [class*="_sectionHeader_"],
+html[data-mantine-color-scheme] [data-collapsed] [data-workspace-badge] p {
   display: none;
 }
 
 /* Заголовки разделов и подпись версии в свёрнутом виде прячутся.
    У Grist это visibility: hidden (cssSectionHeader), а не display: none —
    место сохраняется, и пункты не подпрыгивают при сворачивании. */
-html[data-mantine-color-scheme="light"] [data-collapsed] [class*="_linkHeader_"],
-html[data-mantine-color-scheme="light"] [data-collapsed] [class*="_text_"] {
+html[data-mantine-color-scheme] [data-collapsed] [class*="_linkHeader_"],
+html[data-mantine-color-scheme] [data-collapsed] [class*="_text_"] {
   visibility: hidden;
 }
 
@@ -1346,7 +1366,7 @@ html[data-mantine-color-scheme="light"] [data-collapsed] [class*="_text_"] {
    значке 16 даёт ровно середину). Приоритет обязателен: базовое правило
    пунктов длиннее и иначе побеждает — значки стояли на 24, а кнопки
    выходили за край полосы. */
-html[data-mantine-color-scheme="light"] [data-collapsed] [class*="_link_"] {
+html[data-mantine-color-scheme] [data-collapsed] [class*="_link_"] {
   width: 48px !important;
   min-width: 48px !important;
   max-width: 48px !important;
@@ -1358,11 +1378,11 @@ html[data-mantine-color-scheme="light"] [data-collapsed] [class*="_link_"] {
 }
 
 /* Плашка фирмы: остаётся только квадрат с логотипом */
-html[data-mantine-color-scheme="light"] [data-collapsed] [data-sidebar-header] {
+html[data-mantine-color-scheme] [data-collapsed] [data-sidebar-header] {
   padding: 0 8px;
 }
 
-html[data-mantine-color-scheme="light"] [data-collapsed] [data-workspace-badge] {
+html[data-mantine-color-scheme] [data-collapsed] [data-workspace-badge] {
   width: 32px;
   height: 32px;
   flex: none;
@@ -1370,14 +1390,14 @@ html[data-mantine-color-scheme="light"] [data-collapsed] [data-workspace-badge] 
 }
 
 /* В свёрнутом виде боковые отступы обёртке не нужны: кружок и так по центру */
-html[data-mantine-color-scheme="light"] [data-collapsed] [data-grist-add-slot] {
+html[data-mantine-color-scheme] [data-collapsed] [data-grist-add-slot] {
   padding-left: 0;
   padding-right: 0;
 }
 
 /* Кнопка «Пространство» сжимается до кружка: подпись и зазоры уходят,
    кружок остаётся ровно 28x28 — он и так flex: none. */
-html[data-mantine-color-scheme="light"] [data-collapsed] [data-grist-add] {
+html[data-mantine-color-scheme] [data-collapsed] [data-grist-add] {
   width: 28px;
   height: 28px;
   margin: 0 auto;
@@ -1386,35 +1406,35 @@ html[data-mantine-color-scheme="light"] [data-collapsed] [data-grist-add] {
   justify-content: center;
 }
 
-html[data-mantine-color-scheme="light"] [data-collapsed] [data-grist-add] > *:not([data-grist-add-circle]) {
+html[data-mantine-color-scheme] [data-collapsed] [data-grist-add] > *:not([data-grist-add-circle]) {
   display: none;
 }
 
-html[data-mantine-color-scheme="light"] [data-collapsed] [data-grist-add-circle] {
+html[data-mantine-color-scheme] [data-collapsed] [data-grist-add-circle] {
   background: transparent;
 }
 
 /* Свёрнутая полоса живёт по своим правилам: 48px без внутренних отступов,
    плашка во всю ширину. Правило выше её не касается — иначе значки
    съезжали, а выделение обрезалось. */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar:has([data-rail]) {
+html[data-mantine-color-scheme] .mantine-AppShell-navbar:has([data-rail]) {
   padding: 0;
 }
 
-html[data-mantine-color-scheme="light"] [data-rail] {
+html[data-mantine-color-scheme] [data-rail] {
   margin: 0;
   border-radius: 0;
 }
 
-/* Строка меню под курсором заливается #e4e4e4 — снято сравнением снимков
-   покоя и наведения (6774 точки поменялись с #f7f7f7 на #e4e4e4).
+/* Строка меню под курсором заливается var(--grist-hover-row) — снято сравнением снимков
+   покоя и наведения (6774 точки поменялись с var(--grist-bg-secondary) на var(--grist-hover-row)).
    Выбранной строки это не касается: у неё тёмная плашка. */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar [class*="_link_"]:not([data-rail]):not([data-active]):not([aria-current="page"]):hover {
+html[data-mantine-color-scheme] .mantine-AppShell-navbar [class*="_link_"]:not([data-rail]):not([data-active]):not([aria-current="page"]):hover {
   background: var(--grist-hover-row);
 }
 
 /* Заголовки групп — прописные с разрядкой, как в Grist */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar h2 {
+html[data-mantine-color-scheme] .mantine-AppShell-navbar h2 {
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -1441,34 +1461,34 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar h2 {
    ============================================================ */
 
 /* Размеры сняты с настоящего Grist по пикселям:
-     вертикальная линия  — x=48, толщина 1px, цвет #e8e8e8
+     вертикальная линия  — x=48, толщина 1px, цвет var(--grist-decoration-secondary)
      значки в шапке      — глиф 16x16
      значки в полосе     — глиф 16x16 при отступе 16px с каждой стороны
    Docmost рисует значки крупнее (18–20px), отчего шапка выглядит
    тяжелее оригинала. Задаём размер стилями, чтобы не править каждый
    вызов компонента в коде. */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-header svg {
+html[data-mantine-color-scheme] .mantine-AppShell-header svg {
   width: 16px;
   height: 16px;
 }
 
 /* Подсветка под значками шапки круглая. Прямые углы были моей ошибкой:
    я вывел их из числа изменившихся точек, а надо было смотреть на форму. */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-ActionIcon-root,
-html[data-mantine-color-scheme="light"] [data-grist-search] button {
+html[data-mantine-color-scheme] .mantine-AppShell-header .mantine-ActionIcon-root,
+html[data-mantine-color-scheme] [data-grist-search] button {
   border-radius: 50%;
 }
 
 /* В покое фона нет — кружок появляется только под курсором. Задавать
    прозрачность в разметке нельзя: она перебила бы правило наведения. */
-html[data-mantine-color-scheme="light"] [data-grist-search] button {
+html[data-mantine-color-scheme] [data-grist-search] button {
   background: transparent;
 }
 
 /* Значки в шапке зелёные — как в Grist. Снято по пикселям его лупы:
    45,186,133 с учётом сглаживания, то есть #16b378. Красная точка
    уведомлений своего цвета не теряет: она рисуется отдельным элементом. */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-ActionIcon-root svg {
+html[data-mantine-color-scheme] .mantine-AppShell-header .mantine-ActionIcon-root svg {
   color: var(--grist-primary);
 }
 
@@ -1478,77 +1498,77 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-Action
      наведение поле #009058, кружок #007548
      нажатие   то же, что наведение
    В свёрнутом виде кнопка сама и есть кружок: тёмный оттенок там не нужен. */
-html[data-mantine-color-scheme="light"] [data-grist-add] {
+html[data-mantine-color-scheme] [data-grist-add] {
   background: var(--grist-primary);
   transition: background 0.1s ease;
 }
 
-html[data-mantine-color-scheme="light"] [data-grist-add]:hover,
-html[data-mantine-color-scheme="light"] [data-grist-add]:active {
+html[data-mantine-color-scheme] [data-grist-add]:hover,
+html[data-mantine-color-scheme] [data-grist-add]:active {
   background: var(--grist-primary-muted);
 }
 
-html[data-mantine-color-scheme="light"] [data-grist-add-circle] {
+html[data-mantine-color-scheme] [data-grist-add-circle] {
   background: var(--grist-primary-muted);
   transition: background 0.1s ease;
 }
 
-html[data-mantine-color-scheme="light"] [data-grist-add]:hover [data-grist-add-circle],
-html[data-mantine-color-scheme="light"] [data-grist-add]:active [data-grist-add-circle] {
+html[data-mantine-color-scheme] [data-grist-add]:hover [data-grist-add-circle],
+html[data-mantine-color-scheme] [data-grist-add]:active [data-grist-add-circle] {
   background: var(--grist-primary-dim);
 }
 
 /* При наведении и нажатии Grist не показывает подложку — темнеет сам
    значок: #16b378 в покое, #009058 под курсором и при нажатии.
    Проверено замером: фон кнопки не меняется, меняется цвет глифа. */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-ActionIcon-root:hover,
-html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-ActionIcon-root:active,
-html[data-mantine-color-scheme="light"] [data-grist-search] button:hover {
+html[data-mantine-color-scheme] .mantine-AppShell-header .mantine-ActionIcon-root:hover,
+html[data-mantine-color-scheme] .mantine-AppShell-header .mantine-ActionIcon-root:active,
+html[data-mantine-color-scheme] [data-grist-search] button:hover {
   background: var(--grist-decoration-secondary);
 }
 
 /* У стрелки сворачивания подложки нет вовсе — темнеет только сам значок.
    Кружок под ней просили убрать. */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-ActionIcon-root[data-sidebar-toggle],
-html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-ActionIcon-root[data-sidebar-toggle]:hover,
-html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-ActionIcon-root[data-sidebar-toggle]:active,
-html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-ActionIcon-root[data-right-toggle],
-html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-ActionIcon-root[data-right-toggle]:hover,
-html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-ActionIcon-root[data-right-toggle]:active {
+html[data-mantine-color-scheme] .mantine-AppShell-header .mantine-ActionIcon-root[data-sidebar-toggle],
+html[data-mantine-color-scheme] .mantine-AppShell-header .mantine-ActionIcon-root[data-sidebar-toggle]:hover,
+html[data-mantine-color-scheme] .mantine-AppShell-header .mantine-ActionIcon-root[data-sidebar-toggle]:active,
+html[data-mantine-color-scheme] .mantine-AppShell-header .mantine-ActionIcon-root[data-right-toggle],
+html[data-mantine-color-scheme] .mantine-AppShell-header .mantine-ActionIcon-root[data-right-toggle]:hover,
+html[data-mantine-color-scheme] .mantine-AppShell-header .mantine-ActionIcon-root[data-right-toggle]:active {
   /* Точность выше, чем у общего правила для значков шапки: иначе оно
      перебивало и кружок оставался. */
   background: transparent;
 }
 
-html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-ActionIcon-root:hover svg,
-html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-ActionIcon-root:active svg,
-html[data-mantine-color-scheme="light"] [data-grist-search] button:hover svg {
+html[data-mantine-color-scheme] .mantine-AppShell-header .mantine-ActionIcon-root:hover svg,
+html[data-mantine-color-scheme] .mantine-AppShell-header .mantine-ActionIcon-root:active svg,
+html[data-mantine-color-scheme] [data-grist-search] button:hover svg {
   color: var(--grist-primary-muted);
 }
 
 /* Толщина линии колокольчика: у лупы (и у нашей, и у гристовской) штрих
    1–2px, у колокольчика при обводке 2 было 2–3px и он выглядел жирнее.
    1.4 в системе координат Tabler даёт на 20px около 1.2px на экране. */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-header svg[data-bell] {
+html[data-mantine-color-scheme] .mantine-AppShell-header svg[data-bell] {
   stroke-width: 1.4;
 }
 
 /* Значки свёрнутой полосы у Grist приглушённые (#929299), а не чёрные.
    У выбранного пункта плашка тёмная, и значок на ней белый — за это
    отвечает правило ниже. */
-html[data-mantine-color-scheme="light"] [data-rail] svg {
+html[data-mantine-color-scheme] [data-rail] svg {
   color: var(--grist-secondary);
 }
 
-html[data-mantine-color-scheme="light"] [data-rail][data-active] svg,
-html[data-mantine-color-scheme="light"] [data-rail][aria-current="page"] svg {
+html[data-mantine-color-scheme] [data-rail][data-active] svg,
+html[data-mantine-color-scheme] [data-rail][aria-current="page"] svg {
   color: #ffffff;
 }
 
 /* Фильтры под строкой поиска повторяют панель «искать на всех страницах»:
-   строка 25px, значок 16, отступ 8, текст 13/16 цветом #262633, без
+   строка 25px, значок 16, отступ 8, текст 13/16 цветом var(--grist-body), без
    кнопочной обводки и заливки. Размеры сняты из DOM Grist. */
-html[data-mantine-color-scheme="light"] [data-search-filters] > div {
+html[data-mantine-color-scheme] [data-search-filters] > div {
   /* Фильтры идут в ряд вдоль всего поля поиска, а не столбиком. */
   flex-direction: row;
   align-items: center;
@@ -1557,7 +1577,7 @@ html[data-mantine-color-scheme="light"] [data-search-filters] > div {
   padding: 2px 4px;
 }
 
-html[data-mantine-color-scheme="light"] [data-search-filters] button {
+html[data-mantine-color-scheme] [data-search-filters] button {
   height: 25px;
   min-height: 25px;
   padding: 2px 4px;
@@ -1569,7 +1589,7 @@ html[data-mantine-color-scheme="light"] [data-search-filters] button {
   color: var(--grist-body);
 }
 
-html[data-mantine-color-scheme="light"] [data-search-filters] button svg {
+html[data-mantine-color-scheme] [data-search-filters] button svg {
   width: 16px;
   height: 16px;
   color: var(--grist-secondary);
@@ -1577,21 +1597,21 @@ html[data-mantine-color-scheme="light"] [data-search-filters] button svg {
 
 /* Колокольчик крупнее прочих: обводка при 16px читается мельче
    сплошного глифа лупы (12x14 чернил против 15x15). */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-header svg[data-bell] {
+html[data-mantine-color-scheme] .mantine-AppShell-header svg[data-bell] {
   width: 20px;
   height: 20px;
 }
 
 /* Кружок пользователя — исключение: это аватар, а не значок,
    ему размер задаёт сам компонент. */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-header .mantine-Avatar-root svg {
+html[data-mantine-color-scheme] .mantine-AppShell-header .mantine-Avatar-root svg {
   width: auto;
   height: auto;
 }
 
 /* Линии перекрестья ровно того же цвета и толщины, что у Grist */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-header,
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar {
+html[data-mantine-color-scheme] .mantine-AppShell-header,
+html[data-mantine-color-scheme] .mantine-AppShell-navbar {
   border-color: var(--grist-decoration-secondary);
   border-width: 1px;
 }
@@ -1601,7 +1621,7 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar {
    обрезалась стрелка. Разрешаем ряду переноситься на вторую строку.
    Класс контейнера захеширован сборщиком, поэтому цепляемся за метку
    на нашей обёртке. */
-html[data-mantine-color-scheme="light"] [data-search-filters] > div {
+html[data-mantine-color-scheme] [data-search-filters] > div {
   flex-wrap: wrap;
   row-gap: 4px;
 }
@@ -1610,43 +1630,43 @@ html[data-mantine-color-scheme="light"] [data-search-filters] > div {
    4. Вкладки, таблицы, меню, поля
    ============================================================ */
 
-html[data-mantine-color-scheme="light"] .mantine-Tabs-tab {
+html[data-mantine-color-scheme] .mantine-Tabs-tab {
   color: var(--grist-secondary);
   font-weight: 500;
   border-bottom-width: 2px;
 }
 
-html[data-mantine-color-scheme="light"] .mantine-Tabs-tab[data-active] {
+html[data-mantine-color-scheme] .mantine-Tabs-tab[data-active] {
   color: var(--grist-body);
   font-weight: 600;
   border-bottom-color: var(--grist-primary);
   background: transparent;
 }
 
-html[data-mantine-color-scheme="light"] .mantine-Tabs-tab:hover {
+html[data-mantine-color-scheme] .mantine-Tabs-tab:hover {
   background: transparent;
   color: var(--grist-body);
 }
 
-html[data-mantine-color-scheme="light"] .mantine-Table-thead th {
+html[data-mantine-color-scheme] .mantine-Table-thead th {
   color: var(--grist-secondary);
   font-weight: 450;
   font-size: 13px;
   border-bottom-color: var(--grist-line-soft);
 }
 
-html[data-mantine-color-scheme="light"] .mantine-Table-tbody td {
+html[data-mantine-color-scheme] .mantine-Table-tbody td {
   border-bottom-color: var(--grist-line-soft);
 }
 
-html[data-mantine-color-scheme="light"] .mantine-Menu-dropdown,
-html[data-mantine-color-scheme="light"] .mantine-Popover-dropdown {
+html[data-mantine-color-scheme] .mantine-Menu-dropdown,
+html[data-mantine-color-scheme] .mantine-Popover-dropdown {
   border-color: var(--grist-decoration-secondary);
   border-radius: var(--grist-radius);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
 }
 
-html[data-mantine-color-scheme="light"] .mantine-Menu-label {
+html[data-mantine-color-scheme] .mantine-Menu-label {
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.07em;
@@ -1654,13 +1674,13 @@ html[data-mantine-color-scheme="light"] .mantine-Menu-label {
   color: var(--grist-secondary);
 }
 
-html[data-mantine-color-scheme="light"] .mantine-Input-input {
+html[data-mantine-color-scheme] .mantine-Input-input {
   border-color: var(--grist-decoration-secondary);
   border-radius: var(--grist-radius);
 }
 
-html[data-mantine-color-scheme="light"] .mantine-Input-input:focus,
-html[data-mantine-color-scheme="light"] .mantine-Input-input:focus-within {
+html[data-mantine-color-scheme] .mantine-Input-input:focus,
+html[data-mantine-color-scheme] .mantine-Input-input:focus-within {
   border-color: var(--grist-primary);
 }
 
@@ -1677,8 +1697,8 @@ html[data-mantine-color-scheme="light"] .mantine-Input-input:focus-within {
 
    В исходниках опечатка исправлена, но правило оставлено — тема должна
    выглядеть правильно и на сборке без этой правки. */
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar a[data-active] :hover,
-html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar a[aria-current="page"] :hover {
+html[data-mantine-color-scheme] .mantine-AppShell-navbar a[data-active] :hover,
+html[data-mantine-color-scheme] .mantine-AppShell-navbar a[aria-current="page"] :hover {
   background-color: transparent;
   color: inherit;
 }
@@ -1698,15 +1718,15 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-navbar a[aria-current=
 
    Заодно Popover: если его фон окажется не задан, получится такой же
    белый блок. */
-html[data-mantine-color-scheme="light"] .mantine-Tooltip-tooltip {
+html[data-mantine-color-scheme] .mantine-Tooltip-tooltip {
   background-color: var(--grist-bg-emphasis);
   color: #ffffff;
   font-size: 12px;
   box-shadow: none;
 }
 
-html[data-mantine-color-scheme="light"] .mantine-Popover-dropdown,
-html[data-mantine-color-scheme="light"] .mantine-Menu-dropdown {
+html[data-mantine-color-scheme] .mantine-Popover-dropdown,
+html[data-mantine-color-scheme] .mantine-Menu-dropdown {
   background-color: var(--grist-bg);
   color: var(--grist-body);
 }
@@ -1720,57 +1740,57 @@ html[data-mantine-color-scheme="light"] .mantine-Menu-dropdown {
    который мы уменьшили до 13px, — а заголовки заданы в rem и остались
    прежними (30/24/20px). Получался мелкий текст под крупными заголовками.
    Поэтому задаём и то и другое явно, считая заголовки от размера текста. */
-html[data-mantine-color-scheme="light"] .ProseMirror {
+html[data-mantine-color-scheme] .ProseMirror {
   font-family: var(--grist-font);
   font-size: var(--grist-content-size);
 }
 
-html[data-mantine-color-scheme="light"] .ProseMirror h1 {
+html[data-mantine-color-scheme] .ProseMirror h1 {
   font-size: calc(var(--grist-content-size) * 1.9);
   font-weight: 650;
   letter-spacing: -0.015em;
 }
 
-html[data-mantine-color-scheme="light"] .ProseMirror h2 {
+html[data-mantine-color-scheme] .ProseMirror h2 {
   font-size: calc(var(--grist-content-size) * 1.5);
   font-weight: 650;
   letter-spacing: -0.01em;
 }
 
-html[data-mantine-color-scheme="light"] .ProseMirror h3 {
+html[data-mantine-color-scheme] .ProseMirror h3 {
   font-size: calc(var(--grist-content-size) * 1.22);
   font-weight: 600;
 }
 
 /* Заголовок самой страницы — крупнее прочего, но в той же пропорции */
-html[data-mantine-color-scheme="light"] .page-title .ProseMirror h1 {
+html[data-mantine-color-scheme] .page-title .ProseMirror h1 {
   font-size: calc(var(--grist-content-size) * 2.35);
   font-weight: 700;
   letter-spacing: -0.02em;
 }
 
 /* Таблицы внутри страниц — тонкие линии, как у остального интерфейса */
-html[data-mantine-color-scheme="light"] .ProseMirror table td,
-html[data-mantine-color-scheme="light"] .ProseMirror table th {
+html[data-mantine-color-scheme] .ProseMirror table td,
+html[data-mantine-color-scheme] .ProseMirror table th {
   border-color: var(--grist-decoration-secondary);
 }
 
-html[data-mantine-color-scheme="light"] .ProseMirror table th {
+html[data-mantine-color-scheme] .ProseMirror table th {
   background-color: var(--grist-bg-secondary);
   font-weight: 600;
 }
 
 /* Цитата и разделитель */
-html[data-mantine-color-scheme="light"] .ProseMirror blockquote {
+html[data-mantine-color-scheme] .ProseMirror blockquote {
   border-left-color: var(--grist-primary);
 }
 
-html[data-mantine-color-scheme="light"] .ProseMirror hr {
+html[data-mantine-color-scheme] .ProseMirror hr {
   border-color: var(--grist-decoration-secondary);
 }
 
 /* Ссылки — зелёные, как акцент Grist */
-html[data-mantine-color-scheme="light"] .ProseMirror a {
+html[data-mantine-color-scheme] .ProseMirror a {
   color: var(--grist-primary-dim);
 }
 
@@ -1778,16 +1798,16 @@ html[data-mantine-color-scheme="light"] .ProseMirror a {
    5. Карточки и кнопки: меньше теней, плотнее
    ============================================================ */
 
-html[data-mantine-color-scheme="light"] .mantine-Paper-root,
-html[data-mantine-color-scheme="light"] .mantine-Card-root {
+html[data-mantine-color-scheme] .mantine-Paper-root,
+html[data-mantine-color-scheme] .mantine-Card-root {
   border-color: var(--grist-decoration-secondary);
   box-shadow: none;
 }
 
-html[data-mantine-color-scheme="light"] .mantine-Button-root {
+html[data-mantine-color-scheme] .mantine-Button-root {
   font-weight: 600;
 }
 
-html[data-mantine-color-scheme="light"] .mantine-Title-root {
+html[data-mantine-color-scheme] .mantine-Title-root {
   letter-spacing: -0.01em;
 }
