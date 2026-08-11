@@ -878,6 +878,34 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-ta
   background: transparent;
 }
 
+/* Подпись по центру, как у подвкладок; счётчик — после неё */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-tabLabel {
+  order: 1;
+}
+
+html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-tabSection {
+  order: 2;
+  margin: 0 0 0 4px;
+  align-self: flex-end;
+}
+
+/* Счётчик — просто число после подписи, без цветного кружка */
+html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-tab .mantine-Badge-root {
+  order: 2;
+  background: transparent;
+  color: var(--grist-secondary);
+  font-size: 12px;
+  font-weight: 400;
+  padding: 0;
+  min-width: 0;
+  height: auto;
+  margin-left: 4px;
+}
+
+html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-Tabs-tab[data-active] .mantine-Badge-root {
+  color: var(--grist-body);
+}
+
 /* Значок отправки: у него своя ширина в rem, и общее правило значков
    его сплющивало. Задаём размер явно и держим по центру кнопки. */
 html[data-mantine-color-scheme="light"] .mantine-AppShell-aside .mantine-ActionIcon-root[aria-label] svg {
