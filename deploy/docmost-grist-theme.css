@@ -776,6 +776,11 @@ html[data-mantine-color-scheme="light"] .mantine-AppShell-aside[data-hover-open]
   z-index: 200;
 }
 
+/* Ширина едет 0.4s ease — то же свойство и то же время, что у левой */
+html[data-app-ready][data-mantine-color-scheme="light"] .mantine-AppShell-aside {
+  transition: width 0.4s ease;
+}
+
 /* Пока тянут, перехода нет: иначе панель ползёт с задержкой */
 html[data-mantine-color-scheme="light"] .mantine-AppShell-aside[data-dragging] {
   transition: none !important;
