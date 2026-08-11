@@ -63,6 +63,11 @@ function SidebarHeader() {
   );
 }
 
+// Дерево страниц и список команд не зависят от ширины панели, но
+// перерисовывались вместе с ней на каждое движение мыши.
+const MemoSpaceSidebar = React.memo(SpaceSidebar);
+const MemoRightPanel = React.memo(GristRightPanel);
+
 export default function GlobalAppShell({
   children,
 }: {
@@ -348,7 +353,7 @@ export default function GlobalAppShell({
             minHeight: 0,
           }}
         >
-          {isSpaceRoute && <SpaceSidebar />}
+          {isSpaceRoute && <MemoSpaceSidebar />}
           {isSettingsRoute && <SettingsSidebar />}
           {isAiRoute && <AiChatSidebar />}
           {showGlobalSidebar && <GlobalSidebar />}
@@ -426,7 +431,7 @@ export default function GlobalAppShell({
                   minHeight: 0,
                 }}
               >
-                <GristRightPanel />
+                <MemoRightPanel />
               </div>
             </div>
           ) : (
