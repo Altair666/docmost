@@ -23,6 +23,7 @@ import { IContributor } from "@/features/page/types/page.types.ts";
 import { FixedToolbar } from "@/features/editor/components/fixed-toolbar/fixed-toolbar";
 import { PageEditMode } from "@/features/user/types/user.types.ts";
 import { useAsideTriggerProps } from "@/hooks/use-toggle-aside.tsx";
+import { useUiFlags } from "@/custom-sso/ui-flags";
 import { DeletedPageBanner } from "@/features/page/trash/components/deleted-page-banner.tsx";
 import clsx from "clsx";
 import { currentPageEditModeAtom } from "@/features/editor/atoms/editor-atoms.ts";
@@ -66,6 +67,7 @@ export function FullEditor({
   contributors,
   canComment,
 }: FullEditorProps) {
+  const { customUi } = useUiFlags();
   const [user] = useAtom(userAtom);
   const fullPageWidth = user.settings?.preferences?.fullPageWidth;
   const editorToolbarEnabled =
@@ -104,11 +106,15 @@ export function FullEditor({
         spaceSlug={spaceSlug}
         editable={editable}
       />
-      <PageByline
-        creator={creator}
-        contributors={contributors}
-        readOnly={!editable}
-      />
+      {/* В нашем оформлении строка автора живёт в верхней строке, рядом
+          с «Поделиться». В стоковом виде остаётся здесь. */}
+      {!customUi && (
+        <PageByline
+          creator={creator}
+          contributors={contributors}
+          readOnly={!editable}
+        />
+      )}
       <MemoizedPageEditor
         pageId={pageId}
         editable={editable}
@@ -126,7 +132,7 @@ type PageBylineProps = {
   readOnly?: boolean;
 };
 
-function PageByline({ creator, contributors, readOnly }: PageBylineProps) {
+export function PageByline({ creator, contributors, readOnly }: PageBylineProps) {
   const { t } = useTranslation();
   const detailsTriggerProps = useAsideTriggerProps("details");
 

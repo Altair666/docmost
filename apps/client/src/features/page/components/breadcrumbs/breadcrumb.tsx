@@ -51,7 +51,7 @@ export default function Breadcrumb() {
     <Anchor
       component={Link}
       to={getSpaceUrl(spaceSlug)}
-      underline="always"
+      underline="never"
       fz="sm"
       key="space"
       data-space-crumb=""

@@ -3,6 +3,7 @@ import PageHeaderMenu from "@/features/page/components/header/page-header-menu.t
 import { Group } from "@mantine/core";
 import Breadcrumb from "@/features/page/components/breadcrumbs/breadcrumb.tsx";
 import { useUiFlags } from "@/custom-sso/ui-flags";
+import PageBylineTop from "@/custom-sso/PageBylineTop";
 
 interface Props {
   readOnly?: boolean;
@@ -18,6 +19,7 @@ export default function PageHeader({ readOnly }: Props) {
         {customUi ? <div /> : <Breadcrumb />}
 
         <Group justify="flex-end" h="100%" px="md" wrap="nowrap" gap="var(--mantine-spacing-xs)">
+          {customUi && <PageBylineTop readOnly={readOnly} />}
           <PageHeaderMenu readOnly={readOnly} />
         </Group>
       </Group>

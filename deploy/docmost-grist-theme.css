@@ -729,11 +729,23 @@ html[data-mantine-color-scheme="light"] .mantine-Breadcrumbs-separator {
   margin-right: 4px;
 }
 
-/* Звено пространства — зелёное и подчёркнутое: оно ведёт не на страницу,
-   а в само пространство, и должно отличаться от звеньев страниц. */
+/* Звено пространства — зелёное: оно ведёт не на страницу, а в само
+   пространство. Под курсором темнеет и подчёркивается — так у Grist
+   устроена ссылка (ui2018/links.js: цвет tokens.primary, при наведении
+   добавляется подчёркивание). */
 html[data-mantine-color-scheme="light"] [data-space-crumb] {
+  color: var(--grist-primary);
+  text-decoration: none;
+}
+
+html[data-mantine-color-scheme="light"] [data-space-crumb]:hover {
   color: var(--grist-primary-muted);
   text-decoration: underline;
+}
+
+/* Остальные звенья под курсором просто темнеют */
+html[data-mantine-color-scheme="light"] .mantine-Breadcrumbs-root a:not([data-space-crumb]):hover {
+  color: var(--grist-body);
 }
 
 /* Значки меню пространства — того же приглушённого тона, что и остальные */
