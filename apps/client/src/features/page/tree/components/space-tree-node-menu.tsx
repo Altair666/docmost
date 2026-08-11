@@ -1,5 +1,6 @@
 import { useAtom } from "jotai";
 import { useTranslation } from "react-i18next";
+import { useUiFlags } from "@/custom-sso/ui-flags";
 import { useParams } from "react-router-dom";
 import { ActionIcon, Menu, rem } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
@@ -7,6 +8,7 @@ import { notifications } from "@mantine/notifications";
 import {
   IconArrowRight,
   IconCopy,
+  IconDots,
   IconDotsVertical,
   IconFileExport,
   IconLink,
@@ -44,6 +46,7 @@ export interface NodeMenuProps {
 
 export function NodeMenu({ node, canEdit }: NodeMenuProps) {
   const { t } = useTranslation();
+  const { customUi } = useUiFlags();
   const clipboard = useClipboard({ timeout: 500 });
   const { spaceSlug } = useParams();
   const { openDeleteModal } = useDeletePageModal();
@@ -135,10 +138,14 @@ export function NodeMenu({ node, canEdit }: NodeMenuProps) {
               e.stopPropagation();
             }}
           >
-            <IconDotsVertical
-              style={{ width: rem(20), height: rem(20) }}
-              stroke={2}
-            />
+            {customUi ? (
+              <IconDots style={{ width: rem(18), height: rem(18) }} stroke={2} />
+            ) : (
+              <IconDotsVertical
+                style={{ width: rem(20), height: rem(20) }}
+                stroke={2}
+              />
+            )}
           </ActionIcon>
         </Menu.Target>
 

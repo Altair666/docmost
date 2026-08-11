@@ -844,6 +844,22 @@ html[data-mantine-color-scheme="light"] [data-right-panel-details] {
   border-top: 1px solid var(--grist-decoration-secondary);
 }
 
+/* Меню у заголовка «Страницы» — тот же квадрат со скруглением, что и
+   у остальных кнопок панели. */
+html[data-mantine-color-scheme="light"] [data-space-menu] {
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--grist-decoration-secondary);
+  border-radius: 3px;
+  color: var(--grist-secondary);
+  background: transparent;
+}
+
+html[data-mantine-color-scheme="light"] [data-space-menu]:hover {
+  background: var(--grist-hover-row);
+  color: var(--grist-body);
+}
+
 /* Крошки: зазор до косой черты вдвое меньше — по 4px вместо 8 */
 html[data-mantine-color-scheme="light"] .mantine-Breadcrumbs-separator {
   margin-left: 4px;

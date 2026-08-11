@@ -219,7 +219,9 @@ export function SpaceSidebar() {
                 onSpaceSettings={openSettings}
               />
 
-              {spaceAbility.can(
+              {/* Плюсика здесь нет: страница заводится кнопкой
+                  «Новая страница» выше. */}
+              {!customUi && spaceAbility.can(
                 SpaceCaslAction.Manage,
                 SpaceCaslSubject.Page,
               ) && (
@@ -269,6 +271,7 @@ function SpaceMenu({
   onSpaceSettings,
 }: SpaceMenuProps) {
   const { t } = useTranslation();
+  const { customUi } = useUiFlags();
   const { spaceSlug } = useParams();
   const [importOpened, { open: openImportModal, close: closeImportModal }] =
     useDisclosure(false);
@@ -315,10 +318,11 @@ function SpaceMenu({
           <Tooltip label={t("Space menu")} withArrow position="top">
             <ActionIcon
               variant="default"
-              size={18}
+              size={customUi ? 24 : 18}
+              data-space-menu={customUi ? "" : undefined}
               aria-label={t("Space menu")}
             >
-              <IconDots />
+              <IconDots size={customUi ? 16 : undefined} />
             </ActionIcon>
           </Tooltip>
         </Menu.Target>
