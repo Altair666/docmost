@@ -580,7 +580,10 @@ html[data-mantine-color-scheme="light"] [data-space-switch] {
   width: calc(100% - 16px);
   height: 32px;
   min-height: 32px;
-  padding: 0 8px 0 24px;
+  /* 20px, а не 24: у кнопки своя рамка в 1px, и содержимое начинается
+     на padding + 1. Значок 24px встаёт на x=21 серединой на 33 — в тот
+     же столбец, что значки строк ниже и плюс. */
+  padding: 0 8px 0 20px;
   border-radius: 0 3px 3px 0;
   font-size: 13px;
   font-weight: 400;
@@ -597,7 +600,6 @@ html[data-mantine-color-scheme="light"] [data-space-switch] .mantine-Avatar-root
   width: 24px;
   height: 24px;
   min-width: 24px;
-  margin-left: -4px;
 }
 
 /* Подпись пространства шла с отступом в 12px со всех сторон и роняла
