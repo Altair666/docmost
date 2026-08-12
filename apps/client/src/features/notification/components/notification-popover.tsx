@@ -28,9 +28,11 @@ import {
   useUnreadCountQuery,
 } from "../queries/notification-query";
 import classes from "../notification.module.css";
+import { useUiFlags } from "@/custom-sso/ui-flags";
 
 export function NotificationPopover() {
   const { t } = useTranslation();
+  const { customUi } = useUiFlags();
   const titleId = useId();
   const [opened, setOpened] = useState(false);
   const [tab, setTab] = useState<NotificationTab>("direct");
@@ -64,7 +66,7 @@ export function NotificationPopover() {
           <ActionIcon
             variant="subtle"
             color="dark"
-            size={32}
+            size={customUi ? 32 : "sm"}
             aria-label={t("Notifications")}
             aria-haspopup="dialog"
             aria-expanded={opened}
@@ -79,7 +81,7 @@ export function NotificationPopover() {
               {/* 20px: у лупы Grist сплошной глиф даёт 15x15 чернил, а
                   обводка колокольчика при 16px — только 12x14 и читается
                   мельче. На 20px ширины совпадают. */}
-              <IconBell size={20} data-bell="" />
+              <IconBell size={20} data-bell={customUi ? "" : undefined} />
             </Indicator>
           </ActionIcon>
         </Tooltip>

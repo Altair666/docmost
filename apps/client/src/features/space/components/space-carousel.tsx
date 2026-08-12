@@ -18,6 +18,9 @@ import { useTranslation } from "react-i18next";
 import { CustomAvatar } from "@/components/ui/custom-avatar.tsx";
 import { AvatarIconType } from "@/features/attachments/types/attachment.types.ts";
 import CardCarousel from "@/components/ui/card-carousel";
+import { Button } from "@mantine/core";
+import { IconArrowRight } from "@tabler/icons-react";
+import { useUiFlags } from "@/custom-sso/ui-flags";
 
 function SpaceCardSkeleton() {
   return (
@@ -32,6 +35,7 @@ function SpaceCardSkeleton() {
 
 export default function SpaceCarousel() {
   const { t } = useTranslation();
+  const { customUi } = useUiFlags();
   const { data, isPending } = useGetSpacesQuery({ limit: 20 });
 
   if (isPending) {
@@ -92,6 +96,22 @@ export default function SpaceCarousel() {
       </Group>
 
       <CardCarousel ariaLabel={t("Spaces you belong to")}>{cards}</CardCarousel>
+
+      {/* В нашем виде эта ссылка переехала на черту вкладок ниже, как у
+          Grist, поэтому здесь её нет. */}
+      {!customUi && data?.items && data.items.length > 1 && (
+        <Group justify="flex-end" mt="lg">
+          <Button
+            component={Link}
+            to="/spaces"
+            variant="subtle"
+            rightSection={<IconArrowRight size={16} />}
+            size="sm"
+          >
+            {t("View all spaces")}
+          </Button>
+        </Group>
+      )}
     </>
   );
 }

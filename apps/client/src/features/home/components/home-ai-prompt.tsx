@@ -8,6 +8,7 @@ import type {
   PageMention,
 } from "@/ee/ai-chat/types/ai-chat.types";
 import classes from "./home-ai-prompt.module.css";
+import { useUiFlags } from "@/custom-sso/ui-flags";
 
 export type HomeAiPromptInitialState = {
   initialContent: string;
@@ -17,6 +18,7 @@ export type HomeAiPromptInitialState = {
 
 export default function HomeAiPrompt() {
   const { t } = useTranslation();
+  const { customUi } = useUiFlags();
   const navigate = useNavigate();
   const workspace = useAtomValue(workspaceAtom);
 
@@ -39,8 +41,12 @@ export default function HomeAiPrompt() {
 
   return (
     // Отбивка снизу — своя: снаружи она занимала место и тогда, когда
-    // блока нет (ИИ выключен).
-    <div className={classes.wrapper} style={{ marginBottom: 32 }}>
+    // блока нет (ИИ выключен). Только в нашем виде: у апстрима её задаёт
+    // сама страница.
+    <div
+      className={classes.wrapper}
+      style={customUi ? { marginBottom: 32 } : undefined}
+    >
       <h1 className={classes.heading}>
         {t("Welcome to {{name}}", { name: workspace?.name ?? "Docmost" })}
       </h1>

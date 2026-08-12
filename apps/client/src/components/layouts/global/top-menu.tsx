@@ -33,9 +33,11 @@ import useAuth from "@/features/auth/hooks/use-auth.ts";
 import { CustomAvatar } from "@/components/ui/custom-avatar.tsx";
 import { useTranslation } from "react-i18next";
 import { AvatarIconType } from "@/features/attachments/types/attachment.types.ts";
+import { useUiFlags } from "@/custom-sso/ui-flags";
 
 export default function TopMenu() {
   const { t } = useTranslation();
+  const { customUi } = useUiFlags();
   const [currentUser] = useAtom(currentUserAtom);
   const { logout } = useAuth();
   const { colorScheme, setColorScheme } = useMantineColorScheme();
@@ -59,20 +61,37 @@ export default function TopMenu() {
     <>
     <Menu width={250} position="bottom-end" withArrow shadow={"lg"}>
       <Menu.Target>
-        {/* Раньше это была плашка воркспейса с названием и стрелкой. Название
-            переехало в левый верхний угол (WorkspaceBadge), а меню осталось
-            здесь и открывается по кружку с аватаром пользователя — без
-            подписи и без стрелки. Содержимое меню не тронуто: настройки
-            воркспейса, участники, профиль, мои настройки, тема, выход. */}
-        <UnstyledButton aria-label={t("Account and settings")}>
-          <CustomAvatar
-            avatarUrl={user.avatarUrl}
-            name={user.name}
-            variant="filled"
-            // 32px — как у соседних кнопок шапки; было 26 и выбивалось
-            size={32}
-          />
-        </UnstyledButton>
+        {/* В нашем виде название фирмы стоит в левом верхнем углу
+            (WorkspaceBadge), поэтому здесь остаётся только кружок
+            пользователя — без подписи и без стрелки. Содержимое меню
+            одно на оба вида. */}
+        {customUi ? (
+          <UnstyledButton aria-label={t("Account and settings")}>
+            <CustomAvatar
+              avatarUrl={user.avatarUrl}
+              name={user.name}
+              variant="filled"
+              // 32px — как у соседних кнопок шапки; было 26 и выбивалось
+              size={32}
+            />
+          </UnstyledButton>
+        ) : (
+          <UnstyledButton>
+            <Group gap={7} wrap={"nowrap"}>
+              <CustomAvatar
+                avatarUrl={workspace?.logo}
+                name={workspace?.name}
+                variant="filled"
+                size="sm"
+                type={AvatarIconType.WORKSPACE_ICON}
+              />
+              <Text fw={500} size="sm" lh={1} mr={3} lineClamp={1}>
+                {workspace?.name}
+              </Text>
+              <IconChevronDown size={16} />
+            </Group>
+          </UnstyledButton>
+        )}
       </Menu.Target>
       <Menu.Dropdown>
         <Menu.Label>{t("Workspace")}</Menu.Label>
