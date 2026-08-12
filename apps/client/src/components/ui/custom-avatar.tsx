@@ -2,6 +2,7 @@ import React from "react";
 import { Avatar, MantineColor } from "@mantine/core";
 import { getAvatarUrl } from "@/lib/config.ts";
 import { AvatarIconType } from "@/features/attachments/types/attachment.types.ts";
+import { useUiFlags } from "@/custom-sso/ui-flags";
 
 interface CustomAvatarProps {
   avatarUrl?: string;
@@ -30,6 +31,25 @@ const SAFE_INITIALS_COLORS: MantineColor[] = [
   "violet.7",
 ];
 
+// Палитра Grist для кружков пользователей (UserImage.js, someColors).
+// Задаётся прямой заливкой: названия Mantine у нас переопределены под
+// зелёный, и все имена сходились в один цвет.
+const GRIST_USER_COLORS = [
+  "#0B437D",
+  "#0074D9",
+  "#7FDBFF",
+  "#39CCCC",
+  "#16DD6D",
+  "#2ECC40",
+  "#16B378",
+  "#EFCC00",
+  "#FF851B",
+  "#FF4136",
+  "#85144b",
+  "#F012BE",
+  "#B10DC9",
+];
+
 function hashName(input: string) {
   let hash = 0;
   for (let i = 0; i < input.length; i += 1) {
@@ -43,6 +63,20 @@ function pickInitialsColor(name: string) {
   return SAFE_INITIALS_COLORS[hashName(name) % SAFE_INITIALS_COLORS.length];
 }
 
+// Тот же выбор, что у Grist: остаток от хеша имени по длине палитры
+function pickGristColor(name: string) {
+  return GRIST_USER_COLORS[hashName(name) % GRIST_USER_COLORS.length];
+}
+
+// Светлые цвета палитры просят тёмную надпись, остальные — белую
+function initialsTextColor(background: string) {
+  return ["#7FDBFF", "#39CCCC", "#16DD6D", "#2ECC40", "#EFCC00"].includes(
+    background,
+  )
+    ? "#262633"
+    : "#ffffff";
+}
+
 function sanitizeInitialsSource(name: string) {
   const sanitized = name.replace(/[^\p{L}\p{N}\s]/gu, " ").trim();
   return sanitized || name;
@@ -52,16 +86,32 @@ export const CustomAvatar = React.forwardRef<
   HTMLInputElement,
   CustomAvatarProps
 >(({ avatarUrl, name, type, color, variant, ...props }: CustomAvatarProps, ref) => {
+  const { customUi } = useUiFlags();
   const avatarLink = getAvatarUrl(avatarUrl, type);
   const isInitials = !color || color === "initials";
+
+  // Кружок пользователя: цвет из палитры Grist, прямой заливкой.
+  // Значки пространств и рабочей области сюда не попадают — у них свой
+  // квадрат со своими цветами.
+  const isUser =
+    type !== AvatarIconType.SPACE_ICON &&
+    type !== AvatarIconType.WORKSPACE_ICON;
+  const gristColor =
+    customUi && isInitials && isUser ? pickGristColor(name ?? "") : null;
   const pickedColor = isInitials ? pickInitialsColor(name ?? "") : color;
   const hue = pickedColor.split(".")[0];
   const initialsSource = sanitizeInitialsSource(name ?? "");
 
   const resolvedColor = variant === "filled" ? pickedColor : hue;
 
-  const placeholderStyles =
-    isInitials && variant !== "filled"
+  const placeholderStyles = gristColor
+    ? {
+        placeholder: {
+          background: gristColor,
+          color: initialsTextColor(gristColor),
+        },
+      }
+    : isInitials && variant !== "filled"
       ? {
           placeholder: {
             color: `var(--mantine-color-${hue}-9)`,
