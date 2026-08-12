@@ -25,6 +25,7 @@ import { usePageQuery } from "@/features/page/queries/page-query.ts";
 import { IPagination } from "@/lib/types.ts";
 import { extractPageSlugId } from "@/lib";
 import { useTranslation } from "react-i18next";
+import { useUiFlags } from "@/custom-sso/ui-flags";
 import { useGetSpaceBySlugQuery } from "@/features/space/queries/space-query.ts";
 import { IconArrowUp, IconMessageOff } from "@tabler/icons-react";
 import { useAtom } from "jotai";
@@ -347,6 +348,7 @@ const CommentEditorWithActions = ({
 
 const PageCommentInput = ({ onSave, isLoading }) => {
   const { t } = useTranslation();
+  const { customUi } = useUiFlags();
   const [content, setContent] = useState("");
   const { ref, focused } = useFocusWithin();
   const commentEditorRef = useRef(null);
@@ -367,9 +369,10 @@ const PageCommentInput = ({ onSave, isLoading }) => {
         paddingTop: "var(--mantine-spacing-sm)",
         paddingBottom: 25,
         // Боковые отступы здесь, а не у раздела: строка вкладок должна
-        // идти от края до края, а поле ввода — нет.
-        paddingLeft: 16,
-        paddingRight: 16,
+        // идти от края до края, а поле ввода — нет. Только в нашем виде:
+        // у апстрима отступы задаёт сам раздел.
+        paddingLeft: customUi ? 16 : undefined,
+        paddingRight: customUi ? 16 : undefined,
         position: "relative",
       }}
     >
@@ -380,7 +383,15 @@ const PageCommentInput = ({ onSave, isLoading }) => {
           name={currentUser?.user?.name}
           style={{ flexShrink: 0, marginTop: 10 }}
         />
-        <div style={{ flex: 1, minWidth: 0, position: "relative" }}>
+        <div
+          style={{
+            flex: 1,
+            minWidth: 0,
+            // Опора для кнопки отправки — только в нашем виде: у
+            // апстрима она считается от всей обёртки поля.
+            position: customUi ? "relative" : undefined,
+          }}
+        >
           <CommentEditor
             ref={commentEditorRef}
             onUpdate={setContent}
@@ -391,9 +402,9 @@ const PageCommentInput = ({ onSave, isLoading }) => {
           />
 
           {/* Кнопка внутри того же блока, что и поле: прижата к правому
-              краю и по середине высоты. Снаружи она равнялась по всей
+              краю и во всю его высоту. Снаружи она равнялась по всей
               обёртке и не совпадала с полем. */}
-          {focused && (
+          {customUi && focused && (
             <ActionIcon
               variant="filled"
               size="sm"
@@ -419,6 +430,23 @@ const PageCommentInput = ({ onSave, isLoading }) => {
           )}
         </div>
       </Group>
+
+      {/* Стоковая кнопка отправки: круглая, в правом нижнем углу всей
+          обёртки. */}
+      {!customUi && focused && (
+        <ActionIcon
+          variant="filled"
+          radius="xl"
+          size="sm"
+          aria-label={t("Send comment")}
+          onClick={handleSave}
+          onMouseDown={(e) => e.preventDefault()}
+          loading={isLoading}
+          style={{ position: "absolute", right: 8, bottom: 30 }}
+        >
+          <IconArrowUp size={16} />
+        </ActionIcon>
+      )}
     </div>
   );
 };
