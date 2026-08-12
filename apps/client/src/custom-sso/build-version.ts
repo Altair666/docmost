@@ -1,6 +1,9 @@
-// Номер нашей сборки поверх форка. Совпадает с тегом образа
-// docmost-custom:vN — поднимать вручную при каждой сборке.
-export const CUSTOM_BUILD = 21;
+// Номер нашей сборки поверх форка — тот же, что в теге образа
+// docmost-custom:vN. Приходит доводом сборки, а не правится руками:
+// пока он был константой, я забывал его поднимать, и в настройках
+// висела давно устаревшая цифра.
+export const CUSTOM_BUILD: string =
+  import.meta.env.VITE_CUSTOM_BUILD || "";
 
 // Апстримные major.minor берём с сервера (он читает их из package.json),
 // а патч-версию подставляем свою. Получается 0.95.<наша сборка>: видно и
@@ -11,6 +14,10 @@ export function formatCustomVersion(upstream?: string): string | undefined {
 
   const parts = upstream.split(".");
   if (parts.length < 2) return upstream;
+
+  // Собрали без номера — показываем версию апстрима как есть. Врать
+  // чужой цифрой хуже, чем не показать свою.
+  if (!CUSTOM_BUILD) return upstream;
 
   return `${parts[0]}.${parts[1]}.${CUSTOM_BUILD}`;
 }
