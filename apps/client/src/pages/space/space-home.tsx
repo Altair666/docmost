@@ -1,16 +1,13 @@
-import { Container, Group, Title } from "@mantine/core";
-import { IconHome } from "@tabler/icons-react";
-import { useTranslation } from "react-i18next";
-import { useUiFlags } from "@/custom-sso/ui-flags";
+import {Container} from "@mantine/core";
 import SpaceHomeTabs from "@/features/space/components/space-home-tabs.tsx";
 import {useParams} from "react-router-dom";
 import {useGetSpaceBySlugQuery} from "@/features/space/queries/space-query.ts";
 import {getAppName} from "@/lib/config.ts";
 import {Helmet} from "react-helmet-async";
+import { useUiFlags } from "@/custom-sso/ui-flags";
+import GristSpaceHome from "@/custom-sso/GristSpaceHome";
 
-export default function SpaceHome() {
-    const {t} = useTranslation();
-    const {customUi} = useUiFlags();
+function StockSpaceHome() {
     const {spaceSlug} = useParams();
     const {data: space} = useGetSpaceBySlugQuery(spaceSlug);
 
@@ -19,22 +16,16 @@ export default function SpaceHome() {
             <Helmet>
                 <title>{space?.name || 'Overview'} - {getAppName()}</title>
             </Helmet>
-            {/* Поле и отступ сверху те же, что на «Все документы» */}
-            <Container
-                size={customUi ? 1340 : ("900" as any)}
-                px={customUi ? 24 : undefined}
-                pt={customUi ? 16 : "xl"}
-            >
-                {/* Ярлычок раздела — как на остальных страницах */}
-                {customUi && (
-                    <Group gap={11} align="center" mb="xl">
-                        <IconHome size={24} stroke={2}/>
-                        <Title order={1} size="h3">{t("Overview")}</Title>
-                    </Group>
-                )}
-
+            <Container size={"900"} pt="xl">
                 {space && <SpaceHomeTabs/>}
             </Container>
         </>
     );
+}
+
+export default function SpaceHome() {
+  // У нашего обзора свой заголовок, ширина поля и сортировка на черте
+  // вкладок — он живёт отдельным модулем.
+  const { customUi } = useUiFlags();
+  return customUi ? <GristSpaceHome /> : <StockSpaceHome />;
 }

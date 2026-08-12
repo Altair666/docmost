@@ -7,23 +7,31 @@ import {
   Button,
 } from "@mantine/core";
 import { Link } from "react-router-dom";
-import PageListSkeleton from "@/components/ui/page-list-skeleton";
+import { useTranslation } from "react-i18next";
+import { IconStar } from "@tabler/icons-react";
+
 import { buildPageUrl, getPageTitle } from "@/features/page/page.utils";
 import { formattedDate } from "@/lib/time";
 import { useFavoritesQuery } from "@/features/favorite/queries/favorite-query";
-import { PageListIcon } from "@/components/common/page-list-icon";
-import { IconStar } from "@tabler/icons-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { getSpaceUrl } from "@/lib/config";
-import { useTranslation } from "react-i18next";
 import { getInitialsColor } from "@/lib/get-initials-color";
+import PageListSkeleton from "@/components/ui/page-list-skeleton";
+import { PageListIcon } from "@/components/common/page-list-icon";
 import rowClasses from "@/components/ui/clickable-table-row.module.css";
+import { CustomAvatar } from "@/components/ui/custom-avatar";
+import { AvatarIconType } from "@/features/attachments/types/attachment.types";
+
+import CreatorCell from "@/custom-sso/CreatorCell";
 
 interface Props {
   spaceId?: string;
 }
 
-export default function FavoritesPages({ spaceId }: Props) {
+// Вкладка «Закреплённые» на главной и в обзоре пространства. От списка
+// апстрима отличается столбцом автора и закреплёнными пространствами:
+// отдельной секции для них в меню больше нет.
+export default function GristFavoritesPages({ spaceId }: Props) {
   const { t } = useTranslation();
   const {
     data,
@@ -32,7 +40,9 @@ export default function FavoritesPages({ spaceId }: Props) {
     hasNextPage,
     fetchNextPage,
     isFetchingNextPage,
-  } = useFavoritesQuery("page", spaceId);
+    // Внутри пространства перечислять пространства незачем — там нужны
+    // только страницы этого пространства.
+  } = useFavoritesQuery(spaceId ? "page" : undefined, spaceId);
 
   const favorites = data?.pages.flatMap((p) => p.items) ?? [];
 
@@ -88,6 +98,46 @@ export default function FavoritesPages({ spaceId }: Props) {
                       )}
                     </Table.Td>
                   )}
+                  <Table.Td>
+                    <CreatorCell creator={fav.page?.creator} />
+                  </Table.Td>
+                  <Table.Td>
+                    <Text
+                      c="dimmed"
+                      style={{ whiteSpace: "nowrap" }}
+                      size="xs"
+                      fw={500}
+                    >
+                      {formattedDate(new Date(fav.createdAt))}
+                    </Text>
+                  </Table.Td>
+                </Table.Tr>
+              ) : fav.space ? (
+                <Table.Tr key={fav.id} className={rowClasses.row}>
+                  <Table.Td>
+                    <UnstyledButton
+                      className={rowClasses.link}
+                      component={Link}
+                      to={getSpaceUrl(fav.space.slug)}
+                    >
+                      <Group wrap="nowrap">
+                        <CustomAvatar
+                          avatarUrl={fav.space.logo}
+                          name={fav.space.name}
+                          type={AvatarIconType.SPACE_ICON}
+                          size={18}
+                          radius="sm"
+                        />
+                        <Text fw={500} size="md" lineClamp={1}>
+                          {fav.space.name}
+                        </Text>
+                      </Group>
+                    </UnstyledButton>
+                  </Table.Td>
+                  {!spaceId && <Table.Td />}
+                  <Table.Td>
+                    <CreatorCell creator={fav.space?.creator} />
+                  </Table.Td>
                   <Table.Td>
                     <Text
                       c="dimmed"

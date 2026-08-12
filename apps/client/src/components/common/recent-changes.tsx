@@ -33,10 +33,9 @@ export default function RecentChanges({ spaceId, sort }: Props) {
   const { data, isLoading, isError, hasNextPage, fetchNextPage, isFetchingNextPage } = useRecentChangesQuery(spaceId);
   const loaded = data?.pages.flatMap((p) => p.items) ?? [];
 
-  // Столбец «Кем создано» — в обоих списках.
+  // Столбец «Кем создано» — в обоих списках. Подписей столбцов нет
+  // нигде: ни на главной, ни в обзоре пространства.
   const withCreator = customUi;
-  // Подписей столбцов нет нигде: ни на главной, ни на «Обзоре».
-  const withColumns = false;
 
   // Порядок как у Grist: по наименованию или по дате (свежие сверху).
   // Переставляется загруженная часть: список приходит с сервера кусками.
@@ -64,20 +63,6 @@ export default function RecentChanges({ spaceId, sort }: Props) {
     <>
       <Table.ScrollContainer minWidth={500}>
         <Table highlightOnHover verticalSpacing="sm">
-          {withColumns && (
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th style={{ width: "50%" }}>{t("Name")}</Table.Th>
-                <Table.Th style={{ width: "20%", maxWidth: 200 }}>
-                  {t("Author")}
-                </Table.Th>
-                <Table.Th style={{ width: "30%", maxWidth: 250 }}>
-                  {t("Last edited")}
-                </Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-          )}
-
           <Table.Tbody>
             {pages.map((page) => (
               <Table.Tr key={page.id} className={rowClasses.row}>
