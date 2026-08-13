@@ -191,6 +191,42 @@ $wslExe = "$env:windir\system32\wsl.exe"
 # Вторая тонкость: в PowerShell 5.1 вывод внешней команды в поток ошибок
 # при $ErrorActionPreference = Stop сам по себе становится сбоем, даже
 # когда команда отработала верно. Здесь этого не происходит.
+# Временный скрипт для запуска внутри WSL.
+#
+# Без метки порядка байтов: Set-Content -Encoding utf8 в PowerShell 5.1
+# дописывает её в начало, и bash спотыкается на первой же строке —
+# «line 1: ﻿set: command not found».
+#
+# И с переводами строк в виде одного знака: с парой знаков bash ругается
+# на невидимый возврат каретки в конце каждой команды.
+function Write-WslScript {
+    param([string] $Path, [string] $Body)
+    $clean = $Body -replace "`r`n", "`n"
+    [System.IO.File]::WriteAllText($Path, $clean, (New-Object System.Text.UTF8Encoding($false)))
+}
+
+# Запуск внутри WSL с живым выводом на экран.
+#
+# Invoke-Wsl тут не годится: он копит вывод и отдаёт в конце, а нам надо
+# видеть ход сборки. Зато приходится беречь консоль: wsl.exe меняет её
+# кодовую страницу, и после него русский текст читается кашей.
+function Invoke-WslLive {
+    param([string[]] $WslArgs)
+
+    $prev = $null
+    try { $prev = [Console]::OutputEncoding } catch { }
+
+    $prevPref = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        & $wslExe @WslArgs
+        return $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $prevPref
+        if ($prev) { try { [Console]::OutputEncoding = $prev } catch { } }
+    }
+}
+
 function Invoke-Wsl {
     # Массивом, а не «остаточными доводами»: иначе PowerShell забирает
     # себе всё, что начинается с дефиса, и до wsl.exe это не доходит.
@@ -250,9 +286,7 @@ function Invoke-Wsl {
 $hasWsl = Test-Path $wslExe
 
 if ($hasWsl) {
-    # wsl.exe отвечает в UTF-16, поэтому нулевые байты убираем — иначе
-    # сравнение не находит ничего и версия теряется
-    $ver = ((& $wslExe --version 2>&1 | Out-String) -replace "`0", "")
+    $ver = (Invoke-Wsl @('--version') -Utf16).Text
     if ($ver -match '(\d+\.\d+\.\d+)') { Ok "WSL установлен ($($Matches[1]))" }
     else { Ok "WSL установлен" }
 } else {
@@ -261,9 +295,8 @@ if ($hasWsl) {
 
 $distros = @()
 if ($hasWsl) {
-    # -l -q выводит UTF-16 с нулевыми байтами, поэтому чистим
-    $distros = (& $wslExe -l -q 2>$null) |
-        ForEach-Object { ($_ -replace "`0", "").Trim() } |
+    $distros = ((Invoke-Wsl @('-l', '-q') -Utf16).Text -split "`n") |
+        ForEach-Object { $_.Trim() } |
         Where-Object { $_ }
 }
 
@@ -293,10 +326,14 @@ Step "Проверяю Docker внутри WSL"
 
 $dockerOk = $false
 if ($hasDistro) {
-    $out = (& $wslExe -d $WslDistro -u root -- bash -lc "command -v docker >/dev/null && docker --version || echo НЕТ" 2>&1) -replace "`0", ""
+    # Вывод команды изнутри дистрибутива приходит в UTF-8, поэтому без
+    # -Utf16: с ним он читался бы иероглифами.
+    $out = (Invoke-Wsl @('-d', $WslDistro, '-u', 'root', '--', 'bash', '-lc',
+        'command -v docker >/dev/null && docker --version || echo НЕТ')).Text
     if ($out -match 'Docker version') {
         Ok ($out.Trim())
-        $daemon = (& $wslExe -d $WslDistro -u root -- bash -lc "docker info >/dev/null 2>&1 && echo ЖИВ || echo МЁРТВ" 2>&1) -replace "`0", ""
+        $daemon = (Invoke-Wsl @('-d', $WslDistro, '-u', 'root', '--', 'bash', '-lc',
+            'docker info >/dev/null 2>&1 && echo ЖИВ || echo МЁРТВ')).Text
         if ($daemon -match 'ЖИВ') { Ok "демон отвечает"; $dockerOk = $true }
         else { Warn "демон не запущен — подниму при установке" }
     } else {
@@ -461,6 +498,34 @@ if (-not $hasWsl -or -not $hasDistro) {
         $probe = Invoke-Wsl @('-d', $pick, '-u', 'root', '--', 'echo', 'wsl-готов')
         if ($probe.Code -eq 0 -and $probe.Text -match 'wsl-готов') {
             Ok 'дистрибутив отвечает, перезагрузка не нужна'
+
+            # Убираем вопрос про имя пользователя и пароль, который
+            # Ubuntu задаёт при первом запуске: вход сразу от root.
+            # Здесь это оправдано — внутри работает только Docker, и все
+            # наши команды идут от него же.
+            #
+            # Заодно поднимаем демон при запуске дистрибутива: без этого
+            # после перезагрузки сервера контейнеры не вернутся, потому
+            # что Docker внутри никто не стартует.
+            $conf = "[user]`ndefault=root`n`n[boot]`ncommand = service docker start`n"
+            $confTmp = [System.IO.Path]::GetTempFileName()
+            Write-WslScript -Path $confTmp -Body $conf
+            $c = Invoke-Wsl @('-d', $pick, '-u', 'root', '--', 'wslpath', '-a', ($confTmp -replace '\\','/'))
+            $null = Invoke-Wsl @('-d', $pick, '-u', 'root', '--', 'cp', $c.Text.Trim(), '/etc/wsl.conf')
+            Remove-Item $confTmp -Force -ErrorAction SilentlyContinue
+
+            $check = Invoke-Wsl @('-d', $pick, '-u', 'root', '--', 'cat', '/etc/wsl.conf')
+            if ($check.Text -match 'default=root') {
+                Ok 'вход без вопросов о пользователе, Docker поднимается сам'
+            } else {
+                Warn 'не удалось записать /etc/wsl.conf — при первом входе спросит пользователя'
+                Log "wsl.conf: код $($check.Code), ответ: $($check.Text)"
+            }
+
+            # Настройки читаются при запуске дистрибутива, поэтому
+            # останавливаем: следующий вызов подхватит.
+            $null = Invoke-Wsl @('--terminate', $pick) -Utf16
+
             $hasDistro = $true
             $dockerOk = $false
         } else {
@@ -488,7 +553,12 @@ memory=${WslMemoryGb}GB
 swap=2GB
 localhostForwarding=true
 "@ | Set-Content -Path $wslConfig -Encoding utf8
-    Ok "создан $wslConfig — применится после wsl --shutdown"
+    Ok "создан $wslConfig"
+
+    # Файл читается только при запуске виртуалки. Если она уже поднята,
+    # новый потолок памяти не подействует, и сборка может не влезть.
+    $null = Invoke-Wsl @('--shutdown') -Utf16
+    Ok 'WSL остановлен, настройки применятся при следующем запуске'
 }
 
 if (-not $dockerOk) {
@@ -509,12 +579,22 @@ fi
 service docker start >/dev/null 2>&1 || true
 docker --version
 '@
-    $install = $install -replace "`r`n", "`n"
     $tmp = [System.IO.Path]::GetTempFileName()
-    Set-Content -Path $tmp -Value $install -Encoding utf8 -NoNewline
-    $wslTmp = (& $wslExe -d $WslDistro -u root -- wslpath -a ($tmp -replace '\\','/')) -replace "`0", ""
-    & $wslExe -d $WslDistro -u root -- bash $wslTmp.Trim()
+    Write-WslScript -Path $tmp -Body $install
+
+    $conv = Invoke-Wsl @('-d', $WslDistro, '-u', 'root', '--', 'wslpath', '-a', ($tmp -replace '\\','/'))
+    $wslTmp = $conv.Text.Trim()
+
+    $code = Invoke-WslLive @('-d', $WslDistro, '-u', 'root', '--', 'bash', $wslTmp)
     Remove-Item $tmp -Force
+
+    if ($code -ne 0) {
+        Write-Host ""
+        Write-Host "Не удалось поставить Docker внутри $WslDistro." -ForegroundColor Red
+        Write-Host "Журнал: $script:LogFile" -ForegroundColor DarkGray
+        Hold
+        exit 1
+    }
     Ok "Docker готов"
 }
 
@@ -540,13 +620,13 @@ git -C /opt/docmost submodule update --init apps/server/src/custom-sso
 chmod +x /opt/docmost/deploy/install-linux.sh
 /opt/docmost/deploy/install-linux.sh --url '$AppUrl' --repo '$repo'
 "@
-$bootstrap = $bootstrap -replace "`r`n", "`n"
-
 $tmp2 = [System.IO.Path]::GetTempFileName()
-Set-Content -Path $tmp2 -Value $bootstrap -Encoding utf8 -NoNewline
-$wslTmp2 = (& $wslExe -d $WslDistro -u root -- wslpath -a ($tmp2 -replace '\\','/')) -replace "`0", ""
-& $wslExe -d $WslDistro -u root -- bash $wslTmp2.Trim()
-$deployCode = $LASTEXITCODE
+Write-WslScript -Path $tmp2 -Body $bootstrap
+
+$conv2 = Invoke-Wsl @('-d', $WslDistro, '-u', 'root', '--', 'wslpath', '-a', ($tmp2 -replace '\\','/'))
+$wslTmp2 = $conv2.Text.Trim()
+
+$deployCode = Invoke-WslLive @('-d', $WslDistro, '-u', 'root', '--', 'bash', $wslTmp2)
 Remove-Item $tmp2 -Force
 
 if ($deployCode -ne 0) {
