@@ -54,7 +54,12 @@ done
 ok()   { printf '  \033[32m✓\033[0m %s\n' "$1"; }
 bad()  { printf '  \033[31m✗\033[0m %s\n' "$1"; PROBLEMS=$((PROBLEMS+1)); }
 warn() { printf '  \033[33m!\033[0m %s\n' "$1"; }
-step() { printf '\n\033[1m%s\033[0m\n' "$1"; }
+STEP_NO=0
+STEP_TOTAL=6
+step() {
+  STEP_NO=$((STEP_NO + 1))
+  printf '\n\033[1m[%d/%d] %s\033[0m\n' "$STEP_NO" "$STEP_TOTAL" "$1"
+}
 
 PROBLEMS=0
 
@@ -218,13 +223,33 @@ if [ -z "$TAG" ]; then
   TAG=$(date +%y%m%d)
 fi
 
-echo "  тег: docmost-custom:v$TAG (сборка идёт 10–20 минут)"
-if docker build --build-arg CUSTOM_BUILD="$TAG" \
-     -t "docmost-custom:v$TAG" "$SRC_DIR" > "$STACK_DIR/build.log" 2>&1; then
-  ok 'образ собран'
+echo "  тег: docmost-custom:v$TAG"
+echo '  это самая долгая часть: 10–20 минут, окно закрывать нельзя'
+
+# --progress=plain даёт разбираемые строки вида «#12 [builder 5/7] RUN …»,
+# по ним и показываем, что происходит сейчас.
+docker build --progress=plain --build-arg CUSTOM_BUILD="$TAG" \
+  -t "docmost-custom:v$TAG" "$SRC_DIR" > "$STACK_DIR/build.log" 2>&1 &
+BUILD_PID=$!
+
+SECONDS=0
+while kill -0 "$BUILD_PID" 2>/dev/null; do
+  stage=$(grep -oE '^#[0-9]+ \[[^]]+\][^$]*' "$STACK_DIR/build.log" 2>/dev/null \
+          | tail -1 | cut -c1-64)
+  printf '\r  [%02d:%02d] %-64s' $((SECONDS / 60)) $((SECONDS % 60)) "${stage:-готовлю окружение…}"
+  sleep 3
+done
+
+wait "$BUILD_PID"
+BUILD_CODE=$?
+printf '\r%*s\r' 78 ''
+
+if [ "$BUILD_CODE" -eq 0 ]; then
+  ok "образ собран за $((SECONDS / 60)) мин $((SECONDS % 60)) с"
 else
-  bad "сборка не прошла, смотрите $STACK_DIR/build.log"
-  tail -20 "$STACK_DIR/build.log"
+  bad "сборка не прошла, полный журнал: $STACK_DIR/build.log"
+  echo '  последние строки:'
+  tail -20 "$STACK_DIR/build.log" | sed 's/^/    /'
   exit 1
 fi
 

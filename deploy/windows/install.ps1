@@ -50,11 +50,42 @@ param(
 $ErrorActionPreference = "Stop"
 $script:Problems = 0
 $script:NeedReboot = $false
+$script:StepNo = 0
+$script:StepTotal = 7
+$script:Started = Get-Date
+
+# Запущено щелчком или из консоли. От этого зависит, ждать ли нажатия
+# клавиши в конце: иначе окно закрывается раньше, чем человек прочтёт
+# итог. Признак — есть ли у процесса родитель-оболочка.
+$script:Interactive = $false
+try {
+    $me = Get-CimInstance Win32_Process -Filter "ProcessId = $PID"
+    $parent = Get-CimInstance Win32_Process -Filter "ProcessId = $($me.ParentProcessId)" -ErrorAction SilentlyContinue
+    $script:Interactive = -not ($parent -and $parent.Name -match 'powershell|pwsh|cmd|WindowsTerminal')
+} catch { $script:Interactive = $false }
 
 function Ok   { param($m) Write-Host "  [+] $m" -ForegroundColor Green }
 function Bad  { param($m) Write-Host "  [-] $m" -ForegroundColor Red; $script:Problems++ }
 function Warn { param($m) Write-Host "  [!] $m" -ForegroundColor Yellow }
-function Step { param($m) Write-Host ""; Write-Host $m -ForegroundColor White }
+function Step {
+    param($m)
+    $script:StepNo++
+    $el = (Get-Date) - $script:Started
+    $t = "{0:mm\:ss}" -f $el
+    Write-Host ""
+    Write-Host ("[{0}/{1}] {2}" -f $script:StepNo, $script:StepTotal, $m) -ForegroundColor White -NoNewline
+    Write-Host ("   (прошло {0})" -f $t) -ForegroundColor DarkGray
+}
+
+# Окно, закрывшееся раньше, чем человек прочёл итог, — то же самое, что
+# отсутствие итога.
+function Hold {
+    if ($script:Interactive) {
+        Write-Host ""
+        Write-Host "Нажмите любую клавишу, чтобы закрыть окно…" -ForegroundColor DarkGray
+        $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+    }
+}
 
 # --- 1. хост ----------------------------------------------------------
 
@@ -175,20 +206,47 @@ foreach ($h in @($repoHost, "registry-1.docker.io")) {
 if ($script:Problems -gt 0) {
     Write-Host ""
     Write-Host "Не выполнено условий: $($script:Problems). Исправьте и запустите снова." -ForegroundColor Red
+    Hold
     exit 1
 }
 
 Write-Host ""
 Write-Host "Окружение пригодно." -ForegroundColor Green
 
-if ($CheckOnly) { exit 0 }
+if ($CheckOnly) { Hold; exit 0 }
 
 if (-not $AppUrl) {
-    Write-Host ""
-    Write-Host "Нужен адрес вики, например:" -ForegroundColor Yellow
-    Write-Host "  .\install.ps1 -AppUrl https://wiki.example.ru"
-    exit 1
+    if ($script:Interactive) {
+        # Запустили щелчком — спрашиваем прямо здесь, а не отправляем
+        # человека читать про доводы командной строки.
+        Write-Host ""
+        Write-Host "По какому адресу будет открываться вики?" -ForegroundColor White
+        Write-Host "  например: https://wiki.example.ru" -ForegroundColor DarkGray
+        $AppUrl = (Read-Host "Адрес").Trim()
+
+        if (-not $AppUrl) {
+            Write-Host "Без адреса ставить нечего." -ForegroundColor Red
+            Hold
+            exit 1
+        }
+
+        Write-Host ""
+        Write-Host "Настроить IIS, чтобы вики открывалась снаружи?" -ForegroundColor White
+        Write-Host "  укажите IP сервера или оставьте пустым, чтобы пропустить" -ForegroundColor DarkGray
+        $answer = (Read-Host "IP").Trim()
+        if ($answer) { $SiteIp = $answer }
+    } else {
+        Write-Host ""
+        Write-Host "Нужен адрес вики, например:" -ForegroundColor Yellow
+        Write-Host "  .\install.ps1 -AppUrl https://wiki.example.ru"
+        exit 1
+    }
 }
+
+Write-Host ""
+Write-Host "Ставлю по адресу $AppUrl" -ForegroundColor White
+if ($SiteIp) { Write-Host "IIS будет настроен на $SiteIp" -ForegroundColor DarkGray }
+Write-Host "Сборка образа занимает 10-20 минут, окно закрывать нельзя." -ForegroundColor DarkGray
 
 # --- 5. установка недостающего ---------------------------------------
 
@@ -202,6 +260,7 @@ if (-not $hasWsl -or -not $hasDistro) {
 if ($script:NeedReboot) {
     Write-Host ""
     Write-Host "Перезагрузите сервер и запустите скрипт снова." -ForegroundColor Yellow
+    Hold
     exit 0
 }
 
@@ -279,6 +338,7 @@ Remove-Item $tmp2 -Force
 if ($deployCode -ne 0) {
     Write-Host ""
     Write-Host "Развёртывание не прошло, смотрите вывод выше." -ForegroundColor Red
+    Hold
     exit 1
 }
 
@@ -315,3 +375,6 @@ Write-Host @"
   3. Проверить состояние:
      wsl -d $WslDistro -u root -- docker ps
 "@
+
+Write-Host ("Всего заняло {0:mm\:ss}" -f ((Get-Date) - $script:Started)) -ForegroundColor DarkGray
+Hold

@@ -22,7 +22,9 @@
 [CmdletBinding()]
 param(
     [string] $Source = (Join-Path $PSScriptRoot 'install.ps1'),
-    [string] $Output = (Join-Path $PSScriptRoot 'DocmostInstaller.exe')
+    [string] $Output = (Join-Path $PSScriptRoot 'DocmostInstaller.exe'),
+    [string] $Icon   = (Join-Path $PSScriptRoot 'docmost.ico'),
+    [string] $Version = '1.1.0'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -39,18 +41,30 @@ if (-not (Test-Path $Source)) {
     exit 1
 }
 
+# Значка может не быть в свежем клоне — рисуем на месте
+if (-not (Test-Path $Icon)) {
+    $maker = Join-Path $PSScriptRoot 'make-icon.ps1'
+    if (Test-Path $maker) {
+        Write-Host 'Значка нет, рисую' -ForegroundColor DarkGray
+        & $maker | Out-Null
+    }
+}
+
 Import-Module ps2exe
 
 Write-Host "Собираю $Output" -ForegroundColor White
 
-Invoke-PS2EXE `
+$iconArg = @{}
+if (Test-Path $Icon) { $iconArg['iconFile'] = $Icon }
+
+Invoke-PS2EXE @iconArg `
     -inputFile  $Source `
     -outputFile $Output `
     -title       'Установщик Docmost' `
     -description 'Разворачивает Docmost с нашими правками: WSL, Docker, стек в контейнерах' `
     -company     'MP-Lab' `
     -product     'Docmost' `
-    -version     '1.0.0' `
+    -version     $Version `
     -requireAdmin `
     -noConsole:$false `
     -noError:$false
