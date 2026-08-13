@@ -72,3 +72,62 @@ WSL пробрасывает порт только на `127.0.0.1`, наруж�
 появится домен и A-запись, выпуск сертификата через
 [win-acme](https://www.win-acme.com/): `wacs.exe` → выбрать сайт → HTTP-01.
 Порт 80 должен быть проброшен снаружи, иначе нужен DNS-01.
+
+## Как запускать install.ps1
+
+PowerShell по умолчанию не выполняет неподписанные скрипты (`RemoteSigned`
+у нас в `LocalMachine`), поэтому политику обходим на один запуск — она
+при этом нигде не меняется:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\install.ps1 -CheckOnly
+```
+
+Только проверка окружения, ничего не меняется. Когда всё зелёное:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\install.ps1 `
+  -AppUrl https://wiki.example.ru -SiteIp 192.168.88.238
+```
+
+Обязательно **от администратора** — иначе скрипт сразу это скажет и
+остановится.
+
+### Если файл скачали браузером
+
+Windows помечает скачанные файлы, и PowerShell откажется их выполнять со
+словами «не является подписанным цифровой подписью». Снимается меткой:
+
+```powershell
+Unblock-File .\install.ps1
+```
+
+### Как забрать установщик на чистую машину
+
+Там ещё нет ни git, ни репозитория. Проект в GitLab закрытый, поэтому
+обычная ссылка не подойдёт — нужен запрос к API с токеном:
+
+```powershell
+$token = '<токен GitLab>'
+$url = 'https://gitlab.mp-lab.ru/api/v4/projects/' +
+       'grist_additional_widgets%2Fdocmost/repository/files/' +
+       'deploy%2Fwindows%2Finstall.ps1/raw?ref=custom-sso-integration'
+
+# Сертификат у GitLab внутренний: на чистой машине проверка не пройдёт
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+[Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
+
+Invoke-WebRequest -Uri $url -Headers @{ 'PRIVATE-TOKEN' = $token } `
+  -OutFile install.ps1 -UseBasicParsing
+```
+
+Проверено: скачивается 13.7 КБ и разбирается без ошибок.
+
+Дальше скрипт сам поставит WSL, дистрибутив и Docker, заберёт остальной
+код и развернёт стек.
+
+### Если правите скрипт
+
+Сохранять только в **UTF-8 с BOM**. PowerShell 5.1 читает `.ps1` как
+ANSI, и файл без метки превращается в кашу: русские строки ломаются, а
+разбор падает с десятком невнятных ошибок. На этом уже спотыкались.
