@@ -419,6 +419,17 @@ if ($hasWsl) {
         ForEach-Object { $_.Trim() } | Where-Object { $_ }
 }
 
+# Просили одно имя, а установлено другое — обычное дело: в каталоге
+# Windows 10 нет Ubuntu-24.04, и тамошний WSL ставит просто Ubuntu.
+# Берём то, что есть, вместо того чтобы требовать флаг.
+if (($distros -notcontains $WslDistro) -and $distros) {
+    $ready = $distros | Where-Object { $_ -match '^Ubuntu' } | Select-Object -First 1
+    if ($ready) {
+        Note "«$WslDistro» не установлен, но есть «$ready» — беру его"
+        $WslDistro = $ready
+    }
+}
+
 $hasDistro = $distros -contains $WslDistro
 $distroVer = 0
 if ($hasDistro) {
