@@ -3,4 +3,4 @@
 	url = https://github.com/docmost/ee
 [submodule "apps/server/src/custom-sso"]
 	path = apps/server/src/custom-sso
-	url = https://github.com/Altair666/docmost-custom-sso.git
+	url = ../docmost-custom-sso.git
