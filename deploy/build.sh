@@ -44,8 +44,22 @@ else
   echo '--- образ не собран, стек не трогаю ---'
 fi
 
-echo '--- возвращаю Keycloak ---'
-docker start keycloak-test >/dev/null 2>&1 || true
+echo '--- возвращаю отладочные ---'
+# Ровно те же, что гасили выше. Раньше поднимался только Keycloak, и
+# dev-сервер с Grist оставались лежать после каждой сборки.
+for c in docmost-dev grist-local keycloak-test; do
+  docker start "$c" >/dev/null 2>&1 || true
+done
+
+sleep 5
+for c in docmost-dev grist-local keycloak-test; do
+  state=$(docker inspect -f '{{.State.Status}}' "$c" 2>/dev/null || echo 'нет такого')
+  if [ "$state" = running ]; then
+    echo "  $c: работает"
+  else
+    echo "  $c: НЕ ПОДНЯЛСЯ ($state)"
+  fi
+done
 
 echo '--- итог ---'
 docker ps --format '{{.Names}}\t{{.Image}}\t{{.Status}}'
