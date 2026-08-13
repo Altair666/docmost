@@ -78,9 +78,19 @@ public static extern uint GetConsoleProcessList(uint[] lpdwProcessList, uint dwP
     $script:Interactive = $false
 }
 
-function Ok   { param($m) Write-Host "  [+] $m" -ForegroundColor Green }
-function Bad  { param($m) Write-Host "  [-] $m" -ForegroundColor Red; $script:Problems++ }
-function Warn { param($m) Write-Host "  [!] $m" -ForegroundColor Yellow }
+# Журнал: окно может закрыться, файл останется. Кладём в папку временных
+# файлов — писать рядом с exe нельзя, его могут запустить с флешки или
+# из сетевой папки.
+$script:LogFile = Join-Path $env:TEMP ("docmost-install-{0:yyyyMMdd-HHmmss}.log" -f (Get-Date))
+
+function Log {
+    param($m)
+    try { Add-Content -Path $script:LogFile -Value $m -Encoding utf8 } catch { }
+}
+
+function Ok   { param($m) Write-Host "  [+] $m" -ForegroundColor Green; Log "  [+] $m" }
+function Bad  { param($m) Write-Host "  [-] $m" -ForegroundColor Red; Log "  [-] $m"; $script:Problems++ }
+function Warn { param($m) Write-Host "  [!] $m" -ForegroundColor Yellow; Log "  [!] $m" }
 function Step {
     param($m)
     $script:StepNo++
@@ -89,6 +99,24 @@ function Step {
     Write-Host ""
     Write-Host ("[{0}/{1}] {2}" -f $script:StepNo, $script:StepTotal, $m) -ForegroundColor White -NoNewline
     Write-Host ("   (прошло {0})" -f $t) -ForegroundColor DarkGray
+    Log ""
+    Log ("[{0}/{1}] {2}   (прошло {3})" -f $script:StepNo, $script:StepTotal, $m, $t)
+}
+
+# Любая ошибка, которую мы не предусмотрели, обязана быть показанной, а
+# не унесённой закрывшимся окном.
+trap {
+    Write-Host ""
+    Write-Host "Установка прервалась." -ForegroundColor Red
+    Write-Host "  $($_.Exception.Message)" -ForegroundColor Red
+    if ($_.InvocationInfo) {
+        Write-Host "  строка $($_.InvocationInfo.ScriptLineNumber): $($_.InvocationInfo.Line.Trim())" -ForegroundColor DarkGray
+    }
+    Log "ОШИБКА: $($_.Exception.Message)"
+    Write-Host ""
+    Write-Host "Журнал: $script:LogFile" -ForegroundColor DarkGray
+    Hold
+    exit 1
 }
 
 # Окно, закрывшееся раньше, чем человек прочёл итог, — то же самое, что
@@ -102,6 +130,8 @@ function Hold {
 }
 
 # --- 1. хост ----------------------------------------------------------
+
+Log ("Установщик Docmost, запуск {0:dd.MM.yyyy HH:mm:ss}" -f (Get-Date))
 
 Step "Проверяю Windows"
 
@@ -229,6 +259,7 @@ foreach ($h in @($repoHost, "registry-1.docker.io")) {
 if ($script:Problems -gt 0) {
     Write-Host ""
     Write-Host "Не выполнено условий: $($script:Problems). Исправьте и запустите снова." -ForegroundColor Red
+    Write-Host "Журнал: $script:LogFile" -ForegroundColor DarkGray
     Hold
     exit 1
 }
@@ -360,7 +391,9 @@ Remove-Item $tmp2 -Force
 
 if ($deployCode -ne 0) {
     Write-Host ""
-    Write-Host "Развёртывание не прошло, смотрите вывод выше." -ForegroundColor Red
+    Write-Host "Развёртывание не прошло." -ForegroundColor Red
+    Write-Host "Вывод выше, он же в журнале: $script:LogFile" -ForegroundColor DarkGray
+    Write-Host "Подробности сборки: \\wsl`$\$WslDistro\opt\docmost-stack\build.log" -ForegroundColor DarkGray
     Hold
     exit 1
 }

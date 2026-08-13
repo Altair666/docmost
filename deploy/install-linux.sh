@@ -199,6 +199,16 @@ ok "исходники в $SRC_DIR ($(git -C "$SRC_DIR" rev-parse --short HEAD))
 step 'Готовлю стек'
 
 mkdir -p "$STACK_DIR"
+
+# Если здесь уже что-то работает, прежний compose откладываем: в нём
+# могли быть правки под эту площадку, и потерять их нельзя.
+if [ -f "$STACK_DIR/docker-compose.yml" ] \
+   && ! cmp -s "$SRC_DIR/deploy/docker-compose.yml" "$STACK_DIR/docker-compose.yml"; then
+  backup="$STACK_DIR/docker-compose.yml.$(date +%Y%m%d-%H%M%S).bak"
+  cp "$STACK_DIR/docker-compose.yml" "$backup"
+  warn "прежний compose отличался — отложен в $(basename "$backup")"
+fi
+
 cp "$SRC_DIR/deploy/docker-compose.yml" "$STACK_DIR/docker-compose.yml"
 ok "compose положен в $STACK_DIR"
 
