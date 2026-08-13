@@ -192,7 +192,16 @@ $wslExe = "$env:windir\system32\wsl.exe"
 # при $ErrorActionPreference = Stop сам по себе становится сбоем, даже
 # когда команда отработала верно. Здесь этого не происходит.
 function Invoke-Wsl {
-    param([Parameter(ValueFromRemainingArguments = $true)] $WslArgs)
+    # Массивом, а не «остаточными доводами»: иначе PowerShell забирает
+    # себе всё, что начинается с дефиса, и до wsl.exe это не доходит.
+    param(
+        [Parameter(Mandatory = $true)] [string[]] $WslArgs,
+        # Собственные сообщения wsl.exe идут в UTF-16, а вывод команды,
+        # запущенной внутри дистрибутива, — в UTF-8. Определить по
+        # содержимому нельзя: байты UTF-16 с кириллицей оказываются
+        # формально допустимым UTF-8 и молча читаются мусором.
+        [switch] $Utf16
+    )
 
     $psi = New-Object System.Diagnostics.ProcessStartInfo
     $psi.FileName = $wslExe
@@ -204,18 +213,37 @@ function Invoke-Wsl {
     }) -join ' ')
     $psi.RedirectStandardOutput = $true
     $psi.RedirectStandardError = $true
-    $psi.StandardOutputEncoding = [System.Text.Encoding]::Unicode
-    $psi.StandardErrorEncoding = [System.Text.Encoding]::Unicode
     $psi.UseShellExecute = $false
     $psi.CreateNoWindow = $true
 
     $proc = [System.Diagnostics.Process]::Start($psi)
-    $out = $proc.StandardOutput.ReadToEnd()
-    $err = $proc.StandardError.ReadToEnd()
+
+    # Читаем байтами: кодировка тут не одна. Свои сообщения wsl.exe
+    # выдаёт в UTF-16, а вывод команды изнутри дистрибутива — в UTF-8.
+    # Жёстко заданная кодировка портила второй случай.
+    $outBytes = New-Object System.IO.MemoryStream
+    $errBytes = New-Object System.IO.MemoryStream
+    $proc.StandardOutput.BaseStream.CopyTo($outBytes)
+    $proc.StandardError.BaseStream.CopyTo($errBytes)
     $proc.WaitForExit()
 
+    $enc = if ($Utf16) {
+        [System.Text.Encoding]::Unicode
+    } else {
+        [System.Text.Encoding]::UTF8
+    }
+
+    $decode = {
+        param($ms)
+        $b = $ms.ToArray()
+        if ($b.Length -eq 0) { return '' }
+        return $enc.GetString($b)
+    }
+
+    $text = ((& $decode $outBytes) + "`n" + (& $decode $errBytes)).Trim()
+
     return [pscustomobject]@{
-        Text = (($out + "`n" + $err) -replace "`0", "").Trim()
+        Text = $text
         Code = $proc.ExitCode
     }
 }
@@ -366,7 +394,7 @@ if (-not $hasWsl -or -not $hasDistro) {
         # Имя дистрибутива в каталоге у разных версий Windows разное:
         # где-то Ubuntu-24.04, где-то просто Ubuntu. Спрашиваем у самой
         # системы, а не гадаем.
-        $online = Invoke-Wsl --list --online
+        $online = Invoke-Wsl @('--list', '--online') -Utf16
         $names = @()
         if ($online.Code -eq 0) {
             $names = ($online.Text -split "`n" | ForEach-Object {
@@ -390,10 +418,10 @@ if (-not $hasWsl -or -not $hasDistro) {
         Write-Host "  ставлю $pick, это займёт несколько минут" -ForegroundColor DarkGray
         # --no-launch: иначе установщик уводит в диалог создания
         # пользователя и ждёт ввода, которого в этом окне не будет.
-        $res = Invoke-Wsl --install -d $pick --no-launch
+        $res = Invoke-Wsl @('--install', '-d', $pick, '--no-launch') -Utf16
         if ($res.Code -ne 0) {
             # Старые сборки не знают --no-launch; пробуем без него
-            $res = Invoke-Wsl --install -d $pick
+            $res = Invoke-Wsl @('--install', '-d', $pick) -Utf16
         }
 
         if ($res.Code -ne 0) {
@@ -401,11 +429,11 @@ if (-not $hasWsl -or -not $hasDistro) {
             # версию WSL: она знает --install, но не так, как нынешняя.
             # Обновляемся и пробуем ещё раз, прежде чем сдаваться.
             Warn 'установка не прошла, обновляю WSL и пробую снова'
-            $upd = Invoke-Wsl --update
+            $upd = Invoke-Wsl @('--update') -Utf16
             Log "wsl --update: код $($upd.Code), ответ: $($upd.Text)"
             if ($upd.Code -eq 0) {
-                $res = Invoke-Wsl --install -d $pick --no-launch
-                if ($res.Code -ne 0) { $res = Invoke-Wsl --install -d $pick }
+                $res = Invoke-Wsl @('--install', '-d', $pick, '--no-launch') -Utf16
+                if ($res.Code -ne 0) { $res = Invoke-Wsl @('--install', '-d', $pick) -Utf16 }
             }
         }
 
@@ -427,7 +455,19 @@ if (-not $hasWsl -or -not $hasDistro) {
         }
 
         Ok "дистрибутив $pick поставлен"
-        $script:NeedReboot = $true
+
+        # Обычно он готов сразу — проверяем, а не отправляем человека на
+        # ещё одну перезагрузку вслепую.
+        $probe = Invoke-Wsl @('-d', $pick, '-u', 'root', '--', 'echo', 'wsl-готов')
+        if ($probe.Code -eq 0 -and $probe.Text -match 'wsl-готов') {
+            Ok 'дистрибутив отвечает, перезагрузка не нужна'
+            $hasDistro = $true
+            $dockerOk = $false
+        } else {
+            Log "проверка дистрибутива: код $($probe.Code), ответ: $($probe.Text)"
+            Warn 'дистрибутив пока не отвечает — нужна перезагрузка'
+            $script:NeedReboot = $true
+        }
     }
 }
 
