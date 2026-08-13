@@ -623,6 +623,9 @@ if (Need 'distro') {
     if (-not $canNoLaunch) { Warn 'эта версия WSL не умеет ставить без запуска — окно Ubuntu может открыться, отвечать в нём не нужно' }
 
     Note "ставлю $pick, несколько минут"
+    # Запоминаем время: по нему потом отличим окно, которое открыла наша
+    # установка, от чужого терминала, открытого человеком.
+    $installStart = Get-Date
     $res = if ($canNoLaunch) {
         Invoke-Wsl @('--install', '-d', $pick, '--no-launch') -Utf16
     } else {
@@ -645,9 +648,25 @@ if (Need 'distro') {
 
     # Окно первичной настройки, если открылось, ждёт имени пользователя.
     # Оно не нужно: работаем от root.
-    foreach ($w in (Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.ProcessName -match '^ubuntu' })) {
-        try { Stop-Process -Id $w.Id -Force -ErrorAction Stop; Ok "закрыто окно первичной настройки" }
-        catch { Log "не смог закрыть $($w.ProcessName): $($_.Exception.Message)" }
+    #
+    # Закрываем только то, что запустилось после начала установки: у
+    # человека может быть открыт свой терминал Ubuntu, и трогать его мы
+    # права не имеем. Там, где WSL умеет --no-launch (в том числе на
+    # Windows 11), окно и не появляется — цикл просто ничего не найдёт.
+    if (-not $canNoLaunch) {
+        foreach ($w in (Get-Process -ErrorAction SilentlyContinue |
+                        Where-Object { $_.ProcessName -match '^ubuntu' })) {
+            try {
+                if ($w.StartTime -lt $installStart) {
+                    Log "оставляю чужой процесс $($w.ProcessName), запущен в $($w.StartTime)"
+                    continue
+                }
+                Stop-Process -Id $w.Id -Force -ErrorAction Stop
+                Ok 'закрыто окно первичной настройки'
+            } catch {
+                Log "не смог закрыть $($w.ProcessName): $($_.Exception.Message)"
+            }
+        }
     }
 
     $probe = Invoke-Wsl @('-d', $pick, '-u', 'root', '--', 'echo', 'wsl-готов')
