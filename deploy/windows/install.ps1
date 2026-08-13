@@ -179,6 +179,46 @@ else { Bad "на диске C свободно $freeGb ГБ, нужно хотя
 Step "Проверяю WSL"
 
 $wslExe = "$env:windir\system32\wsl.exe"
+
+# Запуск wsl.exe с чтением ответа и кода возврата.
+#
+# Тонкость: wsl.exe отвечает в UTF-16, и при обычном вызове его
+# сообщения — в том числе об ошибках — превращаются в нечитаемую кашу.
+# Менять кодировку всей консоли нельзя: тогда сыплется наш собственный
+# вывод, проверено. Поэтому запускаем процесс и указываем кодировку
+# только для его потоков.
+#
+# Вторая тонкость: в PowerShell 5.1 вывод внешней команды в поток ошибок
+# при $ErrorActionPreference = Stop сам по себе становится сбоем, даже
+# когда команда отработала верно. Здесь этого не происходит.
+function Invoke-Wsl {
+    param([Parameter(ValueFromRemainingArguments = $true)] $WslArgs)
+
+    $psi = New-Object System.Diagnostics.ProcessStartInfo
+    $psi.FileName = $wslExe
+    # ArgumentList есть только в новой .NET; в PowerShell 5.1 работает
+    # старая, поэтому строку доводов собираем вручную.
+    $psi.Arguments = (($WslArgs | ForEach-Object {
+        $v = [string]$_
+        if ($v -match '\s') { '"' + $v + '"' } else { $v }
+    }) -join ' ')
+    $psi.RedirectStandardOutput = $true
+    $psi.RedirectStandardError = $true
+    $psi.StandardOutputEncoding = [System.Text.Encoding]::Unicode
+    $psi.StandardErrorEncoding = [System.Text.Encoding]::Unicode
+    $psi.UseShellExecute = $false
+    $psi.CreateNoWindow = $true
+
+    $proc = [System.Diagnostics.Process]::Start($psi)
+    $out = $proc.StandardOutput.ReadToEnd()
+    $err = $proc.StandardError.ReadToEnd()
+    $proc.WaitForExit()
+
+    return [pscustomobject]@{
+        Text = (($out + "`n" + $err) -replace "`0", "").Trim()
+        Code = $proc.ExitCode
+    }
+}
 $hasWsl = Test-Path $wslExe
 
 if ($hasWsl) {
@@ -306,9 +346,89 @@ Write-Host "Сборка образа занимает 10-20 минут, окн�
 
 if (-not $hasWsl -or -not $hasDistro) {
     Step "Ставлю WSL и $WslDistro"
-    & $wslExe --install -d $WslDistro
-    Warn "нужна перезагрузка, после неё запустите скрипт ещё раз"
-    $script:NeedReboot = $true
+
+    # Компоненты Windows: без них wsl --install либо откажет, либо
+    # поставит нерабочую первую версию.
+    foreach ($f in @('Microsoft-Windows-Subsystem-Linux', 'VirtualMachinePlatform')) {
+        $state = (Get-WindowsOptionalFeature -Online -FeatureName $f -ErrorAction SilentlyContinue).State
+        if ($state -ne 'Enabled') {
+            Write-Host "  включаю компонент $f" -ForegroundColor DarkGray
+            $null = Enable-WindowsOptionalFeature -Online -FeatureName $f -All -NoRestart -ErrorAction SilentlyContinue
+            $script:NeedReboot = $true
+        } else {
+            Ok "компонент $f уже включён"
+        }
+    }
+
+    if ($script:NeedReboot) {
+        Warn "включены компоненты Windows — нужна перезагрузка"
+    } else {
+        # Имя дистрибутива в каталоге у разных версий Windows разное:
+        # где-то Ubuntu-24.04, где-то просто Ubuntu. Спрашиваем у самой
+        # системы, а не гадаем.
+        $online = Invoke-Wsl --list --online
+        $names = @()
+        if ($online.Code -eq 0) {
+            $names = ($online.Text -split "`n" | ForEach-Object {
+                ($_ -split '\s{2,}')[0].Trim()
+            }) | Where-Object {
+                # Заголовок таблицы — не имя дистрибутива
+                $_ -match '^[A-Za-z][A-Za-z0-9.\-]+$' -and $_ -notmatch '^(NAME|FRIENDLY)$'
+            }
+        }
+
+        $pick = $WslDistro
+        if ($names -and ($names -notcontains $WslDistro)) {
+            $alt = $names | Where-Object { $_ -match '^Ubuntu' } | Select-Object -First 1
+            if ($alt) {
+                Warn "«$WslDistro» в каталоге нет, беру «$alt»"
+                $pick = $alt
+                $WslDistro = $alt
+            }
+        }
+
+        Write-Host "  ставлю $pick, это займёт несколько минут" -ForegroundColor DarkGray
+        # --no-launch: иначе установщик уводит в диалог создания
+        # пользователя и ждёт ввода, которого в этом окне не будет.
+        $res = Invoke-Wsl --install -d $pick --no-launch
+        if ($res.Code -ne 0) {
+            # Старые сборки не знают --no-launch; пробуем без него
+            $res = Invoke-Wsl --install -d $pick
+        }
+
+        if ($res.Code -ne 0) {
+            # «Параметр задан неверно» обычно означает старую встроенную
+            # версию WSL: она знает --install, но не так, как нынешняя.
+            # Обновляемся и пробуем ещё раз, прежде чем сдаваться.
+            Warn 'установка не прошла, обновляю WSL и пробую снова'
+            $upd = Invoke-Wsl --update
+            Log "wsl --update: код $($upd.Code), ответ: $($upd.Text)"
+            if ($upd.Code -eq 0) {
+                $res = Invoke-Wsl --install -d $pick --no-launch
+                if ($res.Code -ne 0) { $res = Invoke-Wsl --install -d $pick }
+            }
+        }
+
+        if ($res.Code -ne 0) {
+            Write-Host ""
+            Write-Host "Не удалось поставить дистрибутив автоматически." -ForegroundColor Red
+            Write-Host "  ответ системы: $($res.Text)" -ForegroundColor DarkGray
+            Log "wsl --install: код $($res.Code), ответ: $($res.Text)"
+            Write-Host ""
+            Write-Host "Что сделать вручную:" -ForegroundColor White
+            Write-Host "  1. wsl --update" -ForegroundColor DarkGray
+            Write-Host "  2. wsl --list --online   (посмотреть доступные имена)" -ForegroundColor DarkGray
+            Write-Host "  3. wsl --install -d <имя из списка>" -ForegroundColor DarkGray
+            Write-Host "  4. перезагрузиться и запустить установщик снова" -ForegroundColor DarkGray
+            Write-Host ""
+            Write-Host "Журнал: $script:LogFile" -ForegroundColor DarkGray
+            Hold
+            exit 1
+        }
+
+        Ok "дистрибутив $pick поставлен"
+        $script:NeedReboot = $true
+    }
 }
 
 if ($script:NeedReboot) {
