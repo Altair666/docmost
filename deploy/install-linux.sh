@@ -99,29 +99,74 @@ fi
 
 if command -v docker >/dev/null 2>&1; then
   ok "docker есть ($(docker --version | awk '{print $3}' | tr -d ,))"
+
+  # Клиент и демон — разные пакеты, и «docker --version» отвечает даже
+  # когда демона нет вовсе. Так выглядит наполовину прошедшая установка:
+  # docker-ce-cli встал, docker-ce нет.
+  if ! command -v dockerd >/dev/null 2>&1; then
+    warn 'установлен только клиент, демона нет — доставляю'
+    apt-get install -y -q docker-ce docker-ce-cli containerd.io \
+      docker-buildx-plugin docker-compose-plugin 2>&1 | tail -5 | sed 's/^/    /'
+    if command -v dockerd >/dev/null 2>&1; then
+      ok 'демон доставлен'
+    else
+      bad 'демон так и не установился — смотрите вывод apt выше'
+    fi
+  fi
   if docker info >/dev/null 2>&1; then
     ok 'демон docker отвечает'
   else
-    # Свежепоставленный Docker в WSL сам не стартует: systemd там по
-    # умолчанию нет, а служба не поднимается при входе. Поднимаем сами —
-    # отказываться, когда можешь починить, глупо.
     echo '  демон не отвечает, поднимаю'
-    if command -v systemctl >/dev/null 2>&1 && systemctl start docker 2>/dev/null; then
-      : # systemd есть и справился
-    else
-      service docker start >/dev/null 2>&1 || true
+    DLOG=/tmp/docker-start.log
+    : > "$DLOG"
+
+    wait_docker() {
+      for _ in 1 2 3 4 5 6 7 8 9 10; do
+        docker info >/dev/null 2>&1 && return 0
+        sleep 2
+      done
+      return 1
+    }
+
+    # Способ первый: как положено
+    if command -v systemctl >/dev/null 2>&1; then
+      systemctl start docker >>"$DLOG" 2>&1 || true
+    fi
+    service docker start >>"$DLOG" 2>&1 || true
+
+    if ! wait_docker; then
+      # Способ второй. Известная беда WSL: в Ubuntu 24.04 по умолчанию
+      # nftables, а dockerd ждёт классический iptables и падает на
+      # создании своих цепочек. Переключаем и пробуем снова.
+      if command -v update-alternatives >/dev/null 2>&1 \
+         && [ -x /usr/sbin/iptables-legacy ]; then
+        echo '  пробую переключить iptables на устаревший вариант'
+        update-alternatives --set iptables /usr/sbin/iptables-legacy >>"$DLOG" 2>&1 || true
+        update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy >>"$DLOG" 2>&1 || true
+        service docker start >>"$DLOG" 2>&1 || true
+        wait_docker || true
+      fi
     fi
 
-    # Демону нужно несколько секунд на сокет
-    for _ in 1 2 3 4 5 6 7 8 9 10; do
-      docker info >/dev/null 2>&1 && break
-      sleep 2
-    done
+    if ! docker info >/dev/null 2>&1; then
+      # Способ третий: запускаем напрямую, чтобы услышать причину от
+      # самого демона, а не гадать по молчанию службы.
+      echo '  запускаю демона напрямую, чтобы узнать причину'
+      ( dockerd >>"$DLOG" 2>&1 & ) || true
+      sleep 8
+      docker info >/dev/null 2>&1 || true
+    fi
 
     if docker info >/dev/null 2>&1; then
       ok 'демон docker поднят'
     else
-      bad 'демон docker не запускается — посмотрите: service docker start'
+      bad 'демон docker не запускается'
+      echo '  что он сказал:'
+      tail -25 "$DLOG" 2>/dev/null | sed 's/^/    /'
+      [ -f /var/log/docker.log ] && {
+        echo '  из /var/log/docker.log:'
+        tail -15 /var/log/docker.log | sed 's/^/    /'
+      }
     fi
   fi
 else
