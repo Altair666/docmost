@@ -18,11 +18,20 @@ LOG=/opt/shots/build-v$N.log
 
 echo "собираю v$N (сейчас в стеке v$PREV)"
 
-# Сборка съедает всю память виртуалки. Если рядом работают dev-сервер,
-# локальный Grist и Keycloak, машина уходит в своп и перестаёт отвечать
-# вместе с боевым стеком — проверено на собственной шкуре.
-echo '--- гашу лишнее ---'
-docker stop docmost-dev grist-local keycloak-test >/dev/null 2>&1 || true
+# Сборка съедает почти всю память виртуалки, поэтому соседние
+# контейнеры на время сборки лучше погасить: проверено на своей шкуре —
+# машина уходила в своп и переставала отвечать вместе с боевым стеком.
+#
+# Список задаётся снаружи и по умолчанию пуст: на обычном сервере рядом
+# ничего лишнего нет. На отладочной машине это делается так:
+#   EXTRA_STOP='docmost-dev grist-local keycloak-test' deploy/build.sh 36
+EXTRA_STOP=${EXTRA_STOP:-}
+
+if [ -n "$EXTRA_STOP" ]; then
+  echo '--- гашу лишнее на время сборки ---'
+  # shellcheck disable=SC2086
+  docker stop $EXTRA_STOP >/dev/null 2>&1 || true
+fi
 free -m | head -2
 
 cd /opt/docmost
@@ -56,15 +65,17 @@ docker images docmost-custom --format '{{.Tag}}' \
         && echo "  убран образ v$old" || true
     done
 
-echo '--- возвращаю отладочные ---'
-# Ровно те же, что гасили выше. Раньше поднимался только Keycloak, и
-# dev-сервер с Grist оставались лежать после каждой сборки.
-for c in docmost-dev grist-local keycloak-test; do
+if [ -n "$EXTRA_STOP" ]; then
+echo '--- возвращаю погашенное ---'
+# Ровно те же, что гасили выше: docker stop помечает контейнер
+# остановленным вручную, и сам докер его больше не поднимет — значит
+# поднимать обязан тот, кто останавливал.
+for c in $EXTRA_STOP; do
   docker start "$c" >/dev/null 2>&1 || true
 done
 
 sleep 5
-for c in docmost-dev grist-local keycloak-test; do
+for c in $EXTRA_STOP; do
   state=$(docker inspect -f '{{.State.Status}}' "$c" 2>/dev/null || echo 'нет такого')
   if [ "$state" = running ]; then
     echo "  $c: работает"
@@ -72,6 +83,7 @@ for c in docmost-dev grist-local keycloak-test; do
     echo "  $c: НЕ ПОДНЯЛСЯ ($state)"
   fi
 done
+fi
 
 echo '--- итог ---'
 docker ps --format '{{.Names}}\t{{.Image}}\t{{.Status}}'

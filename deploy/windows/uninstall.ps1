@@ -69,12 +69,16 @@ if ($site) { Item "сайт IIS «$SiteName» ($($site.State))" } else { Item "�
 $pool = Get-Item "IIS:\AppPools\$AppPool" -ErrorAction SilentlyContinue
 if ($pool) { Item "пул приложений «$AppPool»" }
 
+# По точному имени, а не по совпадению слова: установщик создаёт одно
+# правило — «Docmost HTTP (TCP 80)». Всё остальное на этой машине
+# принадлежит другим службам, включая отладочные, и трогать его нельзя.
+$ourRules = @('Docmost HTTP (TCP 80)')
 $rules = Get-NetFirewallRule -ErrorAction SilentlyContinue |
-    Where-Object { $_.DisplayName -match 'Docmost|Keycloak test|Grist local' }
+    Where-Object { $ourRules -contains $_.DisplayName }
 foreach ($r in $rules) { Item "правило файрвола «$($r.DisplayName)»" }
 
 $proxy = netsh interface portproxy show v4tov4 | Select-String '\d+\.\d+\.\d+\.\d+'
-if ($proxy) { Item "правил проброса портов: $($proxy.Count)" }
+if ($proxy) { Item "правил проброса портов: $($proxy.Count) — не наши, останутся" }
 
 $task = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
 if ($task) { Item "задача автозапуска «$TaskName»" }
@@ -92,12 +96,12 @@ if ($WithData) {
     Item "данные сохранены (удалить: -WithData)"
 }
 Item "удалены сайт IIS и пул приложений"
-Item "удалены правила файрвола и проброс портов"
+Item "удалено правило файрвола «Docmost HTTP (TCP 80)»"
 Item "удалена задача автозапуска"
 if ($RemoveDistro) {
     Write-Host "  УДАЛЁН ВЕСЬ ДИСТРИБУТИВ WSL со всем, что в нём есть" -ForegroundColor Red
 } else {
-    Item "дистрибутив WSL остаётся (там Keycloak и Grist)"
+    Item "дистрибутив WSL остаётся: в нём могут работать другие службы"
 }
 
 if (-not $Yes) {
@@ -151,16 +155,10 @@ foreach ($r in $rules) {
 }
 if (-not $rules) { Skip "правил файрвола не было" }
 
-# Проброс портов заводился под наши службы: 3000 у Docmost, 8080 у
-# Keycloak, 5173 и 8484 у отладочных. Снимаем только их.
-foreach ($p in @(3000, 5173, 8080, 8484)) {
-    $line = netsh interface portproxy show v4tov4 | Select-String "\s$p\s"
-    if ($line) {
-        $addr = ($line -split '\s+')[0]
-        netsh interface portproxy delete v4tov4 listenaddress=$addr listenport=$p | Out-Null
-        Gone "проброс порта $p снят"
-    }
-}
+# Проброс портов установщик заводит только для Keycloak, и только если
+# его порт передали доводом. Keycloak — не наша служба, поэтому здесь
+# ничего не снимаем: чужие правила должен убирать тот, кто их ставил.
+Skip 'проброс портов не трогаю: он заводился под сторонние службы'
 
 if ($task) {
     Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false
@@ -183,7 +181,7 @@ if (-not $WithData) {
     Item "Убрать совсем: wsl -d $WslDistro -u root -- docker volume rm docmost-stack_db_data docmost-stack_docmost_storage docmost-stack_redis_data"
 }
 if (-not $RemoveDistro) {
-    Item "Дистрибутив WSL на месте, там могли остаться Keycloak и Grist."
+    Item "Дистрибутив WSL на месте: в нём могли остаться другие службы."
 }
 $freeGb = [math]::Round((Get-PSDrive C).Free / 1GB, 1)
 Item "на диске C свободно: $freeGb ГБ"
