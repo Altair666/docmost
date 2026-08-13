@@ -662,16 +662,16 @@ if (Need 'convert') {
 
 # Убираем вопрос про имя пользователя при первом запуске и поднимаем
 # демона при старте: иначе после перезагрузки вики не вернётся сама.
-$conf = "[user]`ndefault=root`n`n[boot]`ncommand = service docker start`n"
-$confTmp = [System.IO.Path]::GetTempFileName()
-Write-WslScript -Path $confTmp -Body $conf
-$c = Invoke-Wsl @('-d', $WslDistro, '-u', 'root', '--', 'wslpath', '-a', ($confTmp -replace '\\','/'))
-$null = Invoke-Wsl @('-d', $WslDistro, '-u', 'root', '--', 'cp', $c.Text.Trim(), '/etc/wsl.conf')
-Remove-Item $confTmp -Force -ErrorAction SilentlyContinue
-if ((Invoke-Wsl @('-d', $WslDistro, '-u', 'root', '--', 'cat', '/etc/wsl.conf')).Text -match 'default=root') {
+# Пишем прямо из оболочки: временный файл, перевод пути и копирование —
+# три звена там, где хватает одного, и каждое может подвести.
+$confBody = "[user]\ndefault=root\n\n[boot]\ncommand = service docker start\n"
+$w = Invoke-Wsl @('-d', $WslDistro, '-u', 'root', '--', 'bash', '-lc',
+    "printf '$confBody' > /etc/wsl.conf && cat /etc/wsl.conf")
+if ($w.Text -match 'default=root') {
     Ok 'вход без вопросов о пользователе, Docker поднимается при старте'
 } else {
     Warn 'не удалось записать /etc/wsl.conf'
+    Log "wsl.conf: код $($w.Code), ответ: $($w.Text)"
 }
 
 if (Need 'wslconfig') {
@@ -696,13 +696,50 @@ if (-not $dockerOk) {
     Note 'ставлю Docker внутри дистрибутива'
 
     # Частая беда: снаружи сеть есть, а изнутри не разрешаются имена.
-    $net = Invoke-Wsl @('-d', $WslDistro, '-u', 'root', '--', 'bash', '-lc',
-        'getent hosts download.docker.com >/dev/null 2>&1 && echo связь-есть || echo связи-нет')
-    if ($net.Text -notmatch 'связь-есть') {
-        Die "Изнутри $WslDistro не разрешаются имена — apt работать не сможет." @(
-            'обычно помогает: wsl --shutdown, затем запустить установщик снова',
-            'если не помогло — дело в DNS внутри WSL (частый случай при включённом VPN)'
-        )
+    $probeDns = {
+        (Invoke-Wsl @('-d', $WslDistro, '-u', 'root', '--', 'bash', '-lc',
+            'getent hosts download.docker.com >/dev/null 2>&1 && echo связь-есть || echo связи-нет')).Text
+    }
+
+    if ((& $probeDns) -notmatch 'связь-есть') {
+        Warn 'изнутри дистрибутива не разрешаются имена — чиню'
+
+        # WSL сам сочиняет /etc/resolv.conf, и на машинах с VPN или
+        # своим DNS он выходит нерабочим. Запрещаем и прописываем
+        # распознаватели хоста, а к ним про запас общедоступный.
+        $dns = @()
+        try {
+            $dns = (Get-DnsClientServerAddress -AddressFamily IPv4 -ErrorAction Stop |
+                Where-Object { $_.ServerAddresses } |
+                Select-Object -ExpandProperty ServerAddresses -Unique) |
+                Where-Object { $_ -notmatch '^127\.' } | Select-Object -First 3
+        } catch { }
+        # Обязательно списком: при одном найденном адресе это строка,
+        # и «+=» склеит её со следующей вместо добавления в список.
+        $dns = @($dns) | Where-Object { $_ }
+        $dns = @($dns) + '8.8.8.8' | Select-Object -Unique
+        Note ("распознаватели: " + ($dns -join ', '))
+
+        $lines = ($dns | ForEach-Object { "nameserver $_" }) -join '\n'
+        $fix = "grep -q generateResolvConf /etc/wsl.conf 2>/dev/null || printf '\n[network]\ngenerateResolvConf=false\n' >> /etc/wsl.conf; rm -f /etc/resolv.conf; printf '$lines\n' > /etc/resolv.conf; cat /etc/resolv.conf"
+        $r = Invoke-Wsl @('-d', $WslDistro, '-u', 'root', '--', 'bash', '-lc', $fix)
+        Log "починка DNS: код $($r.Code), ответ: $($r.Text)"
+
+        # Настройки читаются при запуске дистрибутива
+        $null = Invoke-Wsl @('--terminate', $WslDistro) -Utf16
+        Start-Sleep -Seconds 3
+
+        if ((& $probeDns) -match 'связь-есть') {
+            Ok 'имена разрешаются, продолжаю'
+        } else {
+            Die "Изнутри $WslDistro не разрешаются имена даже после починки." @(
+                'проверьте вручную: wsl -d ' + $WslDistro + ' -u root -- cat /etc/resolv.conf',
+                'и связь: wsl -d ' + $WslDistro + ' -u root -- ping -c1 1.1.1.1',
+                'если пингуется, а имена нет — мешает DNS сети или VPN'
+            )
+        }
+    } else {
+        Ok 'связь изнутри дистрибутива есть'
     }
 
     $install = @'
