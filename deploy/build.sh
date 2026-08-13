@@ -44,6 +44,18 @@ else
   echo '--- образ не собран, стек не трогаю ---'
 fi
 
+# Кеш сборки не убирается сам и растёт от прохода к проходу: у нас он
+# добрался до 45 ГБ за пятнадцать сборок. Старые образы тоже копятся —
+# держим три последних, остальные ни к чему.
+echo '--- убираю старьё ---'
+docker builder prune --force --filter 'until=168h' 2>&1 | tail -1 | sed 's/^/  кеш: /'
+
+docker images docmost-custom --format '{{.Tag}}' \
+  | sort -V -r | tail -n +4 | while read -r old; do
+      docker rmi "docmost-custom:$old" >/dev/null 2>&1 \
+        && echo "  убран образ v$old" || true
+    done
+
 echo '--- возвращаю отладочные ---'
 # Ровно те же, что гасили выше. Раньше поднимался только Keycloak, и
 # dev-сервер с Grist оставались лежать после каждой сборки.
