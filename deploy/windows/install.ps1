@@ -219,7 +219,17 @@ function Invoke-WslLive {
     $prevPref = $ErrorActionPreference
     $ErrorActionPreference = 'Continue'
     try {
-        & $wslExe @WslArgs
+        # Команды внутри дистрибутива отвечают в UTF-8; без этого их
+        # вывод читается неверно.
+        try { [Console]::OutputEncoding = [System.Text.Encoding]::UTF8 } catch { }
+
+        # Каждая строка идёт и на экран, и в журнал: при сбое иначе не
+        # остаётся никаких следов, а именно это и подвело в прошлый раз.
+        & $wslExe @WslArgs 2>&1 | ForEach-Object {
+            $line = [string]$_
+            Write-Host $line
+            Log $line
+        }
         return $LASTEXITCODE
     } finally {
         $ErrorActionPreference = $prevPref
@@ -452,12 +462,21 @@ if (-not $hasWsl -or -not $hasDistro) {
             }
         }
 
+        # --no-launch не даёт дистрибутиву открыть окно первичной
+        # настройки с вопросом о пользователе. Знают его не все версии:
+        # на Windows 10 встречается WSL постарше, поэтому спрашиваем
+        # справку, а не проверяем наугад по коду возврата.
+        $help = Invoke-Wsl @('--help') -Utf16
+        $canNoLaunch = ($help.Text -match '--no-launch')
+
         Write-Host "  ставлю $pick, это займёт несколько минут" -ForegroundColor DarkGray
-        # --no-launch: иначе установщик уводит в диалог создания
-        # пользователя и ждёт ввода, которого в этом окне не будет.
-        $res = Invoke-Wsl @('--install', '-d', $pick, '--no-launch') -Utf16
-        if ($res.Code -ne 0) {
-            # Старые сборки не знают --no-launch; пробуем без него
+        if (-not $canNoLaunch) {
+            Warn 'эта версия WSL не умеет ставить без запуска — окно Ubuntu может открыться, отвечать на его вопросы не нужно'
+        }
+
+        if ($canNoLaunch) {
+            $res = Invoke-Wsl @('--install', '-d', $pick, '--no-launch') -Utf16
+        } else {
             $res = Invoke-Wsl @('--install', '-d', $pick) -Utf16
         }
 
@@ -495,6 +514,20 @@ if (-not $hasWsl -or -not $hasDistro) {
 
         # Обычно он готов сразу — проверяем, а не отправляем человека на
         # ещё одну перезагрузку вслепую.
+        # Окно первичной настройки, если открылось, ждёт имени
+        # пользователя. Оно нам не нужно: работаем от root, а учётку
+        # заводить незачем. Закрываем сами.
+        $wizards = Get-Process -ErrorAction SilentlyContinue |
+            Where-Object { $_.ProcessName -match '^ubuntu' }
+        foreach ($w in $wizards) {
+            try {
+                Stop-Process -Id $w.Id -Force -ErrorAction Stop
+                Ok "закрыто окно первичной настройки ($($w.ProcessName))"
+            } catch {
+                Log "не смог закрыть $($w.ProcessName): $($_.Exception.Message)"
+            }
+        }
+
         $probe = Invoke-Wsl @('-d', $pick, '-u', 'root', '--', 'echo', 'wsl-готов')
         if ($probe.Code -eq 0 -and $probe.Text -match 'wsl-готов') {
             Ok 'дистрибутив отвечает, перезагрузка не нужна'
@@ -563,18 +596,35 @@ localhostForwarding=true
 
 if (-not $dockerOk) {
     Step "Ставлю Docker внутри $WslDistro"
+
+    # Частая беда: снаружи сеть есть, а изнутри дистрибутива не
+    # разрешаются имена — тогда apt падает невнятно. Проверяем заранее,
+    # чтобы не гадать по обрывкам вывода.
+    $net = Invoke-Wsl @('-d', $WslDistro, '-u', 'root', '--', 'bash', '-lc',
+        'getent hosts download.docker.com >/dev/null 2>&1 && echo связь-есть || echo связи-нет')
+    if ($net.Text -notmatch 'связь-есть') {
+        Write-Host ""
+        Write-Host "Изнутри $WslDistro не разрешаются имена — apt работать не сможет." -ForegroundColor Red
+        Write-Host "  Обычно помогает: wsl --shutdown, затем запустить установщик снова." -ForegroundColor DarkGray
+        Write-Host "  Если не помогло, дело в DNS внутри WSL (частый случай при включённом VPN)." -ForegroundColor DarkGray
+        Log "проверка связи внутри WSL: $($net.Text)"
+        Write-Host "Журнал: $script:LogFile" -ForegroundColor DarkGray
+        Hold
+        exit 1
+    }
+    Ok 'связь изнутри дистрибутива есть' 
     $install = @'
 set -e
 if ! command -v docker >/dev/null 2>&1; then
-  apt-get update -qq
-  apt-get install -y -qq ca-certificates curl gnupg git
+  apt-get update -q
+  apt-get install -y -q ca-certificates curl gnupg git
   install -m 0755 -d /etc/apt/keyrings
   curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
   chmod a+r /etc/apt/keyrings/docker.asc
   echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo $VERSION_CODENAME) stable" \
     > /etc/apt/sources.list.d/docker.list
-  apt-get update -qq
-  apt-get install -y -qq docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+  apt-get update -q
+  apt-get install -y -q docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 fi
 service docker start >/dev/null 2>&1 || true
 docker --version
