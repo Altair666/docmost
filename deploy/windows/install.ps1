@@ -237,6 +237,24 @@ function Invoke-WslLive {
     }
 }
 
+# Какой версией WSL зарегистрирован дистрибутив. Это не мелочь: в
+# первой версии нет настоящего ядра, и Docker в ней не работает —
+# служба рапортует об успехе, а демон тут же падает.
+function Get-WslVersion {
+    param([string] $Name)
+
+    $out = Invoke-Wsl @('-l', '-v') -Utf16
+    foreach ($line in ($out.Text -split "`n")) {
+        $clean = ($line -replace '^\s*\*\s*', '').Trim()
+        if (-not $clean) { continue }
+        $parts = $clean -split '\s{1,}'
+        if ($parts.Count -ge 3 -and $parts[0] -eq $Name) {
+            return [int]($parts[-1])
+        }
+    }
+    return 0
+}
+
 function Invoke-Wsl {
     # Массивом, а не «остаточными доводами»: иначе PowerShell забирает
     # себе всё, что начинается с дефиса, и до wsl.exe это не доходит.
@@ -311,8 +329,17 @@ if ($hasWsl) {
 }
 
 $hasDistro = $distros -contains $WslDistro
-if ($hasDistro) { Ok "дистрибутив $WslDistro на месте" }
-else { Warn "дистрибутива $WslDistro нет — поставлю" }
+if ($hasDistro) {
+    $ver = Get-WslVersion -Name $WslDistro
+    if ($ver -eq 1) {
+        # Не Bad: это чинится, и чиним мы сами ниже.
+        Warn "дистрибутив $WslDistro первой версии — Docker в ней не работает, переведу во вторую"
+    } else {
+        Ok "дистрибутив $WslDistro на месте (WSL $ver)"
+    }
+} else {
+    Warn "дистрибутива $WslDistro нет — поставлю"
+}
 
 # Память виртуалки: сборка клиента прожорлива, на 6 ГБ она уже вешала
 # машину, когда рядом работали другие контейнеры.
@@ -469,6 +496,10 @@ if (-not $hasWsl -or -not $hasDistro) {
         $help = Invoke-Wsl @('--help') -Utf16
         $canNoLaunch = ($help.Text -match '--no-launch')
 
+        # Чтобы дистрибутив сразу встал второй версией: в первой Docker
+        # не работает, а по умолчанию кое-где до сих пор стоит первая.
+        $null = Invoke-Wsl @('--set-default-version', '2') -Utf16
+
         Write-Host "  ставлю $pick, это займёт несколько минут" -ForegroundColor DarkGray
         if (-not $canNoLaunch) {
             Warn 'эта версия WSL не умеет ставить без запуска — окно Ubuntu может открыться, отвечать на его вопросы не нужно'
@@ -559,6 +590,30 @@ if (-not $hasWsl -or -not $hasDistro) {
             # останавливаем: следующий вызов подхватит.
             $null = Invoke-Wsl @('--terminate', $pick) -Utf16
 
+            # Версия WSL: в первой Docker не заработает никогда.
+            $ver = Get-WslVersion -Name $pick
+            if ($ver -eq 1) {
+                Warn "«$pick» зарегистрирован первой версией WSL — в ней Docker не работает"
+                Write-Host '  перевожу во вторую, это занимает несколько минут' -ForegroundColor DarkGray
+                $conv = Invoke-Wsl @('--set-version', $pick, '2') -Utf16
+                Log "set-version: код $($conv.Code), ответ: $($conv.Text)"
+
+                $ver = Get-WslVersion -Name $pick
+                if ($ver -eq 2) {
+                    Ok 'переведён во вторую версию'
+                } else {
+                    Write-Host ""
+                    Write-Host "Не удалось перевести «$pick» во вторую версию WSL." -ForegroundColor Red
+                    Write-Host "  ответ системы: $($conv.Text)" -ForegroundColor DarkGray
+                    Write-Host "  вручную: wsl --set-version $pick 2" -ForegroundColor DarkGray
+                    Write-Host "Журнал: $script:LogFile" -ForegroundColor DarkGray
+                    Hold
+                    exit 1
+                }
+            } elseif ($ver -eq 2) {
+                Ok 'дистрибутив второй версии, как и нужно'
+            }
+
             $hasDistro = $true
             $dockerOk = $false
         } else {
@@ -592,6 +647,35 @@ localhostForwarding=true
     # новый потолок памяти не подействует, и сборка может не влезть.
     $null = Invoke-Wsl @('--shutdown') -Utf16
     Ok 'WSL остановлен, настройки применятся при следующем запуске'
+}
+
+# Дистрибутив мог существовать до нас и быть первой версии. Docker в
+# ней не работает, поэтому переводим прежде, чем ставить его.
+if ($hasDistro) {
+    $ver = Get-WslVersion -Name $WslDistro
+    if ($ver -eq 1) {
+        Step "Перевожу $WslDistro во вторую версию WSL"
+        Write-Host '  в первой версии нет настоящего ядра, и Docker в ней не запускается' -ForegroundColor DarkGray
+        Write-Host '  перевод занимает несколько минут' -ForegroundColor DarkGray
+
+        $conv = Invoke-Wsl @('--set-version', $WslDistro, '2') -Utf16
+        Log "set-version: код $($conv.Code), ответ: $($conv.Text)"
+
+        if ((Get-WslVersion -Name $WslDistro) -eq 2) {
+            Ok 'переведён во вторую версию'
+            # Docker после перевода надо ставить заново: файловая
+            # система дистрибутива пересоздаётся.
+            $dockerOk = $false
+        } else {
+            Write-Host ""
+            Write-Host "Не удалось перевести «$WslDistro» во вторую версию." -ForegroundColor Red
+            Write-Host "  ответ системы: $($conv.Text)" -ForegroundColor DarkGray
+            Write-Host "  вручную: wsl --set-version $WslDistro 2" -ForegroundColor DarkGray
+            Write-Host "Журнал: $script:LogFile" -ForegroundColor DarkGray
+            Hold
+            exit 1
+        }
+    }
 }
 
 if (-not $dockerOk) {
