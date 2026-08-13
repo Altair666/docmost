@@ -221,6 +221,36 @@ function Write-WslScript {
     [System.IO.File]::WriteAllText($Path, $clean, (New-Object System.Text.UTF8Encoding($false)))
 }
 
+# Отзывается ли дистрибутив вообще. Без этой проверки любая команда
+# внутри него отказывает по одной и той же причине, а выглядит каждый
+# раз по-новому: то файл не записался, то имена не разрешились.
+function Assert-Distro {
+    param([string] $Name)
+
+    $probe = Invoke-Wsl @('-d', $Name, '-u', 'root', '--', 'echo', 'отзывается')
+    if ($probe.Code -eq 0 -and $probe.Text -match 'отзывается') { return }
+
+    $list = ((Invoke-Wsl @('-l', '-q') -Utf16).Text -split "`n") |
+        ForEach-Object { $_.Trim() } | Where-Object { $_ }
+
+    # Когда дистрибутива нет, отвечает сам wsl.exe, а он говорит в
+    # UTF-16 — прочитанный как UTF-8, его ответ превращается в кашу.
+    $readable = (Invoke-Wsl @('-d', $Name, '-u', 'root', '--', 'true') -Utf16).Text
+    if (-not $readable) { $readable = $probe.Text }
+
+    Log "проверка дистрибутива «$Name»: код $($probe.Code), ответ: $readable"
+
+    $hints = @("ответ системы: $readable")
+    if ($list) {
+        $hints += "установленные дистрибутивы: " + ($list -join ', ')
+        $hints += "запустите с нужным именем: -WslDistro <имя из списка>"
+    } else {
+        $hints += 'установленных дистрибутивов нет вовсе'
+    }
+
+    Die "Дистрибутив «$Name» не отзывается." $hints
+}
+
 function Get-WslVersion {
     param([string] $Name)
     $out = Invoke-Wsl @('-l', '-v') -Utf16
@@ -660,6 +690,11 @@ if (Need 'convert') {
 
 # --- настройки дистрибутива ---
 
+# Дальше всё делается внутри дистрибутива, поэтому сперва убеждаемся,
+# что он вообще отзывается. Иначе каждая следующая ошибка будет врать о
+# своей причине.
+Assert-Distro -Name $WslDistro
+
 # Убираем вопрос про имя пользователя при первом запуске и поднимаем
 # демона при старте: иначе после перезагрузки вики не вернётся сама.
 # Пишем прямо из оболочки: временный файл, перевод пути и копирование —
@@ -667,10 +702,10 @@ if (Need 'convert') {
 $confBody = "[user]\ndefault=root\n\n[boot]\ncommand = service docker start\n"
 $w = Invoke-Wsl @('-d', $WslDistro, '-u', 'root', '--', 'bash', '-lc',
     "printf '$confBody' > /etc/wsl.conf && cat /etc/wsl.conf")
-if ($w.Text -match 'default=root') {
+if ($w.Code -eq 0 -and $w.Text -match 'default=root') {
     Ok 'вход без вопросов о пользователе, Docker поднимается при старте'
 } else {
-    Warn 'не удалось записать /etc/wsl.conf'
+    Warn "не удалось записать /etc/wsl.conf (код $($w.Code)): $($w.Text)"
     Log "wsl.conf: код $($w.Code), ответ: $($w.Text)"
 }
 
@@ -697,8 +732,10 @@ if (-not $dockerOk) {
 
     # Частая беда: снаружи сеть есть, а изнутри не разрешаются имена.
     $probeDns = {
-        (Invoke-Wsl @('-d', $WslDistro, '-u', 'root', '--', 'bash', '-lc',
-            'getent hosts download.docker.com >/dev/null 2>&1 && echo связь-есть || echo связи-нет')).Text
+        $r = Invoke-Wsl @('-d', $WslDistro, '-u', 'root', '--', 'bash', '-lc',
+            'getent hosts download.docker.com >/dev/null 2>&1 && echo связь-есть || echo связи-нет')
+        if ($r.Code -ne 0) { Log "проверка связи: код $($r.Code), ответ: $($r.Text)" }
+        $r.Text
     }
 
     if ((& $probeDns) -notmatch 'связь-есть') {
