@@ -55,14 +55,28 @@ $script:StepTotal = 7
 $script:Started = Get-Date
 
 # Запущено щелчком или из консоли. От этого зависит, ждать ли нажатия
-# клавиши в конце: иначе окно закрывается раньше, чем человек прочтёт
-# итог. Признак — есть ли у процесса родитель-оболочка.
+# клавиши в конце: своё окно закроется вместе с нами и унесёт итог.
+#
+# Спрашиваем у самой консоли, сколько процессов к ней подключено. Только
+# мы — окно наше, надо придержать. Есть кто-то ещё (командный процессор)
+# — окно останется и без нас. По имени родителя это определялось неверно:
+# при запуске из консоли родителем оказывался не powershell.
 $script:Interactive = $false
 try {
-    $me = Get-CimInstance Win32_Process -Filter "ProcessId = $PID"
-    $parent = Get-CimInstance Win32_Process -Filter "ProcessId = $($me.ParentProcessId)" -ErrorAction SilentlyContinue
-    $script:Interactive = -not ($parent -and $parent.Name -match 'powershell|pwsh|cmd|WindowsTerminal')
-} catch { $script:Interactive = $false }
+    if (-not ('ConsoleHelper' -as [type])) {
+        Add-Type -Namespace '' -Name ConsoleHelper -MemberDefinition @'
+[System.Runtime.InteropServices.DllImport("kernel32.dll", SetLastError = true)]
+public static extern uint GetConsoleProcessList(uint[] lpdwProcessList, uint dwProcessCount);
+'@
+    }
+    $buf = New-Object uint32[] 16
+    $count = [ConsoleHelper]::GetConsoleProcessList($buf, 16)
+    $script:Interactive = ($count -le 1)
+} catch {
+    # Консоли нет вовсе (запуск из службы или перенаправленный вывод) —
+    # держать нечего.
+    $script:Interactive = $false
+}
 
 function Ok   { param($m) Write-Host "  [+] $m" -ForegroundColor Green }
 function Bad  { param($m) Write-Host "  [-] $m" -ForegroundColor Red; $script:Problems++ }
@@ -122,14 +136,13 @@ if ($ramGb -ge 8) { Ok "оперативной памяти $ramGb ГБ" }
 elseif ($ramGb -ge 4) { Warn "оперативной памяти $ramGb ГБ — вики будет работать, но собирать образ здесь тесно" }
 else { Bad "оперативной памяти $ramGb ГБ — мало" }
 
-# Работающий стек занимает 2.2 ГБ: образы 2.1 и данные 90 МБ за неделю.
-# Пятнадцать нужны, потому что образ собирается здесь же — исходники,
-# слои сборки и кеш, — и потому что диск виртуалки WSL растёт, а сам
-# обратно не сжимается.
+# Замер чистого цикла: пик при установке около шести гигабайт, после
+# уборки кеша остаётся около трёх. Просим восемь: два сверху — на то,
+# что диск виртуалки WSL растёт по мере работы и сам не сжимается.
 $freeGb = [math]::Round((Get-PSDrive C).Free / 1GB, 1)
-if ($freeGb -ge 15) { Ok "на диске C свободно $freeGb ГБ" }
-elseif ($freeGb -ge 10) { Warn "на диске C свободно $freeGb ГБ — хватит на установку, но без запаса" }
-else { Bad "на диске C свободно $freeGb ГБ, нужно хотя бы 10 ГБ (стеку в работе — 2.2)" }
+if ($freeGb -ge 8) { Ok "на диске C свободно $freeGb ГБ" }
+elseif ($freeGb -ge 6) { Warn "на диске C свободно $freeGb ГБ — установка пройдёт, но впритык" }
+else { Bad "на диске C свободно $freeGb ГБ, нужно хотя бы 6 ГБ (стеку в работе — 2.2)" }
 
 # --- 2. WSL -----------------------------------------------------------
 
