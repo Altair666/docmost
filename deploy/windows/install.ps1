@@ -663,11 +663,21 @@ $repo = if ($UseGithub) {
 # операционную систему.
 $bootstrap = @"
 set -e
+
 if [ ! -d /opt/docmost/.git ]; then
   git clone --branch custom-sso-integration $repo /opt/docmost
+else
+  # Иначе повторный запуск возьмёт прежнюю версию скриптов развёртывания
+  # с диска, и все свежие исправления пройдут мимо.
+  echo 'обновляю исходники'
+  git -C /opt/docmost fetch --quiet origin custom-sso-integration || echo '  обновить не вышло, работаю тем, что есть'
+  git -C /opt/docmost checkout --quiet custom-sso-integration || true
+  git -C /opt/docmost merge --quiet --ff-only FETCH_HEAD 2>/dev/null || echo '  перемотать не вышло, работаю тем, что есть'
 fi
+
 git -C /opt/docmost submodule update --init apps/server/src/custom-sso
 chmod +x /opt/docmost/deploy/install-linux.sh
+echo "версия скриптов: `$(git -C /opt/docmost rev-parse --short HEAD)"
 /opt/docmost/deploy/install-linux.sh --url '$AppUrl' --repo '$repo'
 "@
 $tmp2 = [System.IO.Path]::GetTempFileName()

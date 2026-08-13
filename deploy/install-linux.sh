@@ -102,7 +102,27 @@ if command -v docker >/dev/null 2>&1; then
   if docker info >/dev/null 2>&1; then
     ok 'демон docker отвечает'
   else
-    bad 'демон docker не отвечает — systemctl start docker'
+    # Свежепоставленный Docker в WSL сам не стартует: systemd там по
+    # умолчанию нет, а служба не поднимается при входе. Поднимаем сами —
+    # отказываться, когда можешь починить, глупо.
+    echo '  демон не отвечает, поднимаю'
+    if command -v systemctl >/dev/null 2>&1 && systemctl start docker 2>/dev/null; then
+      : # systemd есть и справился
+    else
+      service docker start >/dev/null 2>&1 || true
+    fi
+
+    # Демону нужно несколько секунд на сокет
+    for _ in 1 2 3 4 5 6 7 8 9 10; do
+      docker info >/dev/null 2>&1 && break
+      sleep 2
+    done
+
+    if docker info >/dev/null 2>&1; then
+      ok 'демон docker поднят'
+    else
+      bad 'демон docker не запускается — посмотрите: service docker start'
+    fi
   fi
 else
   bad 'нет docker — https://docs.docker.com/engine/install/'
