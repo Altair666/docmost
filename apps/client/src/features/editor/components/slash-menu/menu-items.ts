@@ -2,6 +2,7 @@ import {
   IconBlockquote,
   IconCaretRightFilled,
   IconCheckbox,
+  IconChecklist,
   IconCode,
   IconH1,
   IconH2,
@@ -31,6 +32,7 @@ import {
   IconMoodSmile,
   IconRotate2,
 } from "@tabler/icons-react";
+import { customUiEnabled } from "@/custom-sso/ui-flags";
 import {
   CommandProps,
   SlashMenuGroupedItemsType,
@@ -74,6 +76,22 @@ const CommandGroups: SlashMenuGroupedItemsType = {
           .deleteRange(range)
           .toggleNode("paragraph", "paragraph")
           .run();
+      },
+    },
+    // Чек-лист как в Trello: заголовок, полоса выполнения, скрытие
+    // отмеченных. Внутри обычный список задач, поэтому без нашего
+    // оформления документ не ломается.
+    //
+    // Пункт стоит в списке всегда, а прячется при выдаче: этот список —
+    // константа модуля, она собирается до того, как придёт ответ
+    // сервера с настройками вида.
+    {
+      title: "Checklist",
+      description: "Checklist with progress, like in Trello.",
+      searchTerms: ["checklist", "trello", "чек", "лист", "progress"],
+      icon: IconChecklist,
+      command: ({ editor, range }: CommandProps) => {
+        editor.chain().focus().deleteRange(range).insertChecklist().run();
       },
     },
     {
@@ -809,6 +827,11 @@ export const getSuggestionItems = ({
   for (const [group, items] of Object.entries(CommandGroups)) {
     const filteredItems = items.filter((item) => {
       if (excludeItems?.has(item.title)) return false;
+
+      // Наши пункты — только в нашем оформлении. Проверяем здесь, а не
+      // при сборке списка выше: тот список собирается при загрузке
+      // модуля, когда настройки вида ещё не пришли с сервера.
+      if (item.title === "Checklist" && !customUiEnabled()) return false;
       const translatedTitle = i18n.t(item.title);
       const translatedDescription = i18n.t(item.description);
       return (

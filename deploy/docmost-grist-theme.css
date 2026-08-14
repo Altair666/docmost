@@ -1811,3 +1811,27 @@ html[data-mantine-color-scheme] .mantine-Button-root {
 html[data-mantine-color-scheme] .mantine-Title-root {
   letter-spacing: -0.01em;
 }
+
+
+/* ---------------------------------------------------------------
+   Чек-лист по образцу Trello
+   --------------------------------------------------------------- */
+
+/* Отмеченный пункт зачёркивается и тускнеет — так он читается как
+   сделанный, но остаётся видимым, пока список не свернули. */
+[data-type="checklist"] li[data-checked="true"] > div {
+    text-decoration: line-through;
+    opacity: 0.55;
+}
+
+/* Скрытие отмеченных: признак ставит кнопка в шапке списка. Прячем
+   только внутри чек-листа — обычные списки задач это не затрагивает. */
+[data-type="checklist"][data-hide-checked="true"] li[data-checked="true"] {
+    display: none;
+}
+
+/* В режиме чтения чекбокс остаётся живым: список для того и нужен,
+   чтобы отмечать по ходу дела, не переключая страницу в правку. */
+[data-type="checklist"] li > label input[type="checkbox"] {
+    cursor: pointer;
+}

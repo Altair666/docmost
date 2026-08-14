@@ -3,6 +3,7 @@ import { StarterKit } from "@tiptap/starter-kit";
 import { Code } from "@tiptap/extension-code";
 import { TextAlign } from "@tiptap/extension-text-align";
 import { TaskList, TaskItem } from "@tiptap/extension-list";
+import { Checklist } from "@/custom-sso/checklist/checklist";
 import { CharacterCount, UndoRedo } from "@tiptap/extensions";
 import { Placeholder } from "@/features/editor/extensions/placeholder";
 import { Superscript } from "@tiptap/extension-superscript";
@@ -220,6 +221,11 @@ export const mainExtensions = [
   TaskItem.configure({
     nested: true,
   }),
+  // Чек-лист по образцу Trello. Подключён всегда, и намеренно: вставить
+  // его неоткуда, пока команда скрыта, зато страница с чек-листом
+  // откроется правильно даже до ответа сервера с настройками вида.
+  // Будь узел под флагом, он выпал бы из схемы и содержимое потерялось.
+  Checklist,
   LinkExtension.configure({
     openOnClick: false,
   }).extend({

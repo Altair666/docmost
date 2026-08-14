@@ -1302,5 +1302,10 @@
   "Sort by date": "Сортировка по дате",
   "Sort by author": "Сортировка по создателю",
   "Last edited": "Последнее редактирование",
-  "By space": "По пространствам"
+  "By space": "По пространствам",
+  "Checklist": "Чек-лист",
+  "Checklist with progress, like in Trello.": "Список задач с полосой выполнения, как в Trello.",
+  "Hide checked items": "Скрыть отмеченные",
+  "Show checked items": "Показать отмеченные",
+  "Checked items hidden": "Отмеченных скрыто"
 }
