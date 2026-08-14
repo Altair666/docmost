@@ -1817,11 +1817,38 @@ html[data-mantine-color-scheme] .mantine-Title-root {
    Чек-лист по образцу Trello
    --------------------------------------------------------------- */
 
-/* Отмеченный пункт зачёркивается и тускнеет — так он читается как
-   сделанный, но остаётся видимым, пока список не свернули. */
-[data-type="checklist"] li[data-checked="true"] > div {
+/* Без рамки и без своих боковых отступов: с ними блок стоял правее
+   остального текста. В Trello рамки тоже нет — только заголовок,
+   полоса выполнения и пункты. */
+[data-type="checklist"] {
+    margin: 16px 0;
+    max-width: 100%;
+}
+
+[data-type="checklist"] .checklist-head {
+    /* Полоса выполнения не должна вылезать за ширину текста */
+    max-width: 100%;
+}
+
+/* Длинная строка без пробелов растягивала блок бесконечно: содержимому
+   нужен перенос, а ячейкам разметки — нулевая минимальная ширина,
+   иначе они отказываются сжиматься. */
+[data-type="checklist"] li {
+    min-width: 0;
+}
+
+[data-type="checklist"] li > div {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+/* Зачёркивание — у самого абзаца, а не у блока-обёртки: у обёртки
+   линия считается по её высоте и уезжает мимо текста. */
+[data-type="checklist"] li[data-checked="true"] p {
     text-decoration: line-through;
-    opacity: 0.55;
+    text-decoration-thickness: 1px;
+    color: var(--grist-secondary, #929299);
 }
 
 /* Скрытие отмеченных: признак ставит кнопка в шапке списка. Прячем
@@ -1830,8 +1857,51 @@ html[data-mantine-color-scheme] .mantine-Title-root {
     display: none;
 }
 
-/* В режиме чтения чекбокс остаётся живым: список для того и нужен,
-   чтобы отмечать по ходу дела, не переключая страницу в правку. */
+/* Клетка как в Trello: скруглённый квадрат, при отметке синяя заливка
+   с белой галкой. Родной вид браузера рядом с этим смотрится чужим. */
+[data-type="checklist"] li > label {
+    padding-top: 0;
+    display: flex;
+    align-items: center;
+    height: 1.6em;
+}
+
 [data-type="checklist"] li > label input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    border: 2px solid var(--grist-decoration, #b6c2cf);
+    border-radius: 3px;
+    background: #ffffff;
+    position: relative;
     cursor: pointer;
+    flex: none;
+}
+
+[data-type="checklist"] li > label input[type="checkbox"]:hover {
+    background: var(--grist-hover, #f0f1f3);
+}
+
+[data-type="checklist"] li > label input[type="checkbox"]:checked {
+    background: #0c66e4;
+    border-color: #0c66e4;
+}
+
+[data-type="checklist"] li > label input[type="checkbox"]:checked::after {
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 0;
+    width: 4px;
+    height: 9px;
+    border: solid #ffffff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+/* В тёмной теме белая клетка слепит */
+html[data-mantine-color-scheme="dark"] [data-type="checklist"] li > label input[type="checkbox"] {
+    background: var(--grist-bg, #32323f);
 }

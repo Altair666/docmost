@@ -2,7 +2,7 @@ import {
   IconBlockquote,
   IconCaretRightFilled,
   IconCheckbox,
-  IconChecklist,
+  IconBrandTrello,
   IconCode,
   IconH1,
   IconH2,
@@ -86,10 +86,10 @@ const CommandGroups: SlashMenuGroupedItemsType = {
     // константа модуля, она собирается до того, как придёт ответ
     // сервера с настройками вида.
     {
-      title: "Checklist",
+      title: "Checklist (Trello)",
       description: "Checklist with progress, like in Trello.",
       searchTerms: ["checklist", "trello", "чек", "лист", "progress"],
-      icon: IconChecklist,
+      icon: IconBrandTrello,
       command: ({ editor, range }: CommandProps) => {
         editor.chain().focus().deleteRange(range).insertChecklist().run();
       },
@@ -831,7 +831,7 @@ export const getSuggestionItems = ({
       // Наши пункты — только в нашем оформлении. Проверяем здесь, а не
       // при сборке списка выше: тот список собирается при загрузке
       // модуля, когда настройки вида ещё не пришли с сервера.
-      if (item.title === "Checklist" && !customUiEnabled()) return false;
+      if (item.title === "Checklist (Trello)" && !customUiEnabled()) return false;
       const translatedTitle = i18n.t(item.title);
       const translatedDescription = i18n.t(item.description);
       return (

@@ -33,7 +33,7 @@ const EMBEDS = new Set([
   "Draw.io (diagrams.net)",
   "Excalidraw (Whiteboard)",
   // Чек-лист просили держать здесь, рядом с прочими «интеграциями»
-  "Checklist",
+  "Checklist (Trello)",
 ]);
 
 // Команды меню «/». Корпоративные выброшены: requiresBases — это Bases,

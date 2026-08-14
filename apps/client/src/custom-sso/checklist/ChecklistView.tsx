@@ -1,15 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { NodeViewContent, NodeViewWrapper, NodeViewProps } from "@tiptap/react";
 import { ActionIcon, Group, Progress, Text, TextInput, Tooltip } from "@mantine/core";
-import { IconEye, IconEyeOff, IconTrash, IconChecklist } from "@tabler/icons-react";
+import { IconEye, IconEyeOff, IconTrash, IconBrandTrello } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 
 /**
- * Чек-лист по образцу Trello: значок, название, полоса выполнения со
- * счётчиком, кнопка скрытия отмеченных и удаление.
+ * Шапка чек-листа по образцу Trello: значок, название, полоса
+ * выполнения со счётчиком, кнопка скрытия отмеченных и удаление.
  *
- * Заголовок правится только в режиме правки — в чтении это просто текст.
- * Кнопка скрытия работает всегда: она нужна как раз читателю.
+ * Нажатие по чекбоксу здесь не перехватывается: этим занят
+ * CheckableTaskItem. Пока перехват жил тут, галка в клетке не рисовалась
+ * — родное нажатие гасилось, и менялся только документ.
  */
 export default function ChecklistView({
   node,
@@ -42,7 +43,7 @@ export default function ChecklistView({
 
   // Признак должен быть живым: страницу переключают между правкой и
   // чтением, а вид узла сам по себе не перерисовывается — из-за этого
-  // в чтении оставалась кнопка удаления, а отметка не срабатывала.
+  // в чтении оставалась кнопка удаления.
   const [editable, setEditable] = useState(editor?.isEditable === true);
   useEffect(() => {
     if (!editor) return;
@@ -60,15 +61,14 @@ export default function ChecklistView({
    * Отметка в режиме чтения.
    *
    * В правке с этим справляется сам редактор. В чтении он нажатие
-   * отклоняет, а для чек-листа это бессмысленно: список для того и
-   * нужен, чтобы отмечать по ходу дела, не переключая страницу.
+   * отклоняет, а для списка дел это бессмысленно.
    *
-   * Делаем это здесь, а не плагином редактора: узел со своим видом
-   * перехватывает события раньше, и до плагина они не доходят —
-   * проверено следом, обработчик молчал.
+   * Родное нажатие гасим и галку в клетке ставим сами: иначе браузер
+   * её не нарисует, и выходило странное — зачёркивание есть, а клетка
+   * пустая. Ровно на это и жаловались.
    */
   const handleClickCapture = (event: React.MouseEvent) => {
-    const target = event.target as HTMLElement | null;
+    const target = event.target as HTMLInputElement | null;
     if (
       !target ||
       target.tagName !== "INPUT" ||
@@ -76,20 +76,19 @@ export default function ChecklistView({
     ) {
       return;
     }
-    // Спрашиваем редактор сейчас, а не полагаемся на значение с
-    // прошлой отрисовки: оно устаревает при смене режима.
+
+    // Спрашиваем редактор сейчас: значение с прошлой отрисовки
+    // устаревает при смене режима.
     if (editor?.isEditable) return;
 
     event.preventDefault();
     event.stopPropagation();
 
-    // Ищем от самого нажатого элемента: ссылка на обёртку у TipTap не
-    // пробрасывается, и поиск по ней молча давал пустоту.
     const root = target.closest('[data-type="checklist"]');
     if (!root) return;
 
     const boxes = Array.from(root.querySelectorAll('input[type="checkbox"]'));
-    const index = boxes.indexOf(target as HTMLInputElement);
+    const index = boxes.indexOf(target);
     if (index < 0) return;
 
     const base = typeof getPos === "function" ? getPos() : null;
@@ -111,29 +110,30 @@ export default function ChecklistView({
 
     if (!item || itemPos === null) return;
 
+    const checked = !item.attrs?.checked;
+
     const tr = editor.state.tr.setNodeMarkup(itemPos, undefined, {
       ...item.attrs,
-      checked: !item.attrs?.checked,
+      checked,
     });
     editor.view.dispatch(tr);
+
+    // Клетку заполняем сами, но следующим тактом: браузер переключает
+    // чекбокс до обработчиков, а при погашенном нажатии возвращает
+    // состояние обратно уже после них — присваивание внутри обработчика
+    // затиралось этим откатом.
+    setTimeout(() => {
+      target.checked = checked;
+    }, 0);
   };
 
   return (
     <NodeViewWrapper
-      data-type="checklist"
-      data-hide-checked={hideChecked ? "true" : "false"}
       onClickCapture={handleClickCapture}
-      style={{
-        border: "1px solid var(--grist-decoration, #d9d9d9)",
-        borderRadius: 4,
-        padding: "10px 12px",
-        margin: "12px 0",
-        background: "var(--grist-bg, #fff)",
-      }}
-    >
-      <div contentEditable={false}>
+      data-type="checklist" data-hide-checked={hideChecked ? "true" : "false"}>
+      <div className="checklist-head" contentEditable={false}>
         <Group gap={8} wrap="nowrap" align="center" mb={6}>
-          <IconChecklist size={18} stroke={2} style={{ flex: "none", opacity: 0.7 }} />
+          <IconBrandTrello size={18} stroke={2} style={{ flex: "none", opacity: 0.75 }} />
 
           {editingTitle && editable ? (
             <TextInput
@@ -145,13 +145,14 @@ export default function ChecklistView({
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === "Escape") setEditingTitle(false);
               }}
-              style={{ flex: 1 }}
+              style={{ flex: 1, minWidth: 0 }}
             />
           ) : (
             <Text
               fw={600}
               size="sm"
-              style={{ flex: 1, cursor: editable ? "text" : "default" }}
+              lineClamp={1}
+              style={{ flex: 1, minWidth: 0, cursor: editable ? "text" : "default" }}
               onClick={() => editable && setEditingTitle(true)}
             >
               {title}
@@ -162,8 +163,7 @@ export default function ChecklistView({
             {done} / {total}
           </Text>
 
-          {/* Скрытие отмеченных — у каждого списка своё, как в Trello: в
-              одном прячем, в другом видно. */}
+          {/* Скрытие отмеченных — у каждого списка своё, как в Trello */}
           <Tooltip
             label={hideChecked ? t("Show checked items") : t("Hide checked items")}
             openDelay={300}
