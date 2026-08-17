@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { NodeViewContent, NodeViewWrapper, NodeViewProps } from "@tiptap/react";
 import { ActionIcon, Group, Progress, Text, TextInput, Tooltip } from "@mantine/core";
-import { IconEye, IconEyeOff, IconTrash, IconBrandTrello } from "@tabler/icons-react";
+import { IconEye, IconEyeOff, IconTrash } from "@tabler/icons-react";
+import { TrelloIcon } from "./trello-icon";
 import { useTranslation } from "react-i18next";
 
 /**
@@ -133,7 +134,9 @@ export default function ChecklistView({
       data-type="checklist" data-hide-checked={hideChecked ? "true" : "false"}>
       <div className="checklist-head" contentEditable={false}>
         <Group gap={8} wrap="nowrap" align="center" mb={6}>
-          <IconBrandTrello size={18} stroke={2} style={{ flex: "none", opacity: 0.75 }} />
+          <span style={{ flex: "none", display: "flex", alignItems: "center" }}>
+            <TrelloIcon size={18} />
+          </span>
 
           {editingTitle && editable ? (
             <TextInput

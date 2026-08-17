@@ -1859,14 +1859,19 @@ html[data-mantine-color-scheme] .mantine-Title-root {
 
 /* Клетка как в Trello: скруглённый квадрат, при отметке синяя заливка
    с белой галкой. Родной вид браузера рядом с этим смотрится чужим. */
-[data-type="checklist"] li > label {
-    padding-top: 0;
+[data-type="checklist"] ul[data-type="taskList"] li > label {
+    /* Цепочка длиннее стоковой намеренно: с равным весом побеждает
+       task-list.css, и клетка возвращается к родному виду. */
+    padding: 0;
+    margin-right: 8px;
     display: flex;
     align-items: center;
-    height: 1.6em;
+    /* Ровно строка абзаца — клетка встаёт по её середине и не съезжает,
+       когда пункт переносится на вторую строку. */
+    height: 1.65em;
 }
 
-[data-type="checklist"] li > label input[type="checkbox"] {
+[data-type="checklist"] ul[data-type="taskList"] li > label input[type="checkbox"] {
     appearance: none;
     -webkit-appearance: none;
     width: 16px;
@@ -1880,16 +1885,16 @@ html[data-mantine-color-scheme] .mantine-Title-root {
     flex: none;
 }
 
-[data-type="checklist"] li > label input[type="checkbox"]:hover {
+[data-type="checklist"] ul[data-type="taskList"] li > label input[type="checkbox"]:hover {
     background: var(--grist-hover, #f0f1f3);
 }
 
-[data-type="checklist"] li > label input[type="checkbox"]:checked {
+[data-type="checklist"] ul[data-type="taskList"] li > label input[type="checkbox"]:checked {
     background: #0c66e4;
     border-color: #0c66e4;
 }
 
-[data-type="checklist"] li > label input[type="checkbox"]:checked::after {
+[data-type="checklist"] ul[data-type="taskList"] li > label input[type="checkbox"]:checked::after {
     content: "";
     position: absolute;
     left: 4px;
@@ -1902,6 +1907,6 @@ html[data-mantine-color-scheme] .mantine-Title-root {
 }
 
 /* В тёмной теме белая клетка слепит */
-html[data-mantine-color-scheme="dark"] [data-type="checklist"] li > label input[type="checkbox"] {
+html[data-mantine-color-scheme="dark"] [data-type="checklist"] ul[data-type="taskList"] li > label input[type="checkbox"] {
     background: var(--grist-bg, #32323f);
 }

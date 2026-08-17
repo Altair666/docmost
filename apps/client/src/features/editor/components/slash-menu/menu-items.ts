@@ -2,7 +2,6 @@ import {
   IconBlockquote,
   IconCaretRightFilled,
   IconCheckbox,
-  IconBrandTrello,
   IconCode,
   IconH1,
   IconH2,
@@ -33,6 +32,7 @@ import {
   IconRotate2,
 } from "@tabler/icons-react";
 import { customUiEnabled } from "@/custom-sso/ui-flags";
+import { TrelloIcon } from "@/custom-sso/checklist/trello-icon";
 import {
   CommandProps,
   SlashMenuGroupedItemsType,
@@ -89,7 +89,7 @@ const CommandGroups: SlashMenuGroupedItemsType = {
       title: "Checklist (Trello)",
       description: "Checklist with progress, like in Trello.",
       searchTerms: ["checklist", "trello", "чек", "лист", "progress"],
-      icon: IconBrandTrello,
+      icon: TrelloIcon,
       command: ({ editor, range }: CommandProps) => {
         editor.chain().focus().deleteRange(range).insertChecklist().run();
       },
