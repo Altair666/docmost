@@ -8,6 +8,7 @@ import {
   verifyUserToken,
 } from "@/features/auth/services/auth-service";
 import { useNavigate } from "react-router-dom";
+import { refreshUiTheme } from "@/custom-sso/ui-theme";
 import { useAtom } from "jotai";
 import { currentUserAtom } from "@/features/user/atoms/current-user-atom";
 import {
@@ -41,6 +42,12 @@ export default function useAuth() {
     try {
       const response = await login(data);
       setIsLoading(false);
+
+      // До входа оформление спросить было нельзя — сервер отвечал 401.
+      // Переход ниже происходит внутри страницы, новой загрузки не
+      // будет, поэтому спрашиваем здесь, иначе вид останется стоковым
+      // до перезагрузки.
+      void refreshUiTheme();
 
       // Check if MFA is required
       if (response?.userHasMfa) {

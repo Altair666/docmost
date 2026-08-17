@@ -4,6 +4,7 @@ import "@mantine/notifications/styles.css";
 import '@mantine/dates/styles.css';
 import "@/styles/a11y-overrides.css";
 import {
+  applyCachedUiTheme,
   applyUiTheme,
   loadUiTheme,
   storeUiFlags,
@@ -62,7 +63,14 @@ requestAnimationFrame(() => {
   });
 });
 
+// Оформление из прошлого захода — до отрисовки. Иначе первый кадр
+// всегда стоковый, а после входа таким остаётся весь заход.
+applyCachedUiTheme();
+
 void loadUiTheme().then((state) => {
+  // null — сервер не ответил (обычно 401 на странице входа). Ставить
+  // на этом стоковый вид нельзя: затрём то, что уже показали.
+  if (!state) return;
   storeUiFlags(state);
   applyUiTheme(state);
 });
