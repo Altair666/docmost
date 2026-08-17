@@ -50,6 +50,8 @@ import FavoritesPage from "@/pages/favorites/favorites-page";
 import AiChat from "@/ee/ai-chat/pages/ai-chat.tsx";
 import VerifyEmail from "@/ee/pages/verify-email.tsx";
 import LabelPage from "@/pages/label/label-page";
+import LocalLoginPage from "@/custom-sso/LocalLoginPage";
+import { LOCAL_LOGIN_ROUTE } from "@/custom-sso/local-login";
 
 export default function App() {
   const { t } = useTranslation();
@@ -61,6 +63,8 @@ export default function App() {
       <Routes>
         <Route index element={<Navigate to="/home" />} />
         <Route path={"/login"} element={<LoginPage />} />
+        {/* Вход по паролю в обход отправки на Keycloak */}
+        <Route path={LOCAL_LOGIN_ROUTE} element={<LocalLoginPage />} />
         <Route path={"/invites/:invitationId"} element={<InviteSignup />} />
         <Route path={"/forgot-password"} element={<ForgotPassword />} />
         <Route path={"/password-reset"} element={<PasswordReset />} />

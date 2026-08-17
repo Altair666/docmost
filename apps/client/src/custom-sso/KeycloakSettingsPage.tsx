@@ -10,6 +10,7 @@ import {
   Paper,
   PasswordInput,
   Stack,
+  Switch,
   Text,
   TextInput,
   ThemeIcon,
@@ -31,6 +32,7 @@ import SettingsTitle from "@/components/settings/settings-title";
 import { getAppName } from "@/lib/config";
 import api from "@/lib/api-client";
 import useUserRole from "@/hooks/use-user-role";
+import { LOCAL_LOGIN_ROUTE } from "./local-login";
 
 // Страница нашего самописного Keycloak SSO. Живёт вне /ee и не зависит от
 // лицензии — в отличие от штатной "Security & SSO", которая платная.
@@ -45,6 +47,7 @@ type CheckResult = { ok: boolean; error?: string; skipped?: boolean };
 type OidcStatus = {
   configured: boolean;
   ready: boolean;
+  autoRedirect: boolean;
   issuer: string | null;
   clientId: string | null;
   redirectUri: string | null;
@@ -71,6 +74,7 @@ async function saveOidcConfig(values: {
   clientId: string;
   clientSecret: string;
   redirectUri: string;
+  autoRedirect: boolean;
 }): Promise<OidcStatus> {
   return unwrap<OidcStatus>(await api.post("/auth/oidc/config", values));
 }
@@ -151,6 +155,7 @@ export default function KeycloakSettingsPage() {
       clientId: "docmost",
       clientSecret: "",
       redirectUri: "",
+      autoRedirect: false,
     },
     validate: {
       issuer: (v) => (v.trim().length === 0 ? t("Required") : null),
@@ -167,6 +172,7 @@ export default function KeycloakSettingsPage() {
       clientSecret: "",
       redirectUri:
         s.redirectUri ?? `${window.location.origin}/api/auth/oidc/callback`,
+      autoRedirect: s.autoRedirect === true,
     });
     form.resetDirty();
   };
@@ -356,6 +362,43 @@ export default function KeycloakSettingsPage() {
                   )}
                   {...form.getInputProps("redirectUri")}
                 />
+
+                <Switch
+                  mt="xs"
+                  label={t("Send users straight to Keycloak")}
+                  description={t(
+                    "The login page is skipped. Sign-in with a password stays available at /auth — keep that address, it is the way back in if Keycloak is down.",
+                  )}
+                  disabled={!status.ready}
+                  {...form.getInputProps("autoRedirect", { type: "checkbox" })}
+                />
+
+                {form.values.autoRedirect && (
+                  <Group gap="xs">
+                    <Text size="sm" c="dimmed">
+                      {t("Password sign-in:")}
+                    </Text>
+                    <Code>{`${window.location.origin}${LOCAL_LOGIN_ROUTE}`}</Code>
+                    <CopyButton value={`${window.location.origin}${LOCAL_LOGIN_ROUTE}`}>
+                      {({ copied, copy }) => (
+                        <Button
+                          variant="subtle"
+                          size="compact-sm"
+                          onClick={copy}
+                          leftSection={
+                            copied ? (
+                              <IconCheck size={14} />
+                            ) : (
+                              <IconCopy size={14} />
+                            )
+                          }
+                        >
+                          {copied ? t("Copied") : t("Copy")}
+                        </Button>
+                      )}
+                    </CopyButton>
+                  </Group>
+                )}
 
                 <Group justify="space-between">
                   <CopyButton value={redirectUri || ""}>

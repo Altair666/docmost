@@ -1,5 +1,6 @@
 import axios, { AxiosInstance } from "axios";
 import APP_ROUTE from "@/lib/app-route.ts";
+import { LOCAL_LOGIN_ROUTE } from "@/custom-sso/local-login";
 import { isCloud } from "@/lib/config.ts";
 
 const api: AxiosInstance = axios.create({
@@ -75,6 +76,9 @@ function redirectToLogin() {
     APP_ROUTE.AUTH.PASSWORD_RESET,
     APP_ROUTE.AUTH.MFA_CHALLENGE,
     APP_ROUTE.AUTH.MFA_SETUP_REQUIRED,
+    // вход по паролю: та же форма, что на /login, и уводить с неё
+    // на /login по 401 так же незачем
+    LOCAL_LOGIN_ROUTE,
     "/invites",
   ];
   if (!exemptPaths.some((path) => window.location.pathname.startsWith(path))) {
