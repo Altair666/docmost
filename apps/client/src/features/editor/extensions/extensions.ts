@@ -4,6 +4,7 @@ import { Code } from "@tiptap/extension-code";
 import { TextAlign } from "@tiptap/extension-text-align";
 import { TaskList, TaskItem } from "@tiptap/extension-list";
 import { Checklist } from "@/custom-sso/checklist/checklist";
+import { HtmlEmbed } from "@/custom-sso/html-embed/html-embed";
 import { CharacterCount, UndoRedo } from "@tiptap/extensions";
 import { Placeholder } from "@/features/editor/extensions/placeholder";
 import { Superscript } from "@tiptap/extension-superscript";
@@ -226,6 +227,7 @@ export const mainExtensions = [
   // откроется правильно даже до ответа сервера с настройками вида.
   // Будь узел под флагом, он выпал бы из схемы и содержимое потерялось.
   Checklist,
+  HtmlEmbed,
   LinkExtension.configure({
     openOnClick: false,
   }).extend({

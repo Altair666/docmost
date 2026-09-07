@@ -1307,5 +1307,11 @@
   "Checklist with progress, like in Trello.": "Список задач с полосой выполнения, как в Trello.",
   "Hide checked items": "Скрыть отмеченные",
   "Show checked items": "Показать отмеченные",
-  "Checked items hidden": "Отмеченных скрыто"
+  "Checked items hidden": "Отмеченных скрыто",
+  "Embed HTML": "Встроить HTML",
+  "Upload and embed an HTML page.": "Загрузите и встройте HTML-страницу.",
+  "Only .html files can be embedded": "Встроить можно только файл .html",
+  "Failed to load HTML": "Не удалось загрузить HTML",
+  "Open in new tab": "Открыть в новой вкладке",
+  "Upload failed": "Не удалось загрузить файл"
 }

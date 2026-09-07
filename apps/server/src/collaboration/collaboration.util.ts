@@ -1,4 +1,9 @@
 import { StarterKit } from '@tiptap/starter-kit';
+// Наши узлы: без них вывоз страницы теряет чек-лист и блок HTML.
+import {
+  ChecklistNode,
+  HtmlEmbedNode,
+} from '../custom-sso/src/editor/nodes';
 import { TextAlign } from '@tiptap/extension-text-align';
 import { Superscript } from '@tiptap/extension-superscript';
 import SubScript from '@tiptap/extension-subscript';
@@ -110,7 +115,9 @@ export const tiptapExtensions = [
   Status,
   TransclusionSource,
   TransclusionReference,
-  BaseEmbed
+  BaseEmbed,
+  ChecklistNode,
+  HtmlEmbedNode,
 ] as any;
 
 export function jsonToHtml(tiptapJson: any) {

@@ -30,9 +30,11 @@ import {
   IconTag,
   IconMoodSmile,
   IconRotate2,
+  IconFileTypeHtml,
 } from "@tabler/icons-react";
 import { customUiEnabled } from "@/custom-sso/ui-flags";
 import { TrelloIcon } from "@/custom-sso/checklist/trello-icon";
+import { pickAndUploadHtml } from "@/custom-sso/html-embed/upload-html-action";
 import {
   CommandProps,
   SlashMenuGroupedItemsType,
@@ -331,6 +333,23 @@ const CommandGroups: SlashMenuGroupedItemsType = {
           input.remove();
         };
         input.click();
+      },
+    },
+    // Наш пункт. В списке стоит всегда, а прячется при выдаче: список —
+    // константа модуля, он собирается до ответа сервера с настройками.
+    {
+      title: "Embed HTML",
+      description: "Upload and embed an HTML page.",
+      searchTerms: ["html", "htm", "embed", "страница", "отчёт", "виджет"],
+      icon: IconFileTypeHtml,
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).run();
+
+        // @ts-ignore
+        const pageId = editor.storage?.pageId;
+        if (!pageId) return;
+
+        pickAndUploadHtml(editor, editor.view.state.selection.from, pageId);
       },
     },
     {
@@ -832,6 +851,7 @@ export const getSuggestionItems = ({
       // при сборке списка выше: тот список собирается при загрузке
       // модуля, когда настройки вида ещё не пришли с сервера.
       if (item.title === "Checklist (Trello)" && !customUiEnabled()) return false;
+      if (item.title === "Embed HTML" && !customUiEnabled()) return false;
       const translatedTitle = i18n.t(item.title);
       const translatedDescription = i18n.t(item.description);
       return (
