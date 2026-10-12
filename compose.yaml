@@ -1,0 +1,129 @@
+name: docmost_self_contained
+
+# Боевой стек Docmost с нашими правками.
+#
+# Значения берутся из .env рядом с этим файлом; его создаёт установщик
+# (deploy/install-linux.sh или deploy/windows/install.ps1) и заполняет
+# случайными паролями. Руками там правится только адрес сайта и раздел
+# Keycloak.
+services:
+  docmost:
+    build:
+      context: ./
+      dockerfile: server_Dockerfile
+      # Change on update? I guess??
+      args:
+        CUSTOM_BUILD: "anything"
+        NODE_OPTIONS: --max-old-space-size=2048
+    depends_on:
+      - db
+      - redis
+    environment:
+      APP_URL: 'https://docmost.mp-lab.ru'
+      APP_SECRET: ${APP_SECRET}
+      JWT_TOKEN_EXPIRES_IN: 30d
+      # Срок жизни сессии. По умолчанию Docmost ставит 90 дней — слишком
+      # долго: столько работает вход у того, кого уже уволили. Сверка с
+      # Keycloak гасит такого за сутки, но и сам срок сокращён.
+
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      REDIS_URL: redis://redis:6379
+      # Можно оставить пустыми: те же настройки задаются в интерфейсе на
+      # странице «Keycloak SSO» и хранятся в базе. 
+      # ВОЗМОООЖНООО
+      # ОДНАААААЖДЫЫЫЫЫ 
+      # В СЛЕДУЮЩЕЙ ЖИЗНИИИИИИИИ
+      CUSTOM_OIDC_ISSUER: ${CUSTOM_OIDC_ISSUER:-}
+      CUSTOM_OIDC_CLIENT_ID: ${CUSTOM_OIDC_CLIENT_ID:-}
+      CUSTOM_OIDC_CLIENT_SECRET: ${CUSTOM_OIDC_CLIENT_SECRET:-}
+      CUSTOM_OIDC_REDIRECT_URI: ${CUSTOM_OIDC_REDIRECT_URI:-}
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik_public"
+      
+      # Define middlewares for docmost service
+
+      # Upload limit: 500 MiB
+      - "traefik.http.middlewares.docmost-buffer.buffering.maxRequestBodyBytes=524288000"
+
+      # Compression
+      - "traefik.http.middlewares.docmost-compress.compress=true"
+      - "traefik.http.middlewares.docmost-compress.compress.minResponseBodyBytes=1024"
+      - "traefik.http.middlewares.docmost-compress.compress.encodings=gzip"
+
+      # Docmost listens on port 3000 inside its container
+      - "traefik.http.services.docmost.loadbalancer.server.port=http://docmost:3000"
+      
+      - "traefik.http.routers.docmost.entrypoints=websecure"
+      - "traefik.http.routers.docmost.rule=Host(`docmost.mp-lab.ru`)"
+      - "traefik.http.routers.docmost.tls=true"
+      - "traefik.http.routers.docmost.tls.certresolver=le"
+      - "traefik.http.routers.traccar_osmand.service=docmost@docker"
+
+      # Apply middleware
+      - "traefik.http.routers.docmost.middlewares=tfa@file,docmost-buffer,docmost-compress"
+    restart: always
+    volumes:
+      - docmost_storage:/app/data/storage
+    networks:
+      - docmost_internal
+      - traefik_public
+
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - db_data:/var/lib/postgresql
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 8G
+    logging:
+      options:
+        max-size: 900m
+    networks:
+      - docmost_internal
+
+  redis:
+    image: redis:8
+    # noeviction: очередь задач и совместное редактирование живут в
+    # Redis, и молча выбрасывать оттуда ключи нельзя.
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory-policy", "noeviction"]
+    restart: always
+    volumes:
+      - redis_data:/data
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 8G
+    logging:
+      options:
+        max-size: 900m
+    networks:
+      - docmost_internal
+
+volumes:
+  docmost_storage:
+  db_data:
+  redis_data:
+
+networks:
+  traefik_public:
+    external: true
+
+  docmost_internal:
+    name: docmost_internal
+    driver: bridge
+
