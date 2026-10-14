@@ -53,22 +53,25 @@ services:
       - "traefik.http.middlewares.docmost-compress.compress.encodings=gzip"
 
       # Docmost listens on port 3000 inside its container
-      - "traefik.http.services.docmost.loadbalancer.server.port=http://docmost:3000"
+      - "traefik.http.services.docmost.loadbalancer.server.url=http://docmost:3000"
       
       - "traefik.http.routers.docmost.entrypoints=websecure"
       - "traefik.http.routers.docmost.rule=Host(`docmost.mp-lab.ru`)"
       - "traefik.http.routers.docmost.tls=true"
       - "traefik.http.routers.docmost.tls.certresolver=le"
-      - "traefik.http.routers.traccar_osmand.service=docmost@docker"
+      - "traefik.http.routers.docmost.service=docmost@docker"
 
       # Apply middleware
-      - "traefik.http.routers.docmost.middlewares=tfa@file,docmost-buffer,docmost-compress"
+      # - "traefik.http.routers.docmost.middlewares=tfa@file,docmost-buffer,docmost-compress"
+      - "traefik.http.routers.docmost.middlewares=no-fwd@file,docmost-buffer,docmost-compress"
     restart: always
     volumes:
       - docmost_storage:/app/data/storage
     networks:
-      - docmost_internal
       - traefik_public
+      - docmost_internal
+    expose:
+      - 3000
 
   db:
     image: postgres:18
