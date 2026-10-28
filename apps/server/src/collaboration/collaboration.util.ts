@@ -3,6 +3,7 @@ import { StarterKit } from '@tiptap/starter-kit';
 import {
   ChecklistNode,
   HtmlEmbedNode,
+  PdfWithAlign,
 } from '../custom-sso/src/editor/nodes';
 import { TextAlign } from '@tiptap/extension-text-align';
 import { Superscript } from '@tiptap/extension-superscript';
@@ -30,7 +31,6 @@ import {
   TiptapImage,
   TiptapVideo,
   TiptapAudio,
-  TiptapPdf,
   PageBreak,
   TrailingNode,
   Attachment,
@@ -100,7 +100,7 @@ export const tiptapExtensions = [
   TiptapImage,
   TiptapVideo,
   TiptapAudio,
-  TiptapPdf,
+  PdfWithAlign,
   PageBreak,
   Callout,
   Attachment,

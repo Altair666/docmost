@@ -12,12 +12,18 @@ import {
   IconPaperclip,
   IconTrash,
 } from "@tabler/icons-react";
+import { useUiFlags } from "@/custom-sso/ui-flags";
+import { useLiveEditable } from "@/custom-sso/media/use-live-editable";
+import { alignToJustify } from "@/custom-sso/media/block-align";
+import { GristBlockToolbar } from "@/custom-sso/media/GristBlockToolbar";
 
 export default function PdfView(props: NodeViewProps) {
   const { t } = useTranslation();
   const { editor, node, getPos, selected, updateAttributes } = props;
   const { src, placeholder, width: nodeWidth, height: nodeHeight } = node.attrs;
   const [hasError, setHasError] = useState(false);
+  const { customUi } = useUiFlags();
+  const liveEditable = useLiveEditable(editor);
 
   const safeSrc = useMemo(() => {
     if (!src || !isInternalFileUrl(src)) return null;
@@ -117,7 +123,10 @@ export default function PdfView(props: NodeViewProps) {
 
   return (
     <NodeViewWrapper data-drag-handle className={classes.pdfNodeView}>
-      <div className={classes.pdfContainer}>
+      <div
+        className={classes.pdfContainer}
+        style={{ justifyContent: alignToJustify(node.attrs.align) }}
+      >
         <ResizableWrapper
           initialWidth={nodeWidth || 800}
           initialHeight={nodeHeight || 600}
@@ -130,6 +139,7 @@ export default function PdfView(props: NodeViewProps) {
           selected={selected}
           className={clsx(classes.pdfResizeWrapper, {
             "ProseMirror-selectednode": selected,
+            "grist-block-host": customUi,
           })}
         >
           <iframe
@@ -150,7 +160,26 @@ export default function PdfView(props: NodeViewProps) {
               }
             }}
           />
-          {editor.isEditable && (
+          {customUi ? (
+            liveEditable && (
+              <GristBlockToolbar
+                align={node.attrs.align}
+                onAlign={(align) => updateAttributes({ align })}
+                actions={[
+                  {
+                    label: t("Convert to attachment"),
+                    icon: <IconPaperclip size={18} />,
+                    onClick: handleConvertToAttachment,
+                  },
+                  {
+                    label: t("Delete"),
+                    icon: <IconTrash size={18} />,
+                    onClick: handleDelete,
+                  },
+                ]}
+              />
+            )
+          ) : editor.isEditable && (
             <div className={classes.hoverMenu}>
               <Tooltip position="top" label={t("Convert to attachment")} withinPortal>
                 <ActionIcon

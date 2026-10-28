@@ -1910,3 +1910,11 @@ html[data-mantine-color-scheme] .mantine-Title-root {
 html[data-mantine-color-scheme="dark"] [data-type="checklist"] ul[data-type="taskList"] li > label input[type="checkbox"] {
     background: var(--grist-bg, #32323f);
 }
+
+/* Сворачиваемый блок: содержимое — flex-элемент с min-width: auto, и
+   самая длинная неразрывная строка внутри растягивает его шире страницы.
+   Текст при этом обрезается справа, а блоки по центру и справа уезжают
+   за край. Штатная ошибка Docmost, видна и на бою. */
+[data-type="details"] > [data-type="detailsContainer"] {
+    min-width: 0;
+}

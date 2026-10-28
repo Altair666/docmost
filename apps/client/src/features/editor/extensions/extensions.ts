@@ -5,6 +5,8 @@ import { TextAlign } from "@tiptap/extension-text-align";
 import { TaskList, TaskItem } from "@tiptap/extension-list";
 import { Checklist } from "@/custom-sso/checklist/checklist";
 import { HtmlEmbed } from "@/custom-sso/html-embed/html-embed";
+import { PdfWithAlign } from "@/custom-sso/media/pdf-align";
+import { ImageLightboxExt } from "@/custom-sso/media/image-lightbox-ext";
 import { CharacterCount, UndoRedo } from "@tiptap/extensions";
 import { Placeholder } from "@/features/editor/extensions/placeholder";
 import { Superscript } from "@tiptap/extension-superscript";
@@ -44,7 +46,6 @@ import {
   Drawio,
   Excalidraw,
   Embed,
-  TiptapPdf,
   PageBreak,
   SearchAndReplace,
   Mention,
@@ -228,6 +229,7 @@ export const mainExtensions = [
   // Будь узел под флагом, он выпал бы из схемы и содержимое потерялось.
   Checklist,
   HtmlEmbed,
+  ImageLightboxExt,
   LinkExtension.configure({
     openOnClick: false,
   }).extend({
@@ -379,7 +381,7 @@ export const mainExtensions = [
   Embed.configure({
     view: EmbedView,
   }),
-  TiptapPdf.configure({
+  PdfWithAlign.configure({
     view: PdfView,
   }),
   PageBreak,

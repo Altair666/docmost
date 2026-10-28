@@ -2,6 +2,7 @@ import { Node, mergeAttributes } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
 
 import HtmlEmbedView from "./HtmlEmbedView";
+import { alignAttribute } from "@/custom-sso/media/block-align";
 
 export interface HtmlEmbedAttributes {
   attachmentId?: string;
@@ -9,6 +10,7 @@ export interface HtmlEmbedAttributes {
   size?: number;
   width?: number;
   height?: number;
+  align?: "left" | "center" | "right";
   placeholder?: { id: string; name: string };
 }
 
@@ -19,6 +21,12 @@ declare module "@tiptap/core" {
     };
   }
 }
+
+// Обмен с документом в рамке: он сообщает свою высоту, мы можем
+// переспросить. Те же строки зашиты в скрипт замера на сервере
+// (custom-sso/src/html-embed/html-embed.controller.ts).
+export const HTML_EMBED_HEIGHT_MSG = "docmost:html-embed-height";
+export const HTML_EMBED_MEASURE_MSG = "docmost:html-embed-measure";
 
 /**
  * Адрес показа. Не штатная отдача файлов, а свой маршрут: .html оттуда
@@ -80,6 +88,7 @@ export const HtmlEmbed = Node.create({
         },
         renderHTML: (attrs) => ({ height: attrs.height }),
       },
+      align: alignAttribute,
       // Живёт только в памяти, пока файл загружается: в документ
       // такое сохранять незачем.
       placeholder: {

@@ -1,35 +1,74 @@
 import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
-import { ActionIcon, Group, Loader, Text, Tooltip } from "@mantine/core";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { IconCode, IconExternalLink, IconTrash } from "@tabler/icons-react";
+import { Group, Loader, Text } from "@mantine/core";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  IconArrowAutofitHeight,
+  IconCode,
+  IconExternalLink,
+  IconTrash,
+} from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import clsx from "clsx";
 
 import { ResizableWrapper } from "@/features/editor/components/common/resizable-wrapper";
-import { htmlEmbedSrc } from "./html-embed";
+import { useLiveEditable } from "@/custom-sso/media/use-live-editable";
+import { alignToJustify } from "@/custom-sso/media/block-align";
+import { GristBlockToolbar } from "@/custom-sso/media/GristBlockToolbar";
+import { HTML_EMBED_HEIGHT_MSG, HTML_EMBED_MEASURE_MSG, htmlEmbedSrc } from "./html-embed";
 import classes from "./html-embed.module.css";
+
+// Пределы на случай, когда документ размеров не прислал. Когда прислал,
+// нижняя граница — его содержимое (см. ниже). Было 200, как у PDF, и
+// короткий документ оставлял под собой пустое поле, которое не убрать.
+const MIN_HEIGHT = 40;
+const MIN_WIDTH = 120;
+const MAX_HEIGHT = 4000;
+const MAX_WIDTH = 1200;
+// Рамка у iframe — по пикселю с каждой стороны. Без поправки на неё
+// появляется полоса прокрутки в пиксель.
+const FRAME_BORDER = 2;
+
+const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), hi);
 
 export default function HtmlEmbedView(props: NodeViewProps) {
   const { t } = useTranslation();
   const { editor, node, getPos, selected, updateAttributes } = props;
-  const { attachmentId, name, placeholder, width, height } = node.attrs;
+  const { attachmentId, name, placeholder, width, height, align } = node.attrs;
   const [failed, setFailed] = useState(false);
+  const editable = useLiveEditable(editor);
 
-  // Признак правки держим живым: при переключении режима узел заново
-  // не отрисовывается, и значение, взятое один раз, устаревает — в
-  // чтении оставались кнопки правки.
-  const [editable, setEditable] = useState(editor?.isEditable === true);
+  // Высота содержимого. Её присылает сам документ: сервер дописывает к
+  // нему крошечный скрипт замера (см. html-embed.controller.ts). Снаружи
+  // не померить — рамка в песочнице, и документ для нас чужой.
+  const frameRef = useRef<HTMLIFrameElement>(null);
+  const [contentHeight, setContentHeight] = useState<number | null>(null);
+  const [contentMinWidth, setContentMinWidth] = useState<number | null>(null);
+
   useEffect(() => {
-    if (!editor) return;
-    const sync = () => setEditable(editor.isEditable);
-    sync();
-    editor.on("update", sync);
-    editor.on("transaction", sync);
-    return () => {
-      editor.off("update", sync);
-      editor.off("transaction", sync);
+    const onMessage = (e: MessageEvent) => {
+      if (e.source !== frameRef.current?.contentWindow) return;
+      if (e.data?.type !== HTML_EMBED_HEIGHT_MSG) return;
+      const h = Number(e.data.height);
+      if (Number.isFinite(h) && h > 0) setContentHeight(Math.ceil(h));
+      const w = Number(e.data.minWidth);
+      if (Number.isFinite(w) && w > 0) setContentMinWidth(Math.ceil(w));
     };
-  }, [editor]);
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
+  }, []);
+
+  // Меньше содержимого рамку не сжать: иначе низ документа срезается,
+  // а справа он уходит под край. Если содержимое выросло (скрипт
+  // документа что-то дописал), блок подрастает сам — только на экране,
+  // в документ это не пишется: в чтении править его нельзя.
+  const minH = contentHeight
+    ? clamp(contentHeight + FRAME_BORDER, MIN_HEIGHT, MAX_HEIGHT)
+    : MIN_HEIGHT;
+  const minW = contentMinWidth
+    ? clamp(contentMinWidth + FRAME_BORDER, MIN_WIDTH, MAX_WIDTH)
+    : MIN_WIDTH;
+  const shownW = Math.max(width || 800, minW);
+  const shownH = Math.max(height || 600, minH);
 
   const src = useMemo(() => htmlEmbedSrc(attachmentId), [attachmentId]);
 
@@ -42,6 +81,19 @@ export default function HtmlEmbedView(props: NodeViewProps) {
     (w: number, h: number) => updateAttributes({ width: w, height: h }),
     [updateAttributes],
   );
+
+  const fitHeight = useCallback(() => {
+    if (!contentHeight) {
+      // Документ мог не прислать высоту: открыт до обновления сервера
+      // или скрипты в нём падают раньше нашего. Переспросим.
+      frameRef.current?.contentWindow?.postMessage(
+        { type: HTML_EMBED_MEASURE_MSG },
+        "*",
+      );
+      return;
+    }
+    updateAttributes({ height: minH });
+  }, [contentHeight, minH, updateAttributes]);
 
   const remove = useCallback(() => {
     const pos = getPos();
@@ -93,22 +145,26 @@ export default function HtmlEmbedView(props: NodeViewProps) {
 
   return (
     <NodeViewWrapper data-drag-handle data-type="htmlEmbed">
-      <div className={classes.container}>
+      <div
+        className={classes.container}
+        style={{ justifyContent: alignToJustify(align) }}
+      >
         <ResizableWrapper
-          initialWidth={width || 800}
-          initialHeight={height || 600}
-          minWidth={200}
-          maxWidth={1200}
-          minHeight={200}
-          maxHeight={1200}
+          initialWidth={shownW}
+          initialHeight={shownH}
+          minWidth={minW}
+          maxWidth={MAX_WIDTH}
+          minHeight={minH}
+          maxHeight={MAX_HEIGHT}
           onResize={resize}
           isEditable={editable}
           selected={selected}
-          className={clsx(classes.resizeWrapper, {
+          className={clsx(classes.resizeWrapper, "grist-block-host", {
             "ProseMirror-selectednode": selected,
           })}
         >
           <iframe
+            ref={frameRef}
             className={classes.frame}
             src={src}
             title={name || "HTML"}
@@ -129,33 +185,27 @@ export default function HtmlEmbedView(props: NodeViewProps) {
           />
 
           {editable && (
-            <div className={classes.hoverMenu}>
-              <Tooltip position="top" label={t("Open in new tab")} withinPortal>
-                <ActionIcon
-                  size="sm"
-                  variant="filled"
-                  color="dark"
-                  component="a"
-                  href={src}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={t("Open in new tab")}
-                >
-                  <IconExternalLink size={14} />
-                </ActionIcon>
-              </Tooltip>
-              <Tooltip position="top" label={t("Delete")} withinPortal>
-                <ActionIcon
-                  size="sm"
-                  variant="filled"
-                  color="dark"
-                  onClick={remove}
-                  aria-label={t("Delete")}
-                >
-                  <IconTrash size={14} />
-                </ActionIcon>
-              </Tooltip>
-            </div>
+            <GristBlockToolbar
+              align={align}
+              onAlign={(a) => updateAttributes({ align: a })}
+              actions={[
+                {
+                  label: t("Fit height to content"),
+                  icon: <IconArrowAutofitHeight size={18} />,
+                  onClick: fitHeight,
+                },
+                {
+                  label: t("Open in new tab"),
+                  icon: <IconExternalLink size={18} />,
+                  href: src,
+                },
+                {
+                  label: t("Delete"),
+                  icon: <IconTrash size={18} />,
+                  onClick: remove,
+                },
+              ]}
+            />
           )}
         </ResizableWrapper>
       </div>
